@@ -43,11 +43,11 @@
   <!-- Local data script -->
   <script src="agents_catalog.js?v=20261031_v16"></script>
   <!-- Pixel Avatar Engine -->
-  <script src="pixel_avatar.js?v=20261031_v19"></script>
+  <script src="pixel_avatar.js?v=20261031_v20"></script>
   <!-- 0 KB Procedural Web Audio & RPG Engine -->
-  <script src="rpg_engine.js?v=20261031_v19"></script>
+  <script src="rpg_engine.js?v=20261031_v20"></script>
   <!-- 👑 現代 64x64 高解析次像素藝術與動態呼吸紙娃娃引擎 (2016-2026 經典殿堂角色) -->
-  <script src="modern_avatar.js?v=20261031_v19"></script>
+  <script src="modern_avatar.js?v=20261031_v20"></script>
   <style>
     /* Custom scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -1630,7 +1630,7 @@
                 <button 
                   v-for="g in [{ id: 'female', label: '🛡️ 女武神' }, { id: 'male', label: '⚔️ 男勇者' }, { id: 'cat', label: '🐱 貓魔導' }]"
                   :key="g.id"
-                  @click="studioOptions.gender = g.id; onStudioOptionChange()"
+                  @click="studioOptions.gender = g.id; if (g.id === 'male' && studioOptions.sexyCostume === 'bunny') studioOptions.sexyCostume = 'none'; onStudioOptionChange()"
                   :class="studioOptions.gender === g.id ? 'bg-purple-600/30 text-purple-200 border-purple-500 shadow-sm' : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'"
                   class="py-1.5 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center space-x-1"
                 >
@@ -3717,20 +3717,24 @@
           },
           randomizeStudioOptions: function() {
             const busts = ['A', 'B', 'D', 'F', 'H'];
+            const nextGender = ['female', 'male', 'cat'][Math.floor(Math.random() * 3)];
             studioOptions.value = {
-              gender: ['female', 'male', 'cat'][Math.floor(Math.random() * 3)],
+              modernMode: false,
+              gender: nextGender,
               faceIndex: Math.floor(Math.random() * 8),
               hairIndex: Math.floor(Math.random() * 6),
               hairColorIndex: Math.floor(Math.random() * 8),
               skinIndex: Math.floor(Math.random() * 5),
               bustSize: busts[Math.floor(Math.random() * busts.length)],
-              sexyCostume: levelInfo.value.level >= 30 ? ['bunny', 'succubus', 'bikini', 'oiran'][Math.floor(Math.random() * 4)] : 'none',
+              sexyCostume: (levelInfo.value.level >= 30 && nextGender === 'female') ? ['bunny', 'succubus', 'bikini', 'oiran'][Math.floor(Math.random() * 4)] : 'none',
               armorTier: levelInfo.value.level
             };
             if (window.ValhallaAudio) window.ValhallaAudio.playEquipSound();
           },
           onStudioOptionChange: function() {
             studioOptions.value.modernMode = false;
+            // 🌟 核心防禦：強制解構觸發 Vue 虛擬 DOM computed 立即重新求值
+            studioOptions.value = { ...studioOptions.value };
             if (window.ValhallaAudio) window.ValhallaAudio.playEquipSound();
           },
           getHeroLevel: function(agentId) {
