@@ -12,6 +12,9 @@ $RECYCLE.BIN/
 __pycache__/
 *.pyc
 
+# Heavy Pixel Assets Vault (Local resource repository)
+retro_pixel_vault/
+
 # IDE
 .vs/
 *.user
