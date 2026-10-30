@@ -14,7 +14,7 @@
 - [1. 宏觀背景與核心痛點](#1-宏觀背景與核心痛點)
 - [2. 議題一：勇者鬥惡龍 (DQ) 六大階層階梯裝備庫](#2-議題一勇者鬥惡龍-dq-六大階層階梯裝備庫)
 - [3. 議題二：32×32 分層模組化像素捏臉與紙娃娃換裝引擎](#3-議題二3232-分層模組化像素捏臉與紙娃娃換裝引擎)
-- [4. 議題三：空洞騎士 (Hollow Knight) 40+ 護符解鎖與天賦樹](#4-議題三空洞騎士-hollow-knight-40-護符解鎖與天賦樹)
+- [4. 議題三：深淵秘符：40+ 遠古暗影符文解鎖與天賦樹 (Ancient Void Charms & Relics)](#4-議題三空洞騎士-hollow-knight-40-護符解鎖與天賦樹)
 - [5. 議題四：REA (Retro Engine Architecture) 0 KB 向量圖層渲染技術](#5-議題四rea-retro-engine-architecture-0-kb-向量圖層渲染技術)
 - [6. 議題五：階段里程碑與實作路線圖 (Sprint Roadmap)](#6-議題五階段里程碑與實作路線圖-sprint-roadmap)
 
@@ -25,7 +25,7 @@
 ### 1.1 痛點起因
 目前英靈殿已實裝 16×16 確定性像素頭像 (`pixel_avatar.js`)，並提供四種形態（男、女、貓咪、柴犬）。然而：
 1. **靜態缺乏成長感**：特工頭像在升等後外觀無明顯變化，使用者累積了經驗值（EXP），卻無法獲得如經典 JRPG 般「換上傳奇神裝」的視覺爽感。
-2. **缺乏經典電玩情懷共鳴**：使用者心中深植著《勇者鬥惡龍 (Dragon Quest)》、《空洞騎士 (Hollow Knight)》等 3A/獨立像素大作的情懷，若能將這五大本機資產庫深度融合，英靈殿的沉浸感與迷因傳播力將呈指數級爆發！
+2. **缺乏經典電玩情懷共鳴**：使用者心中深植著《勇者鬥惡龍 (Dragon Quest)》與深淵暗影冒險等 3A/獨立像素大作的情懷，若能將這五大本機資產庫深度融合，英靈殿的沉浸感與迷因傳播力將呈指數級爆發！
 
 ---
 
@@ -39,7 +39,7 @@ flowchart LR
     L5 --> L10["Lv.10 皇家騎士<br/>鋼鐵全罩盔甲 / 騎士長劍 / 紋章盾"]
     L10 --> L15["Lv.15 元素魔導<br/>賢者法袍 / 星辰魔杖 / 魔導高帽"]
     L15 --> L20["Lv.20 傳奇勇者<br/>羅德/洛特之鎧 / 王者之劍 / 光之盾"]
-    L20 --> L30["Lv.30 幻獸支配者<br/>史萊姆皇冠 / 兔女郎套裝 / 空洞神域護符"]
+    L20 --> L30["Lv.30 幻獸支配者<br/>史萊姆皇冠 / 兔女郎套裝 / 深淵神域秘符 (Void Charm)"]
 
     style L1 fill:#f8fafc,stroke:#64748b,stroke-width:2px
     style L5 fill:#ecfdf5,stroke:#10b981,stroke-width:2px
@@ -58,7 +58,7 @@ flowchart LR
 | **Lv.10 ~ 14** | **皇家騎士 (Knight)** | 騎士大劍 (Broadsword) | 鋼鐵胸甲 (Iron Plate) | 騎士面甲盔 (Iron Helmet) | 藍銀色冷冽金屬光澤 |
 | **Lv.15 ~ 19** | **元素魔導 (Mage/Sage)** | 星辰法杖 (Star Wand) | 賢者法袍 (Sage Robe) | 大魔導尖帽 (Wizard Hat) | 紫色魔力微粒懸浮環繞 |
 | **Lv.20 ~ 29** | **傳奇勇者 (Hero)** | 王者之劍 (Sword of Kings) | 羅德神鎧 (Erdrick Armor) | 羅德頭盔 (Hero Helm) | 金黃色傳奇聖光脈衝 |
-| **Lv.30+** | **幻獸支配者 (Overlord)** | 空洞骨釘 (Coiled Nail) | 兔女郎戰袍 / 幻獸法衣 | 經典史萊姆皇冠 (King Slime) | 彩虹霓虹幻彩流光 |
+| **Lv.30+** | **幻獸支配者 (Overlord)** | 深淵骨刃 (Abyssal Nail) | 兔女郎戰袍 / 幻獸法衣 | 經典史萊姆皇冠 (King Slime) | 彩虹霓虹幻彩流光 |
 
 ---
 
@@ -80,9 +80,9 @@ Layer 7: ✨ 稀有度金色星芒 (Rarity Particles)
 
 ---
 
-## 4. 議題三：空洞騎士 (Hollow Knight) 40+ 護符解鎖與天賦樹
+## 4. 議題三：深淵秘符：40+ 遠古暗影符文解鎖與天賦樹 (Ancient Void Charms & Relics)
 
-利用 `retro_pixel_vault/hollow_knight_resources/` 中的 40 款經典 Charm 護符：
+利用資產庫所收錄的 40+ 款原創深淵暗影符文 (Void Charms) 圖鑑：
 - **功能設計**：召喚師每升 5 級，可獲得 1 個「護符插槽 (Charm Notch)」。
 - **護符效果**：
   - 🛡️ **堅固力量 (Unbreakable Strength)**：複製 Prompt 時自動附加「強制遵循深度架構與邊界測試」提示。
@@ -108,9 +108,10 @@ Layer 7: ✨ 稀有度金色星芒 (Rarity Particles)
 | **Milestone 7.1** | DQ 裝備圖鑑資料字典 | 產出 `dq_armory_catalog.json`，收錄六大階層數值規格。 | `dragon_quest_jrpg/` |
 | **Milestone 7.2** | 32×32 像素渲染引擎原型 | 開發 `pixel_avatar_v2.js`，支援圖層動態堆疊。 | `lpc_character_generator/` |
 | **Milestone 7.3** | 裝備與經驗等級聯動 | 升級時即時觸發換裝演出與升等音效。 | `rpg_engine.js` |
-| **Milestone 7.4** | 空洞騎士護符天賦插槽 | 前端右下角 HUD 展開護符裝備面板。 | `hollow_knight_resources/` |
+| **Milestone 7.4** | 深淵秘符天賦插槽 | 前端右下角 HUD 展開護符裝備面板。 | `hollow_knight_resources/` |
 
 ---
 
 > 💡 **文檔關聯備忘**：  
 > 本企劃書作為 `AgentValhalla` 系列第 07 號重大研發藍圖，接續前六號里程碑，專門指導後續 RPG 裝備化進階開發。
+
