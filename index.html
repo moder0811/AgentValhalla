@@ -48,6 +48,7 @@
   <script src="rpg_engine.js?v=20261031_v22"></script>
   <!-- 👑 現代 64x64 高解析次像素藝術與動態呼吸紙娃娃引擎 (2016-2026 經典殿堂角色) -->
   <script src="modern_avatar.js?v=20261031_v22"></script>
+  <script src="lpc_compositor.js?v=20261031_lpc2"></script>
   <style>
     /* Custom scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -1497,81 +1498,78 @@
       </button>
     </div>
 
-    <!-- 🎨 32x32 復古紙娃娃換裝工坊彈窗 (Paper Doll Studio Modal) -->
+    <!-- 👗 LPC 手繪真機換裝工坊彈窗 (Hand-Drawn Layer Studio Modal) -->
     <div 
       v-if="showStudioModal && studioHero" 
       class="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto bg-black/90 backdrop-blur-md transition"
       @click.self="showStudioModal = false"
     >
-      <div class="relative w-full max-w-3xl bg-slate-900 border border-purple-500/40 rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(168,85,247,0.3)] flex flex-col max-h-[92vh]">
+      <div class="relative w-full max-w-4xl bg-slate-900 border border-purple-500/40 rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(168,85,247,0.3)] flex flex-col max-h-[92vh]">
         <!-- 彈窗 Header -->
         <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950">
           <div class="flex items-center space-x-3">
-            <span class="text-2xl">🎨</span>
+            <span class="text-2xl">👗</span>
             <div>
               <h3 class="text-base font-bold text-slate-100 flex items-center space-x-2">
-                <span>👑 殿堂級 64x64 現代極致性感立繪</span>
-                <span class="text-xs text-pink-400 font-mono bg-pink-500/10 px-2 py-0.5 rounded border border-pink-500/20">
+                <span>👑 瓦爾哈拉 · 手繪真機換裝工坊</span>
+                <span class="text-xs text-pink-400 font-mono bg-pink-500/10 px-2.5 py-0.5 rounded-full border border-pink-500/20 font-black">
                   {{ studioHero.name }}
                 </span>
               </h3>
-              <p class="text-xs text-slate-400">十年獨立遊戲性感代表作 · 4 幀次像素呼吸動態 · LPC 6 階漸層抗鋸齒</p>
+              <p class="text-xs text-slate-400">LPC 專業繪師手繪圖層賽璐珞疊合 · 白皙臉蛋與少女腮紅 · 100% 告別樂高感</p>
             </div>
           </div>
-          <div class="flex items-center space-x-2">
-            <a 
-              href="lpc_studio_demo.html" 
-              target="_blank"
-              class="px-3 py-1.5 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white text-xs font-black rounded-xl shadow-lg shadow-pink-500/30 flex items-center space-x-1.5 transition"
-              title="開啟 LPC 真實手繪像素圖層工坊"
-            >
-              <span>👗</span>
-              <span>手繪真機工坊</span>
-            </a>
-            <button 
-              @click="showStudioModal = false" 
-              class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition"
-            >
-              ✕
-            </button>
-          </div>
+          <button 
+            @click="showStudioModal = false" 
+            class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition"
+          >
+            ✕
+          </button>
         </div>
 
-        <!-- 彈窗主體雙欄佈局 (左側大畫布預覽，右側選項) -->
-        <div class="p-4 sm:p-6 overflow-y-auto flex-1 flex flex-col md:flex-row gap-5">
-          <!-- 左側預覽與數據面板 -->
-          <div class="w-full md:w-56 flex-shrink-0 flex flex-col items-center space-y-4 bg-slate-950/80 p-4 rounded-2xl border border-slate-800">
-            <div class="relative w-40 h-40 bg-gradient-to-b from-slate-900 to-slate-950 rounded-2xl border-2 border-purple-500/50 p-2 shadow-[0_0_20px_rgba(168,85,247,0.3)] flex items-center justify-center overflow-hidden">
-              <div class="w-36 h-36 flex items-center justify-center" v-html="previewStudioSvg"></div>
-              <!-- 頂級解鎖金光 -->
-              <span v-if="studioOptions.sexyCostume && studioOptions.sexyCostume !== 'none'" class="absolute top-1 right-1 text-xs">✨</span>
-            </div>
-
-            <div class="text-center space-y-1 w-full">
-              <div class="text-xs font-bold text-slate-200">{{ studioHero.name }}</div>
-              <div class="text-[11px] text-slate-400 font-mono">特工 Lv.{{ getHeroLevel(studioHero.id) }} (EXP: {{ getHeroExp(studioHero.id) }})</div>
-              <div class="text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                128x128 HD · {{ selectedCategory === 'female' ? '🛡️ 女武神' : (selectedCategory === 'male' ? '⚔️ 男勇者' : (selectedCategory === 'cat' ? '🐱 貓魔導' : '🐶 柴犬將軍')) }}
+        <!-- 彈窗主體雙欄佈局 (左側大畫布預覽，右側圖層控制) -->
+        <div class="p-4 sm:p-6 overflow-y-auto flex-1 flex flex-col md:flex-row gap-6">
+          
+          <!-- 左側：即時渲染預覽視窗 -->
+          <div class="w-full md:w-64 flex-shrink-0 flex flex-col items-center space-y-3.5 bg-slate-950/80 p-4 rounded-2xl border border-slate-800 shadow-inner">
+            <div class="relative w-44 h-44 bg-slate-950 rounded-2xl border-2 border-purple-500/60 p-2 shadow-[0_0_25px_rgba(168,85,247,0.35)] flex items-center justify-center overflow-hidden">
+              <img 
+                v-if="studioLpcPreviewUrl" 
+                :src="studioLpcPreviewUrl" 
+                class="w-40 h-40 pixelated object-cover rounded-xl shadow-2xl" 
+                alt="LPC Hand-drawn Avatar"
+              />
+              <div v-else class="text-xs text-slate-500 flex items-center space-x-1.5 font-mono">
+                <span class="animate-spin">⏳</span>
+                <span>手繪繪製中...</span>
               </div>
             </div>
 
-            <!-- 快捷操作按鈕 -->
-            <div class="w-full flex space-x-2 pt-2 border-t border-slate-800">
+            <!-- 特工資訊標籤 -->
+            <div class="text-center space-y-1 w-full">
+              <div class="text-xs font-black text-slate-200">{{ studioHero.name }}</div>
+              <div class="text-[11px] text-slate-400 font-mono">特工 Lv.{{ getHeroLevel(studioHero.id) }} (EXP: {{ getHeroExp(studioHero.id) }})</div>
+              <div class="text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 font-bold">
+                {{ studioLpcOptions.gender === 'female' ? '🛡️ 女武神素體' : '⚔️ 男勇者素體' }} · {{ studioLpcOptions.framing === 'portrait' ? '胸部特寫 128x128' : '全身立繪' }}
+              </div>
+            </div>
+
+            <!-- 視角與臉紅切換按鈕 -->
+            <div class="w-full grid grid-cols-2 gap-2">
               <button 
-                @click="randomizeStudioOptions"
-                class="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-slate-700 transition flex items-center justify-center space-x-1"
-                title="隨機搖號配置"
+                @click="toggleLpcFraming"
+                class="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-bold rounded-xl border border-slate-700 transition flex items-center justify-center space-x-1"
               >
-                <span>🎲</span>
-                <span>隨機</span>
+                <span>🔍</span>
+                <span>{{ studioLpcOptions.framing === 'portrait' ? '切換全身' : '切換特寫' }}</span>
               </button>
               <button 
-                @click="resetStudioOptions"
-                class="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white text-xs font-bold rounded-xl border border-slate-700 transition flex items-center justify-center space-x-1"
-                title="恢復預設造形"
+                @click="toggleLpcBlush"
+                :class="studioLpcOptions.enableBlush ? 'bg-pink-500/20 border-pink-500 text-pink-300' : 'bg-slate-800 border-slate-700 text-slate-400'"
+                class="py-1.5 px-2 text-[11px] font-bold rounded-xl border transition flex items-center justify-center space-x-1"
               >
-                <span>🔄</span>
-                <span>重設</span>
+                <span>🌸</span>
+                <span>臉紅: {{ studioLpcOptions.enableBlush ? '開' : '關' }}</span>
               </button>
             </div>
 
@@ -1583,223 +1581,141 @@
             >
               <span>{{ isBreathingActive ? '✨ 呼吸動態：律動中' : '⏸️ 呼吸動態：已暫停' }}</span>
             </button>
-            <div class="text-[10px] text-slate-500 font-mono text-center">
-              當前模式：{{ studioOptions.modernMode ? '👑 64x64 HD 現代立繪' : '🎨 32x32 REA 紙娃娃' }}
+
+            <!-- 快捷操作按鈕 -->
+            <div class="w-full flex space-x-2 pt-2 border-t border-slate-800">
+              <button 
+                @click="randomizeStudioOptions"
+                class="flex-1 py-1.5 bg-gradient-to-r from-pink-500/20 to-purple-500/20 hover:from-pink-500/30 hover:to-purple-500/30 text-pink-300 hover:text-white text-xs font-bold rounded-xl border border-pink-500/30 transition flex items-center justify-center space-x-1 shadow"
+                title="隨機性感情趣混搭"
+              >
+                <span>🎲</span>
+                <span>隨機混搭</span>
+              </button>
+              <button 
+                @click="resetStudioOptions"
+                class="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white text-xs font-bold rounded-xl border border-slate-700 transition flex items-center justify-center space-x-1"
+                title="恢復預設造形"
+              >
+                <span>🔄</span>
+                <span>重設原廠</span>
+              </button>
             </div>
           </div>
 
-          <!-- 右側選項矩陣：四大陣營 20 款 128x128 HD-2D 神級名作立繪 -->
-          <div class="flex-1 space-y-3.5">
-            <!-- 四大陣營選擇器 -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 border-b border-slate-800 pb-3">
-              <button 
-                v-for="cat in modernCategories"
-                :key="cat.id"
-                @click="onCategoryChange(cat.id)"
-                :class="selectedCategory === cat.id ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black border-pink-400 shadow-[0_0_15px_rgba(236,72,153,0.35)]' : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'"
-                class="py-2 px-2.5 rounded-xl border text-xs transition flex items-center justify-center space-x-1.5"
-              >
-                <span>{{ cat.icon }}</span>
-                <span>{{ cat.label }}</span>
-              </button>
-            </div>
-
-            <div class="flex items-center justify-between text-xs px-1">
-              <span class="text-pink-300 font-extrabold flex items-center space-x-1.5">
-                <span>✨</span>
-                <span>{{ selectedCategory === 'female' ? '女武神 5 款極致色氣女神' : (selectedCategory === 'male' ? '男勇者 5 款帥氣硬漢貴公子' : (selectedCategory === 'cat' ? '貓魔導 5 款超絕萌系靈動貓娘' : '柴犬將軍 5 款英勇忠犬萌犬特務')) }}</span>
-              </span>
-              <span class="text-[10px] text-amber-400 font-mono bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                128x128 HD · 4 幀次像素呼吸
-              </span>
-            </div>
-
-            <!-- 當前分類下的 5 款神級立繪清單 -->
-            <div class="grid grid-cols-1 gap-2.5 max-h-[50vh] overflow-y-auto pr-1">
-              <div 
-                v-for="p in currentCategoryPresets" 
-                :key="p.id"
-                @click="applyModernPreset(p)"
-                :class="(studioOptions.modernPresetId === p.id || studioOptions.presetId === p.id) ? 'bg-gradient-to-r from-purple-950/70 via-pink-950/40 to-slate-900 border-pink-500 shadow-[0_0_20px_rgba(236,72,153,0.35)] ring-1 ring-pink-400' : 'bg-slate-950/80 border-slate-800 hover:border-purple-500/50'"
-                class="p-3.5 rounded-2xl border cursor-pointer transition flex items-start space-x-3.5 group"
-              >
-                <div class="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition overflow-hidden p-1 shadow-inner" v-html="ModernPixelEngine ? ModernPixelEngine.renderSvg(p, 0) : ''"></div>
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-center justify-between">
-                    <div class="text-sm font-black text-slate-100 group-hover:text-pink-300 transition">{{ p.name }}</div>
-                    <span class="text-[11px] text-pink-400 bg-pink-500/15 px-2.5 py-0.5 rounded-full border border-pink-500/30 font-extrabold shadow-sm">{{ p.bustSize }}</span>
-                  </div>
-                  <div class="text-xs text-amber-400/90 font-mono mt-0.5">{{ p.subName }}</div>
-                  <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">{{ p.desc }}</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- 32x32 暫時隱藏 (備查保留) -->
-            <div style="display: none;">
-            <!-- 1. 形態性別 -->
-            <div class="space-y-1.5">
-              <label class="text-xs font-bold text-slate-300 flex items-center space-x-1.5">
+          <!-- 右側：5 大手繪賽璐珞圖層選單矩陣 -->
+          <div class="flex-1 space-y-4 max-h-[56vh] overflow-y-auto pr-1">
+            
+            <!-- 1. 性別與身軀素體 -->
+            <div>
+              <label class="text-xs font-black text-amber-400 flex items-center space-x-1.5 mb-2">
                 <span>👤</span>
-                <span>形態性別 (Gender)</span>
+                <span>第 1 層：身軀與臉孔素體 (Body & Head Layer)</span>
               </label>
-              <div class="grid grid-cols-3 gap-2">
+              <div class="grid grid-cols-2 gap-2">
                 <button 
-                  v-for="g in [{ id: 'female', label: '🛡️ 女武神' }, { id: 'male', label: '⚔️ 男勇者' }, { id: 'cat', label: '🐱 貓魔導' }]"
-                  :key="g.id"
-                  @click="studioOptions.gender = g.id; if (g.id === 'male' && studioOptions.sexyCostume === 'bunny') studioOptions.sexyCostume = 'none'; onStudioOptionChange()"
-                  :class="studioOptions.gender === g.id ? 'bg-purple-600/30 text-purple-200 border-purple-500 shadow-sm' : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'"
-                  class="py-1.5 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center space-x-1"
+                  @click="studioLpcOptions.gender = 'female'; onLpcOptionChange()"
+                  :class="studioLpcOptions.gender === 'female' ? 'bg-pink-500/25 border-pink-500 text-pink-200 shadow-sm' : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'"
+                  class="py-2 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center space-x-1.5"
                 >
-                  {{ g.label }}
+                  <span>🛡️</span>
+                  <span>女武神素體 (女性白皙臉蛋與人體曲線)</span>
+                </button>
+                <button 
+                  @click="studioLpcOptions.gender = 'male'; onLpcOptionChange()"
+                  :class="studioLpcOptions.gender === 'male' ? 'bg-pink-500/25 border-pink-500 text-pink-200 shadow-sm' : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'"
+                  class="py-2 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center space-x-1.5"
+                >
+                  <span>⚔️</span>
+                  <span>男勇者素體 (健壯戰士五官與身形)</span>
                 </button>
               </div>
             </div>
 
-            <!-- 2. 🔥 胸部尺寸自訂 (User High Priority Feature: H CUP) -->
-            <div class="space-y-1.5 p-3 rounded-2xl bg-gradient-to-r from-pink-950/30 to-purple-950/30 border border-pink-500/30">
-              <div class="flex items-center justify-between">
-                <label class="text-xs font-black text-pink-300 flex items-center space-x-1.5">
-                  <span class="animate-pulse">🔥</span>
-                  <span>胸部維度微調 (Bust Size)</span>
-                </label>
-                <span class="text-[10px] text-pink-400/80 font-mono">支援 A 到 H CUP 極致身形</span>
-              </div>
+            <!-- 2. 性感胸衣與鎧甲 (Bodice & Armor) -->
+            <div>
+              <label class="text-xs font-black text-pink-400 flex items-center space-x-1.5 mb-2">
+                <span>👙</span>
+                <span>第 2 層：手繪性感胸衣與鎧甲 (Bodice & Armor)</span>
+              </label>
               <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 <button 
-                  v-for="b in pixelOptions.busts"
+                  v-for="b in (LpcCompositor ? LpcCompositor.bodiceColors : [])"
                   :key="b.id"
-                  @click="studioOptions.bustSize = b.id; onStudioOptionChange()"
-                  :class="studioOptions.bustSize === b.id ? 'bg-pink-600 text-white border-pink-400 shadow-[0_0_12px_rgba(236,72,153,0.5)] font-bold' : 'bg-slate-950/80 text-slate-300 border-slate-800 hover:border-pink-500/50'"
-                  class="py-1.5 px-2.5 rounded-xl border text-[11px] transition text-left leading-tight"
+                  @click="studioLpcOptions.bodiceColor = b.id; onLpcOptionChange()"
+                  :class="studioLpcOptions.bodiceColor === b.id ? 'bg-pink-500/25 border-pink-500 text-pink-200 shadow-sm' : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'"
+                  class="py-1.5 px-2.5 rounded-xl border text-xs font-bold transition text-left truncate"
                 >
-                  <div class="font-bold">{{ b.name }}</div>
-                  <div class="text-[9px] opacity-70 truncate">{{ b.desc }}</div>
+                  {{ b.label }}
                 </button>
               </div>
             </div>
 
-            <!-- 3. 五官神韻 (含 5 號嫵媚淚痣) -->
-            <div class="space-y-1.5">
-              <label class="text-xs font-bold text-slate-300 flex items-center space-x-1.5">
-                <span>👀</span>
-                <span>五官神韻 (Face Expression)</span>
+            <!-- 3. 飄逸髮型選擇 (Hair Style) -->
+            <div>
+              <label class="text-xs font-black text-purple-400 flex items-center space-x-1.5 mb-2">
+                <span>💇‍♀️</span>
+                <span>第 3 層：手繪飄逸髮型 (Hair Style)</span>
               </label>
               <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <button 
-                  v-for="f in pixelOptions.faces"
-                  :key="f.id"
-                  @click="studioOptions.faceIndex = f.id; onStudioOptionChange()"
-                  :class="studioOptions.faceIndex === f.id ? 'bg-purple-600/30 text-purple-200 border-purple-500 font-bold' : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'"
-                  class="py-1.5 px-2 rounded-xl border text-[11px] transition flex items-center space-x-1.5"
+                  v-for="h in (LpcCompositor ? LpcCompositor.hairStyles : [])"
+                  :key="h.id"
+                  @click="studioLpcOptions.hairStyle = h.id; onLpcOptionChange()"
+                  :class="studioLpcOptions.hairStyle === h.id ? 'bg-purple-500/25 border-purple-500 text-purple-200 shadow-sm' : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'"
+                  class="py-1.5 px-2 rounded-xl border text-xs font-bold transition text-left truncate"
                 >
-                  <span>{{ f.icon }}</span>
-                  <span class="truncate">{{ f.name }}</span>
+                  {{ h.label }}
                 </button>
               </div>
             </div>
 
-            <!-- 4. 髮型與髮色 -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div class="space-y-1.5">
-                <label class="text-xs font-bold text-slate-300">✂️ 髮型款式</label>
-                <select 
-                  v-model="studioOptions.hairIndex" 
-                  @change="onStudioOptionChange"
-                  class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-purple-400 transition"
-                >
-                  <option v-for="h in pixelOptions.hairs" :key="h.id" :value="h.id">{{ h.name }}</option>
-                </select>
-              </div>
-
-              <div class="space-y-1.5">
-                <label class="text-xs font-bold text-slate-300">🎨 髮色基底</label>
-                <div class="flex items-center space-x-1.5 flex-wrap pt-0.5">
-                  <button 
-                    v-for="c in pixelOptions.hairColors"
-                    :key="c.id"
-                    @click="studioOptions.hairColorIndex = c.id; onStudioOptionChange()"
-                    :title="c.name"
-                    :class="studioOptions.hairColorIndex === c.id ? 'ring-2 ring-purple-400 scale-110' : 'opacity-70 hover:opacity-100'"
-                    class="w-6 h-6 rounded-full border border-slate-700 transition transform"
-                    :style="{ backgroundColor: c.hex }"
-                  ></button>
-                </div>
-              </div>
-            </div>
-
-            <!-- 5. 膚色基底 -->
-            <div class="space-y-1.5">
-              <label class="text-xs font-bold text-slate-300">🌸 溫潤膚色</label>
-              <div class="flex items-center space-x-2 flex-wrap">
+            <!-- 4. 髮色即時染色 (Hair Tint) -->
+            <div>
+              <label class="text-xs font-black text-cyan-400 flex items-center space-x-1.5 mb-2">
+                <span>🎨</span>
+                <span>第 4 層：髮色光學染色 (Hair Color Tint)</span>
+              </label>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <button 
-                  v-for="s in pixelOptions.skins"
-                  :key="s.id"
-                  @click="studioOptions.skinIndex = s.id; onStudioOptionChange()"
-                  :class="studioOptions.skinIndex === s.id ? 'ring-2 ring-amber-400 scale-105 font-bold text-white' : 'border-slate-800 text-slate-400'"
-                  class="px-2.5 py-1 rounded-xl border text-xs flex items-center space-x-1.5 transition bg-slate-950"
+                  v-for="(val, key) in (LpcCompositor ? LpcCompositor.palettes : {})"
+                  :key="key"
+                  @click="studioLpcOptions.hairColor = key; onLpcOptionChange()"
+                  :class="studioLpcOptions.hairColor === key ? 'bg-cyan-500/25 border-cyan-500 text-cyan-200 shadow-sm' : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'"
+                  class="py-1.5 px-2 rounded-xl border text-xs font-bold transition text-left truncate"
                 >
-                  <span class="w-3.5 h-3.5 rounded-full border border-black/40 inline-block" :style="{ backgroundColor: s.base }"></span>
-                  <span>{{ s.name }}</span>
+                  {{ val.label }}
                 </button>
               </div>
             </div>
 
-            <!-- 6. 裝備戰袍與頂級性感福利 (Lv.30+ 解鎖) -->
-            <div class="space-y-2 pt-2 border-t border-slate-800">
-              <div class="flex items-center justify-between">
-                <label class="text-xs font-bold text-amber-300 flex items-center space-x-1.5">
-                  <span>✨</span>
-                  <span>戰袍裝備與【頂級性感福利】</span>
-                </label>
-                <span v-if="levelInfo.level >= 30" class="text-[10px] text-amber-300 font-bold bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-500/40">
-                  🔥 Lv.30 至尊福利已解鎖！
-                </span>
-                <span v-else class="text-[10px] text-slate-500 font-mono">
-                  🔒 Lv.30 解鎖性感套裝 (當前 Lv.{{ levelInfo.level }})
-                </span>
-              </div>
-
-              <!-- 福利套裝按鈕 -->
-              <div class="grid grid-cols-2 gap-2">
+            <!-- 5. 靈魂五官瞳色 (Eye Color) -->
+            <div>
+              <label class="text-xs font-black text-emerald-400 flex items-center space-x-1.5 mb-2">
+                <span>👁️</span>
+                <span>第 5 層：五官眼神與瞳色 (Eye Color)</span>
+              </label>
+              <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
                 <button 
-                  v-for="costume in pixelOptions.sexyCostumes"
-                  :key="costume.id"
-                  @click="levelInfo.level >= 30 ? (studioOptions.sexyCostume = costume.id, onStudioOptionChange()) : null"
-                  :disabled="levelInfo.level < 30"
-                  :class="[
-                    studioOptions.sexyCostume === costume.id ? 'bg-gradient-to-r from-amber-600 to-yellow-500 text-black font-extrabold border-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.5)]' : 'bg-slate-950 text-slate-300 border-slate-800',
-                    levelInfo.level < 30 ? 'opacity-40 cursor-not-allowed' : 'hover:border-amber-400'
-                  ]"
-                  class="p-2.5 rounded-2xl border text-left transition flex flex-col justify-between"
+                  v-for="e in (LpcCompositor ? LpcCompositor.eyeColors : [])"
+                  :key="e.id"
+                  @click="studioLpcOptions.eyeColor = e.id; onLpcOptionChange()"
+                  :class="studioLpcOptions.eyeColor === e.id ? 'bg-emerald-500/25 border-emerald-500 text-emerald-200 shadow-sm' : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'"
+                  class="py-1.5 px-2 rounded-xl border text-xs font-bold transition text-left truncate"
                 >
-                  <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold">{{ costume.name }}</span>
-                    <span v-if="levelInfo.level < 30" class="text-[10px]">🔒</span>
-                  </div>
-                  <div class="text-[10px] opacity-75 mt-0.5 line-clamp-1">{{ costume.desc }}</div>
+                  {{ e.label }}
                 </button>
               </div>
+            </div>
 
-              <div class="flex items-center space-x-2 pt-1">
-                <button 
-                  @click="studioOptions.sexyCostume = 'none'; onStudioOptionChange()"
-                  :class="studioOptions.sexyCostume === 'none' ? 'bg-purple-600/30 text-purple-200 border-purple-500' : 'bg-slate-950 text-slate-400 border-slate-800'"
-                  class="px-3 py-1 rounded-xl border text-xs transition"
-                >
-                  標準常規戰甲
-                </button>
-              </div>
-            </div>
-            </div>
           </div>
         </div>
 
         <!-- 彈窗 Footer 操作按鈕 -->
         <div class="p-4 border-t border-slate-800 bg-slate-950/90 flex items-center justify-between">
-          <div class="text-xs text-slate-400 hidden sm:block flex items-center space-x-1.5">
+          <div class="text-xs text-slate-400 hidden sm:block flex items-center space-x-1.5 font-mono">
             <span>✨</span>
-            <span>已套用 64x64 HD-2D 現代立繪渲染 · 支援次像素微動呼吸</span>
+            <span>已套用 LPC 專業繪師手繪精靈圖疊合 · 次像素微動呼吸</span>
           </div>
           <div class="flex items-center space-x-3 w-full sm:w-auto justify-end">
             <button 
@@ -2882,6 +2798,52 @@
           }
         }
 
+        // 👗 LPC 手繪真機合成器響應式狀態
+        const studioLpcOptions = ref({
+          gender: 'female',
+          bodiceColor: 'black',
+          hairStyle: 'bangslong',
+          hairColor: 'blonde',
+          eyeColor: 'purple',
+          enableBlush: true,
+          framing: 'portrait',
+          frame: 0
+        });
+        const studioLpcPreviewUrl = ref('');
+
+        async function updateStudioPreview() {
+          if (window.LpcCompositor) {
+            const url = await window.LpcCompositor.renderToDataUrl({
+              ...studioLpcOptions.value,
+              frame: isBreathingActive.value ? (breathingFrame.value % 2) : 0
+            });
+            studioLpcPreviewUrl.value = url;
+          }
+        }
+
+        function onLpcOptionChange() {
+          updateStudioPreview();
+          if (window.ValhallaAudio) window.ValhallaAudio.playEquipSound();
+        }
+
+        function toggleLpcFraming() {
+          studioLpcOptions.value.framing = studioLpcOptions.value.framing === 'portrait' ? 'fullbody' : 'portrait';
+          updateStudioPreview();
+          if (window.ValhallaAudio) window.ValhallaAudio.playEquipSound();
+        }
+
+        function toggleLpcBlush() {
+          studioLpcOptions.value.enableBlush = !studioLpcOptions.value.enableBlush;
+          updateStudioPreview();
+          if (window.ValhallaAudio) window.ValhallaAudio.playEquipSound();
+        }
+
+        if (typeof window !== 'undefined') {
+          window.addEventListener('lpc-archetypes-ready', () => {
+            avatarVersion.value++;
+          });
+        }
+
         const studioOptions = ref({
           modernMode: true,
           modernPresetId: 'saga', // 預設：復活邪神極致肉感天花板
@@ -2902,6 +2864,9 @@
           breathingTimer = setInterval(() => {
             if (isBreathingActive.value) {
               breathingFrame.value = (breathingFrame.value + 1) % 4;
+              if (showStudioModal.value) {
+                updateStudioPreview();
+              }
             }
           }, 350);
         }
@@ -3210,14 +3175,23 @@
           return dom.name_zh;
         }
 
-        // 確定性像素頭像生成 (64x64 現代高解析立繪優先 ➔ 16x16 原版，隱藏 32x32)
+        // 確定性像素頭像生成 (LPC 手繪真機精靈圖優先 ➔ 告別 64x64 幾何立繪)
         function getAvatarSvg(agent, overrideForm) {
           if (!agent) return '';
           const _ver = avatarVersion.value; // 強制綁定 Vue 虛擬 DOM 響應性依賴
           const custom = customAvatars.value && customAvatars.value[agent.id];
-          if (custom && window.ModernPixelEngine) {
-            // 只要有自訂設定，全面套用 64x64 現代高解析神級立繪
+          if (custom && custom.dataUrl) {
+            return '<img src="' + custom.dataUrl + '" class="w-full h-full object-cover pixelated rounded-lg shadow-sm" alt="' + agent.name + '" />';
+          }
+          if (custom && window.ModernPixelEngine && custom.modernPresetId) {
             return window.ModernPixelEngine.renderSvg(custom, 0);
+          }
+          // 🌟 預設全面套用 LPC 手繪真機精靈圖 (告別 64x64 幾何立繪)
+          if (window.LpcCompositor && window.LpcCompositor.getDefaultAvatarUrl) {
+            const defUrl = window.LpcCompositor.getDefaultAvatarUrl(agent);
+            if (defUrl) {
+              return '<img src="' + defUrl + '" class="w-full h-full object-cover pixelated rounded-lg shadow-sm" alt="' + agent.name + '" />';
+            }
           }
           if (!window.ValhallaPixelEngine) return agent.emoji || '👾';
           const form = overrideForm || currentAvatarForm.value;
@@ -3683,44 +3657,49 @@
             if (!hero) return;
             studioHero.value = hero;
             const existing = customAvatars.value[hero.id];
-            if (existing && existing.modernPresetId) {
-              studioOptions.value = { ...existing };
-              selectedCategory.value = existing.category || 'female';
+            if (existing && existing.lpcOptions) {
+              studioLpcOptions.value = { ...existing.lpcOptions };
             } else {
-              selectedCategory.value = 'female';
-              const defaultPreset = window.ModernPixelEngine ? window.ModernPixelEngine.presets[0] : null;
-              if (defaultPreset) {
-                applyModernPreset(defaultPreset);
-              } else {
-                studioOptions.value = {
-                  modernMode: true,
-                  modernPresetId: 'blasphemous',
-                  presetId: 'blasphemous',
-                  category: 'female',
-                  bustSize: 'H'
-                };
-              }
+              const isMale = (hero.name && (hero.name.includes('男') || hero.name.includes('君') || hero.name.includes('公') || hero.name.includes('王') || hero.name.includes('兵'))) || hero.id.includes('male') || hero.domain === 'devops';
+              studioLpcOptions.value = {
+                gender: isMale ? 'male' : 'female',
+                bodiceColor: isMale ? 'armor_plate' : 'black',
+                hairStyle: isMale ? 'spiked' : 'bangslong',
+                hairColor: 'blonde',
+                eyeColor: 'purple',
+                enableBlush: !isMale,
+                framing: 'portrait',
+                frame: 0
+              };
             }
+            updateStudioPreview();
             showStudioModal.value = true;
             if (window.ValhallaAudio) window.ValhallaAudio.playEquipSound();
           },
-          saveStudioAvatar: function() {
+          saveStudioAvatar: async function() {
             if (!studioHero.value) return;
+            let dataUrl = studioLpcPreviewUrl.value;
+            if (!dataUrl && window.LpcCompositor) {
+              dataUrl = await window.LpcCompositor.renderToDataUrl(studioLpcOptions.value);
+            }
             customAvatars.value = {
               ...customAvatars.value,
-              [studioHero.value.id]: { ...studioOptions.value }
+              [studioHero.value.id]: {
+                type: 'lpc',
+                lpcOptions: { ...studioLpcOptions.value },
+                dataUrl: dataUrl
+              }
             };
             try {
               localStorage.setItem('valhalla_custom_avatars', JSON.stringify(customAvatars.value));
             } catch (e) {}
-            // 🌟 核心防禦：版本號遞增 ＋ 強制重塑物件指針，促使 Vue 3 虛擬 DOM 100% 重繪頭像
             avatarVersion.value++;
             if (activeHero.value && studioHero.value && activeHero.value.id === studioHero.value.id) {
               activeHero.value = { ...activeHero.value };
             }
             if (window.ValhallaAudio) window.ValhallaAudio.playEquipSound();
             showStudioModal.value = false;
-            showToast('✨ 特工【' + studioHero.value.name + '】全新大頭貼造形已生效！');
+            showToast('✨ 特工【' + studioHero.value.name + '】手繪像素大頭貼已套用！');
           },
           resetStudioOptions: function() {
             if (!studioHero.value) return;
@@ -3735,15 +3714,24 @@
               activeHero.value = { ...activeHero.value };
             }
             showStudioModal.value = false;
-            showToast('🔄 已還原特工原廠造型');
+            showToast('🔄 已還原特工預設手繪造型');
           },
           randomizeStudioOptions: function() {
-            if (window.ModernPixelEngine && window.ModernPixelEngine.presets && window.ModernPixelEngine.presets.length > 0) {
-              const all = window.ModernPixelEngine.presets;
-              const pick = all[Math.floor(Math.random() * all.length)];
-              selectedCategory.value = pick.category;
-              applyModernPreset(pick);
-            }
+            if (!window.LpcCompositor) return;
+            const bodices = window.LpcCompositor.bodiceColors.filter(b => b.id !== 'none');
+            const hairs = window.LpcCompositor.hairStyles;
+            const hairColors = Object.keys(window.LpcCompositor.palettes);
+            const eyes = window.LpcCompositor.eyeColors;
+
+            studioLpcOptions.value = {
+              ...studioLpcOptions.value,
+              bodiceColor: bodices[Math.floor(Math.random() * bodices.length)].id,
+              hairStyle: hairs[Math.floor(Math.random() * hairs.length)].id,
+              hairColor: hairColors[Math.floor(Math.random() * hairColors.length)],
+              eyeColor: eyes[Math.floor(Math.random() * eyes.length)].id,
+              enableBlush: studioLpcOptions.value.gender === 'female' ? (Math.random() > 0.3) : false
+            };
+            updateStudioPreview();
             if (window.ValhallaAudio) window.ValhallaAudio.playEquipSound();
           },
           onStudioOptionChange: function() {
@@ -3803,6 +3791,13 @@
             }
           },
 
+          LpcCompositor: (typeof window !== 'undefined' ? window.LpcCompositor : null),
+          studioLpcOptions,
+          studioLpcPreviewUrl,
+          updateStudioPreview,
+          onLpcOptionChange,
+          toggleLpcFraming,
+          toggleLpcBlush,
           customAvatars,
           studioHero,
           studioOptions,

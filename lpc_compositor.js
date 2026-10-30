@@ -5,6 +5,7 @@
  * 核心原理：直接讀取 LPC 開源精靈圖，依 Z-index 階層在離屏 Canvas 進行像素對齊渲染
  * 階層順序：Body素體 ➔ Head五官臉蛋 ➔ Blush腮紅 ➔ Eyes眼神 ➔ Bodice服飾 ➔ Hair長髮
  * 支援鏡頭特寫 (Bust Portrait 128x128) 與全身立繪 (Full Body)
+ * 提供 12 款預設經典角色原型 (Archetypes)，自動賦予英雄殿全體特工手繪性感大頭貼
  * 日期：2026-10-31
  * ============================================================================
  */
@@ -17,6 +18,10 @@
 
   // 預載影像快取池 (避免重複 I/O 請求)
   const imageCache = new Map();
+
+  // 原型快取 (12 款預設角色 DataURL)
+  const archetypeCache = new Map();
+  let isArchetypesReady = false;
 
   // 經典髮色濾鏡對照表 (RGB 乘法混合)
   const HAIR_PALETTES = {
@@ -66,6 +71,35 @@
     { id: 'brown', label: '🍂 琥珀暖棕 (Brown)' }
   ];
 
+  // 12 款經典原型設計 (涵蓋性感女武神、黑長直、女僕、刺客、帥氣騎士)
+  const ARCHETYPES = [
+    { id: 0, gender: 'female', bodiceColor: 'black', hairStyle: 'long_straight', hairColor: 'raven', eyeColor: 'purple', enableBlush: true },
+    { id: 1, gender: 'female', bodiceColor: 'red', hairStyle: 'bangslong', hairColor: 'blonde', eyeColor: 'blue', enableBlush: true },
+    { id: 2, gender: 'female', bodiceColor: 'purple', hairStyle: 'curly_long', hairColor: 'purple', eyeColor: 'purple', enableBlush: true },
+    { id: 3, gender: 'female', bodiceColor: 'white', hairStyle: 'idol', hairColor: 'silver', eyeColor: 'blue', enableBlush: true },
+    { id: 4, gender: 'female', bodiceColor: 'pink', hairStyle: 'pigtails', hairColor: 'pink', eyeColor: 'purple', enableBlush: true },
+    { id: 5, gender: 'female', bodiceColor: 'armor_plate', hairStyle: 'bob', hairColor: 'silver', eyeColor: 'blue', enableBlush: false },
+    { id: 6, gender: 'female', bodiceColor: 'leather', hairStyle: 'bangslong', hairColor: 'chestnut', eyeColor: 'green', enableBlush: true },
+    { id: 7, gender: 'female', bodiceColor: 'lavender', hairStyle: 'curly_long', hairColor: 'blonde', eyeColor: 'purple', enableBlush: true },
+    { id: 8, gender: 'male', bodiceColor: 'armor_plate', hairStyle: 'spiked', hairColor: 'blonde', eyeColor: 'blue', enableBlush: false },
+    { id: 9, gender: 'male', bodiceColor: 'armor_plate', hairStyle: 'messy1', hairColor: 'raven', eyeColor: 'red', enableBlush: false },
+    { id: 10, gender: 'male', bodiceColor: 'armor_plate', hairStyle: 'spiked', hairColor: 'cyan', eyeColor: 'blue', enableBlush: false },
+    { id: 11, gender: 'female', bodiceColor: 'blue', hairStyle: 'pigtails', hairColor: 'raven', eyeColor: 'blue', enableBlush: true }
+  ];
+
+  /**
+   * 字串確定性雜湊演算法 (將 Agent ID 對應至 0..11 原型)
+   */
+  function hashString(str) {
+    if (!str) return 0;
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      hash |= 0;
+    }
+    return Math.abs(hash);
+  }
+
   /**
    * 載入單一圖片並自動快取
    */
@@ -81,8 +115,7 @@
         imageCache.set(url, img);
         resolve(img);
       };
-      img.onerror = (err) => {
-        console.warn(`[LpcCompositor] 圖層載入略過: ${url}`);
+      img.onerror = () => {
         resolve(null);
       };
       img.src = url;
@@ -99,19 +132,16 @@
     const tempCtx = tempCanvas.getContext('2d');
     tempCtx.imageSmoothingEnabled = false;
 
-    // 1. 繪製單格原始髮型 (64x64)
     tempCtx.drawImage(hairImg, frameX, frameY, 64, 64, 0, 0, 64, 64);
 
     if (!tintConfig || !tintConfig.color || !tintConfig.multiply) {
       return tempCanvas;
     }
 
-    // 2. 利用 composite operation 進行高階染色保留高光與陰影
     tempCtx.globalCompositeOperation = 'multiply';
     tempCtx.fillStyle = tintConfig.color;
     tempCtx.fillRect(0, 0, 64, 64);
 
-    // 3. 恢復 Alpha 遮罩
     tempCtx.globalCompositeOperation = 'destination-in';
     tempCtx.drawImage(hairImg, frameX, frameY, 64, 64, 0, 0, 64, 64);
 
@@ -129,7 +159,7 @@
       hairStyle: options.hairStyle || 'bangslong',
       hairColor: options.hairColor || 'blonde',
       eyeColor: options.eyeColor || 'purple',
-      enableBlush: options.enableBlush !== false, // 預設開啟可愛臉紅
+      enableBlush: options.enableBlush !== false,
       frame: (options.frame || 0) % 2,
       framing: options.framing || 'portrait',
       ...options
@@ -166,28 +196,25 @@
     canvas.width = 128;
     canvas.height = 128;
     const ctx = canvas.getContext('2d');
-    ctx.imageSmoothingEnabled = false; // 關鍵：維持硬派銳利像素，不產生模糊抗鋸齒
+    ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // 4. 計算裁切區域 (LPC 格式：Row 2 為正面視角 Y: 128..191)
-    const frameIndex = opts.frame; // 0 或 1
+    const frameIndex = opts.frame;
     const srcX = frameIndex * 64;
-    const srcY = 2 * 64; // Row 2 正面朝向 (Y: 128)
+    const srcY = 2 * 64;
 
-    // 依據鏡頭模式決定取景
     let sx, sy, sw, sh, dx, dy, dw, dh;
     if (opts.framing === 'portrait') {
-      // 🌟 黃金胸像特寫：取頭部到胸部（Y: 0~48），略微平移置中
       sx = srcX;
       sy = srcY + 2;
       sw = 64;
-      sh = 48; // 裁切至腰部上方，胸部曲線居中
+      sh = 48;
       dx = 0;
       dy = 0;
       dw = 128;
-      dh = 128; // 等比例無損放大到 128x128
+      dh = 128;
     } else {
-      // 全身立繪模式
       sx = srcX;
       sy = srcY;
       sw = 64;
@@ -199,32 +226,12 @@
     }
 
     // 5. 依精密 Z-Index 階層疊合繪製
-    // [Layer 1]: 身軀素體 (Body) - 脖子以下人體線條
-    if (bodyImg) {
-      ctx.drawImage(bodyImg, sx, sy, sw, sh, dx, dy, dw, dh);
-    }
+    if (bodyImg) ctx.drawImage(bodyImg, sx, sy, sw, sh, dx, dy, dw, dh);
+    if (headImg) ctx.drawImage(headImg, sx, sy, sw, sh, dx, dy, dw, dh);
+    if (blushImg) ctx.drawImage(blushImg, sx, sy, sw, sh, dx, dy, dw, dh);
+    if (eyeImg) ctx.drawImage(eyeImg, sx, sy, sw, sh, dx, dy, dw, dh);
+    if (bodiceImg) ctx.drawImage(bodiceImg, sx, sy, sw, sh, dx, dy, dw, dh);
 
-    // [Layer 2]: 🌸 繪師手繪頭顱與臉蛋肌膚 (Head / Face) - 告別黑色空洞！
-    if (headImg) {
-      ctx.drawImage(headImg, sx, sy, sw, sh, dx, dy, dw, dh);
-    }
-
-    // [Layer 3]: 💕 少女微醺臉紅 (Sweet Blush)
-    if (blushImg) {
-      ctx.drawImage(blushImg, sx, sy, sw, sh, dx, dy, dw, dh);
-    }
-
-    // [Layer 4]: 靈魂五官瞳孔 (Eyes)
-    if (eyeImg) {
-      ctx.drawImage(eyeImg, sx, sy, sw, sh, dx, dy, dw, dh);
-    }
-
-    // [Layer 5]: 性感馬甲 / 鎧甲 (Bodice / Armor)
-    if (bodiceImg) {
-      ctx.drawImage(bodiceImg, sx, sy, sw, sh, dx, dy, dw, dh);
-    }
-
-    // [Layer 6]: 飄逸長髮 (Hair with dynamic tinting)
     if (hairImg) {
       const tintCfg = HAIR_PALETTES[opts.hairColor] || HAIR_PALETTES.blonde;
       const tintedHairCanvas = createTintedHairCanvas(hairImg, tintCfg, srcX, srcY);
@@ -250,14 +257,58 @@
     return c.toDataURL('image/png');
   }
 
+  /**
+   * 初始化 12 款經典原型，產生即時預設大頭貼 DataURL
+   */
+  async function initArchetypes() {
+    if (typeof document === 'undefined') return;
+    try {
+      for (const arch of ARCHETYPES) {
+        const dataUrl = await renderToDataUrl({
+          ...arch,
+          framing: 'portrait',
+          frame: 0
+        });
+        archetypeCache.set(arch.id, dataUrl);
+      }
+      isArchetypesReady = true;
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('lpc-archetypes-ready'));
+      }
+    } catch (e) {
+      console.warn('[LpcCompositor] initArchetypes failed:', e);
+    }
+  }
+
+  /**
+   * 取得英雄特工的確定性預設 LPC 手繪大頭貼
+   */
+  function getDefaultAvatarUrl(agent) {
+    if (!agent) return '';
+    const idx = hashString(agent.id) % ARCHETYPES.length;
+    return archetypeCache.get(idx) || '';
+  }
+
+  // 網頁加載時自動預熱 12 款原型
+  if (typeof window !== 'undefined') {
+    if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', initArchetypes);
+    } else {
+      setTimeout(initArchetypes, 10);
+    }
+  }
+
   // 導出全域介面
   const LpcCompositor = {
     composite: compositeCharacter,
     renderToDataUrl: renderToDataUrl,
+    initArchetypes: initArchetypes,
+    getDefaultAvatarUrl: getDefaultAvatarUrl,
     palettes: HAIR_PALETTES,
     bodiceColors: BODICE_COLORS,
     hairStyles: HAIR_STYLES,
-    eyeColors: EYE_COLORS
+    eyeColors: EYE_COLORS,
+    archetypes: ARCHETYPES
   };
 
   if (typeof module !== 'undefined' && module.exports) {
