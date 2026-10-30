@@ -41,11 +41,11 @@
   <!-- Vue 3 CDN -->
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <!-- Local data script -->
-  <script src="agents_catalog.js?v=20261030_v12"></script>
+  <script src="agents_catalog.js?v=20261030_v13"></script>
   <!-- Pixel Avatar Engine -->
   <script src="pixel_avatar.js"></script>
   <!-- 0 KB Procedural Web Audio & RPG Engine -->
-  <script src="rpg_engine.js?v=20261030_v12"></script>
+  <script src="rpg_engine.js?v=20261030_v13"></script>
   <style>
     /* Custom scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -2611,7 +2611,7 @@
           if (val) {
             nicknames.value[agentId] = val;
             addExp(20, '自訂稱號');
-          } else 
+          } else {
             delete nicknames.value[agentId];
           }
           localStorage.setItem('valhalla_nicknames', JSON.stringify(nicknames.value));
