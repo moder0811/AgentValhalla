@@ -41,7 +41,7 @@
   <!-- Vue 3 CDN -->
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <!-- Local data script -->
-  <script src="agents_catalog.js?v=20261030_v2"></script>
+  <script src="agents_catalog.js?v=20261030_v3"></script>
   <!-- Pixel Avatar Engine -->
   <script src="pixel_avatar.js"></script>
   <style>
@@ -475,6 +475,27 @@
 
           </div>
 
+          <!-- 🚑 場景急救箱 / 快捷情境篩選 (Scenario Quick-Filters) -->
+          <div class="mt-2.5 pt-2.5 border-t border-slate-800/80 flex items-center space-x-1.5 overflow-x-auto no-scrollbar pb-1">
+            <span class="text-xs font-bold text-amber-400/90 flex items-center space-x-1 flex-shrink-0 mr-1">
+              <span>🚑</span>
+              <span>{{ t('quick_scenarios_label') }}</span>
+            </span>
+            <button
+              v-for="sc in scenarioFilters"
+              :key="sc.id"
+              @click="toggleScenarioFilter(sc.id)"
+              :class="activeScenario === sc.id
+                ? (currentTheme === 'gta6' ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold shadow-lg shadow-pink-500/30' : 'bg-amber-500 text-black font-bold shadow-glow-gold')
+                : 'bg-slate-900/90 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-700/60'"
+              class="px-2.5 py-1 rounded-lg text-xs transition whitespace-nowrap flex items-center space-x-1 flex-shrink-0"
+            >
+              <span>{{ sc.icon }}</span>
+              <span>{{ sc.name }}</span>
+              <span class="opacity-75 text-[10px] ml-0.5">({{ getScenarioCount(sc.id) }})</span>
+            </button>
+          </div>
+
         </div>
       </div>
     </header>
@@ -498,6 +519,17 @@
 
           <span v-if="filterFavoriteOnly" class="px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded border border-amber-500/40">
             ⭐ {{ t('squad_active') }}
+          </span>
+
+          <!-- 活躍場景徽章 -->
+          <span v-if="activeScenario !== 'all'" class="px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded border border-amber-500/40 flex items-center space-x-1">
+            <span>🚑 {{ currentScenarioLabel }}</span>
+            <button @click="activeScenario = 'all'" class="hover:text-white ml-1 font-bold text-xs">×</button>
+          </span>
+
+          <span v-if="activeScenarioCustom" class="px-2 py-0.5 bg-rose-500/20 text-rose-300 rounded border border-rose-500/40 flex items-center space-x-1">
+            <span>🎯 {{ activeScenarioCustom }}</span>
+            <button @click="activeScenarioCustom = ''" class="hover:text-white ml-1 font-bold text-xs">×</button>
           </span>
         </div>
 
@@ -653,7 +685,7 @@
               </div>
             </div>
 
-            <!-- 出品人自訂稱號 (Custom Nickname Badge) -->
+            <!-- 自訂稱號 (Custom Nickname Badge) -->
             <div class="mb-2.5">
               <span 
                 v-if="getNickname(agent.id)" 
@@ -677,7 +709,7 @@
             </p>
 
             <!-- 核心技能標籤樹 (Skill Chips) -->
-            <div class="flex flex-wrap gap-1.5 mb-4">
+            <div class="flex flex-wrap gap-1.5 mb-3">
               <span 
                 v-for="(skill, sIdx) in getHeroSkills(agent).slice(0, 3)" 
                 :key="sIdx"
@@ -685,6 +717,28 @@
               >
                 {{ skill }}
               </span>
+            </div>
+
+            <!-- 🎯 何時召喚我 / 適用場景 (When to Summon Chips) -->
+            <div class="mb-3.5 pt-2 border-t border-slate-800/60" v-if="getAgentScenarios(agent).length">
+              <div class="flex items-center space-x-1 text-[10px] text-amber-400/90 font-medium mb-1.5">
+                <span>🎯</span>
+                <span>{{ t('when_to_summon_label') }}</span>
+              </div>
+              <div class="flex flex-wrap gap-1.5">
+                <span 
+                  v-for="(sc, scIdx) in getAgentScenarios(agent)" 
+                  :key="scIdx"
+                  @click.stop="filterByScenario(sc)"
+                  class="px-2 py-0.5 text-[10px] rounded-md transition cursor-pointer border"
+                  :class="currentTheme === 'gta6'
+                    ? 'bg-pink-500/10 text-pink-300 border-pink-500/30 hover:bg-pink-500/20'
+                    : 'bg-amber-500/10 text-amber-300 border-amber-500/25 hover:bg-amber-500/20 hover:border-amber-400/50'"
+                  :title="t('click_to_filter_scenario')"
+                >
+                  {{ sc }}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -714,7 +768,7 @@
 
     </main>
 
-    <!-- 🎮 PS5 遊戲風格：新手出品人殿堂導覽手冊 (3-Step Onboarding Modal) -->
+    <!-- 🎮 PS5 遊戲風格：新手快速上手手冊 (3-Step Onboarding Modal) -->
     <div 
       v-if="showOnboardingModal" 
       class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/85 backdrop-blur-md transition"
@@ -1046,6 +1100,24 @@
             </div>
           </div>
 
+          <!-- 🎯 適用場景與召喚時機 (Modal Scenario Section) -->
+          <div class="space-y-2" v-if="getAgentScenarios(activeHero).length">
+            <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center space-x-1.5">
+              <span>🎯</span>
+              <span>{{ t('modal_scenarios_title') }}</span>
+            </h4>
+            <div class="flex flex-wrap gap-2">
+              <span 
+                v-for="(sc, scIdx) in getAgentScenarios(activeHero)" 
+                :key="scIdx"
+                class="px-3 py-1 bg-amber-500/10 text-amber-300 text-xs rounded-lg border border-amber-500/30 flex items-center space-x-1.5"
+              >
+                <span>✓</span>
+                <span>{{ sc }}</span>
+              </span>
+            </div>
+          </div>
+
           <!-- 核心技能標籤 -->
           <div class="space-y-2">
             <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">
@@ -1176,9 +1248,10 @@
           </button>
         </div>
         <div class="flex items-center space-x-4 text-[11px] text-slate-400">
-          <span>👑 出品人：Baby</span>
-          <span>🖤 總監：瀨戶環奈</span>
-          <span>❤️ 總監：安齋らら</span>
+          <span>⚡ 專案：AgentValhalla</span>
+          <span>🖤 系統架構：瀨戶環奈</span>
+          <span>❤️ 體驗設計：安齋らら</span>
+          <span>🌴 雙主題版本：v2.6 Vice City</span>
         </div>
       </div>
     </footer>
@@ -1192,27 +1265,27 @@
     const UI_DICTIONARY = {
       zh: {
         title: '瓦爾哈拉：AI 英雄英靈殿',
-        subtitle: '300+ 專家級神格智慧召喚殿堂 · 終極 3A 暗黑電玩特工展台',
-        heroes_count: '尊眾神隨時聽候差遣',
-        stats_visitors: '總謁見人次',
-        stats_visitors_hint: '全球累計造訪英靈殿的出品人次',
+        subtitle: '270+ 業界頂尖 AI 特工專家庫 · 終極 3A 電玩風格開源召喚展台',
+        heroes_count: '位專業特工隨時待命支援',
+        stats_visitors: '總造訪人次',
+        stats_visitors_hint: '全球累計造訪英靈殿的開發者人次',
         stats_summons: '總召喚次數',
-        stats_summons_hint: '英靈被喚醒執行任務的總次數',
+        stats_summons_hint: '特工被召喚執行專案任務的累計次數',
         search_ph: '搜尋英雄名、自訂稱號、技能關鍵字 (按 / 聚焦)...',
-        form_label: '形態轉換儀：',
+        form_label: '頭像風格轉換：',
         all_domains: '全部領域',
         showing_prefix: '當前展示',
-        heroes_unit: '尊英雄',
+        heroes_unit: '位專業特工',
         squad_active: '主力名冊',
-        top10_active: '最強英靈榜',
-        top10_tooltip: '切換至召喚熱門最強英靈前十名',
+        top10_active: '熱門召喚榜 Top 10',
+        top10_tooltip: '切換至召喚熱門最強特工前十名',
         expand_domains: '展開 (19)',
         collapse_domains: '收合',
         sort_label: '排序',
         sort_default: '推薦',
-        sort_summons: '召喚次數 (由高到低)',
+        sort_summons: '召喚熱度 (由高到低)',
         sort_rarity: '品級 (傳奇優先)',
-        sort_name: '英靈名稱 (A-Z)',
+        sort_name: '特工名稱 (A-Z)',
         sort_summons_btn: '召喚榜',
         sort_rarity_btn: '品級榜',
         sort_name_btn: '名稱榜',
@@ -1221,49 +1294,49 @@
         theme_gta6: 'GTA 6 罪惡都市',
         theme_gta6_hint: '切換為 GTA 6 罪惡都市邁阿密夕陽主題',
         gta6_title: '瓦爾哈拉：罪惡都市 · VI',
-        gta6_subtitle: '邁阿密夕陽 · 300+ 專家級特工天團 · 終極罪惡都市展台',
+        gta6_subtitle: '邁阿密夕陽 · 270+ 專家級特工天團 · 終極罪惡都市展台',
         gta6_badge: 'VI VICE CITY',
         toast_theme_gta6: '🌴 歡迎來到罪惡都市！已啟用 GTA 6 邁阿密夕陽主題！',
         toast_theme_valhalla: '🌌 已返回英靈殿！恢復 3A 暗黑奇幻主題！',
-        gta6_prompt_copied: '🌴 罪惡特工【{name}】召喚符文已複製！戰力值 +1！',
-        onboarding_btn: '殿堂導覽',
-        onboarding_btn_tooltip: '開啟 PS5 3A 遊戲風格殿堂新手教學手冊',
-        onboarding_title: '瓦爾哈拉：出品人特權導覽手冊',
-        onboarding_step1_sub: '第一章：殿堂宗旨與 300+ 特工天團',
-        onboarding_step2_sub: '第二章：如何一鍵召喚並貼入 AI 視窗',
-        onboarding_step3_sub: '第三章：咒文語言保證與 Rules vs Skills 原理解密',
-        onboarding_s1_h1: '歡迎來到 3A 電玩級 AI 專家殿堂',
-        onboarding_s1_p1: '這裡匯集了 300+ 尊橫跨軟體架構、資安滲透、量化金融、遊戲開發、XR 與創意文案的頂級 AI 神格特工，隨時聽候您的差遣。',
+        gta6_prompt_copied: '🌴 罪惡特工【{name}】召喚提示詞已複製！隨時準備出戰！',
+        onboarding_btn: '快速上手指南',
+        onboarding_btn_tooltip: '開啟 PS5 風格殿堂新手上手指南',
+        onboarding_title: '瓦爾哈拉：新手快速上手手冊',
+        onboarding_step1_sub: '第一章：平台特色與 270+ 專業專家庫',
+        onboarding_step2_sub: '第二章：如何一鍵召喚並載入 AI 工作流',
+        onboarding_step3_sub: '第三章：語系相容性與 Rules vs Skills 原理解密',
+        onboarding_s1_h1: '歡迎來到 AgentValhalla：專業 AI 特工庫',
+        onboarding_s1_p1: '這裡收錄了 270+ 位橫跨軟體架構、資安滲透、行銷成效、遊戲開發、XR 空間運算與專案管理的專業 AI 角色，能一鍵載入你的 AI 助手。',
         onboarding_s1_f1_t: '16x16 動態像素頭像',
         onboarding_s1_f1_d: '支援英靈男、女、貓咪軍團、柴犬神將 4 大形態確定性動態轉換。',
         onboarding_s1_f2_t: 'GTA 6 雙風格切換',
         onboarding_s1_f2_d: '支援 3A 暗黑英靈殿與 GTA 6 邁阿密夕陽罪惡都市雙重沉浸主題。',
-        onboarding_s1_f3_t: '主力陣容與專屬冊封',
-        onboarding_s1_f3_d: '一鍵收藏組建夢幻戰隊，為特工冊封專屬稱號，永久保存在本地。',
-        onboarding_s1_f4_t: '三語系與零伺服器',
-        onboarding_s1_f4_d: '繁中/EN/日語一鍵秒切，100% 前端純靜態運行，零隱私洩漏。',
-        onboarding_s2_h1: '極速上手：三步將特工裝載入您的 AI',
-        onboarding_s2_p1: '無需複雜設定，只需三秒即可讓您平常使用的 ChatGPT、Claude 或 Cursor 蛻變為資深架構大師：',
+        onboarding_s1_f3_t: '常用陣容與自訂稱號',
+        onboarding_s1_f3_d: '一鍵收藏你最常用的專家戰隊，還能自由給予專屬稱號備註，資料保存在本機。',
+        onboarding_s1_f4_t: '三語系與純靜態安全架構',
+        onboarding_s1_f4_d: '繁中/EN/日語一鍵秒切，100% 前端純靜態運行，零資料外洩風險。',
+        onboarding_s2_h1: '只需三步：把專家設定載入你的 AI 對話',
+        onboarding_s2_p1: '不用安裝任何擴充套件，三步就能讓你平常使用的 ChatGPT、Claude 或 Cursor 進入專職狀態：',
         onboarding_s2_step1_t: '點選召喚',
-        onboarding_s2_step1_d: '在任何英靈卡牌點擊「⚡ 召喚」或「🌴 召喚」，自動累計戰力榜。',
-        onboarding_s2_step2_t: '自動封裝',
-        onboarding_s2_step2_d: '系統已自動將「繁中指令外殼 ＋ 國際標準專家提示詞」完整複製到剪貼簿。',
-        onboarding_s2_step3_t: '貼入發送',
-        onboarding_s2_step3_d: '切換至任意 AI 對話框 (Ctrl + V) 貼上發送，AI 立即覺醒並以繁中向您報到！',
+        onboarding_s2_step1_d: '在任何特工卡片點擊「⚡ 召喚」（或 GTA 主題下的「🌴 召喚」），系統自動複製整段專家設定。',
+        onboarding_s2_step2_t: '自動帶入繁中規範',
+        onboarding_s2_step2_d: '系統已自動為你加入強制繁體中文回覆指引，並保留業界專業提示詞標準。',
+        onboarding_s2_step3_t: '貼上發送開工',
+        onboarding_s2_step3_d: '切換至你的 AI 對話框 (Ctrl + V) 貼上並送出，AI 立即進入專家角色向你報到！',
         onboarding_s2_compatible: '相容各大主流 AI 助手與編輯器：',
-        onboarding_s3_h1: '解惑：貼入後是變成 Rules 還是 Skills？',
-        onboarding_s3_p1: '很多出品人會疑惑：這段咒文對 AI 來說到底是什麼？答案是：「70% 憲法規則 (Rules) ＋ 30% 執行技能 (Skills)」的完美結合體！',
-        onboarding_s3_rules_t: '憲法規則 (Rules 70%)',
-        onboarding_s3_rules_d: '塑造 AI 的人格、邊界底線、品質審查尺規與反模式禁令。',
+        onboarding_s3_h1: '原理：貼入的內容屬於 Rules 還是 Skills？',
+        onboarding_s3_p1: '許多開發者會好奇：貼入的提示詞對 AI 來說到底是什麼？簡單來說，它是「70% 行為規範 (Rules) ＋ 30% 專業技能 (Skills)」的完整角色模組：',
+        onboarding_s3_rules_t: '行為規範與邊界 (Rules 70%)',
+        onboarding_s3_rules_d: '規範 AI 的溝通語系、架構標準、品質邊界與防禦邏輯，杜絕敷衍與幻覺。',
         onboarding_s3_rules_ex: '例如：強制繁中、遵守 SOLID 原則、拒絕敷衍代碼。',
-        onboarding_s3_skills_t: '專業技能 (Skills 30%)',
-        onboarding_s3_skills_d: '提供該領域的專用演算法、架構模式、名詞庫與實作步驟。',
+        onboarding_s3_skills_t: '專業領域技能 (Skills 30%)',
+        onboarding_s3_skills_d: '提供該專業領域專用的架構模式、演算法、工具鏈與實作標準。',
         onboarding_s3_skills_ex: '例如：Vue 3 Composition API、.NET 策略模式重構。',
-        onboarding_s3_lang_guarantee: '語言零障礙保證：咒文已內嵌強制繁中喚醒外殼，內部英文設定絕不影響中文溝通！',
+        onboarding_s3_lang_guarantee: '雙語相容保證：咒文已內嵌強制繁中指揮指引，底層專業英文設定完全不影響中文交流！',
         onboarding_dont_show_again: '下次不再主動彈出 (可隨時點右上角 ❓ 重新檢閱)',
         prev_step: '◀ 上一步',
         next_step: '下一步',
-        finish_onboarding: '進入殿堂開始召喚',
+        finish_onboarding: '開始探索專家庫',
         all_rarity: '全部品級',
         legendary: '🟡 傳奇主神',
         epic: '🟣 史詩專精',
@@ -1271,7 +1344,7 @@
         favorite_only: '僅顯示主力戰鬥陣容',
         add_fav: '收入主力名冊',
         remove_fav: '自陣容移除',
-        add_nickname: '冊封專屬稱號...',
+        add_nickname: '設定專屬稱號...',
         view_script: '📜 查閱劇本',
         summon_btn: '⚡ 召喚',
         summon_tooltip: '一鍵複製專家召喚 Prompt 並累計戰力',
@@ -1279,22 +1352,26 @@
         export_tooltip: '將您的自訂稱號與主力陣容匯出為 JSON 備份檔',
         import_btn: '匯入備份',
         import_tooltip: '還原先前匯出的備份設定檔',
-        modal_nickname_title: '出品人特權：冊封專屬稱號',
+        modal_nickname_title: '自訂專屬稱號與備註',
         modal_nickname_ph: '輸入專屬稱號 (例如：全端戰神、王牌審查官)...',
-        save_btn: '冊封並保存',
+        save_btn: '儲存稱號',
         nickname_saved_hint: '稱號將永久保存在瀏覽器 LocalStorage，支援隨時修改或一鍵備份匯出。',
-        modal_desc_title: '職責領域與架構守衛',
-        modal_skills_title: '精通核心專精',
+        modal_desc_title: '專業職責與領域範疇',
+        modal_skills_title: '精通核心技術與工具',
         modal_prompt_title: '底層專家提示詞 (System Prompt)',
         copy_code_btn: '複製全文',
         copied_full_prompt: '已複製完整 System Prompt！',
         close_btn: '關閉',
-        empty_title: '殿堂之中暫無此英雄...',
-        empty_desc: '找不到符合當前條件的英靈，試著清除關鍵字或更換領域標籤吧。',
+        empty_title: '未找到符合條件的特工角色',
+        empty_desc: '找不到符合當前條件的專家，試著清除關鍵字或切換領域分類。',
         reset_filters: '重設所有過濾條件',
-        prompt_copied: '⚡ 英靈【{name}】召喚符文已複製至剪貼簿！召喚次數 +1！',
+        prompt_copied: '⚡ 特工【{name}】召喚提示詞已複製至剪貼簿！隨時出戰！',
         backup_exported: '✅ 瓦爾哈拉設定檔已成功匯出下載！',
         backup_imported: '✅ 設定檔匯入成功！已還原您的戰鬥陣容與專屬稱號！',
+                quick_scenarios_label: '場景急救箱：',
+        when_to_summon_label: '適用場景：',
+        click_to_filter_scenario: '點擊依此情境快速篩選',
+        modal_scenarios_title: '🎯 適用場景與召喚時機',
         import_failed: '❌ 匯入失敗，請確認上傳的為正確的 JSON 備份檔。'
       },
       en: {
@@ -1402,6 +1479,10 @@
         prompt_copied: '⚡ Hero [{name}] Summon Prompt copied! Summon count +1!',
         backup_exported: '✅ Valhalla settings backup exported successfully!',
         backup_imported: '✅ Settings restored! Squad and titles loaded!',
+                quick_scenarios_label: '場景急救箱：',
+        when_to_summon_label: '適用場景：',
+        click_to_filter_scenario: '點擊依此情境快速篩選',
+        modal_scenarios_title: '🎯 適用場景與召喚時機',
         import_failed: '❌ Import failed. Please select a valid Valhalla JSON backup.'
       },
       ja: {
@@ -1509,6 +1590,10 @@
         prompt_copied: '⚡ 英霊【{name}】の召喚プロンプトをコピーしました！召喚数 +1！',
         backup_exported: '✅ ヴァルハラ設定のバックアップを出力しました！',
         backup_imported: '✅ 設定を復元しました！主力編成と称号が読み込まれました！',
+                quick_scenarios_label: '場景急救箱：',
+        when_to_summon_label: '適用場景：',
+        click_to_filter_scenario: '點擊依此情境快速篩選',
+        modal_scenarios_title: '🎯 適用場景與召喚時機',
         import_failed: '❌ 復元に失敗しました。正しいJSONファイルを選択してください。'
       }
     };
@@ -1624,7 +1709,7 @@
             const header = isGta
               ? `🌴【VICE CITY: 罪惡都市特工緊急徵召令 · VI】\n特工代號：${agent.id} | 神格稱號：${heroName} ${nick}\n所屬領域：${domName} | 戰力品級：${agent.rarity}`
               : `⚡【瓦爾哈拉：AI 英雄專家召喚喚醒符文】\n英雄代號：${agent.id} | 神格稱號：${heroName} ${nick}\n所屬領域：${domName} | 戰力品級：${agent.rarity}`;
-            return `================================================================================\n${header}\n================================================================================\n【出品人特別指示 / Executive Directive】：\n你現在已被正式召喚為【${heroName} ${nick}】！請從現在起完全進入此角色設定。\n1. 全程強制使用「台灣繁體中文」與我對話，態度親切且專業精準。\n2. 保持本角色的思考模式、架構審查標準與深模組設計哲學。\n3. 嚴格遵循下方的專業規則 (Rules) 與領域專精技能 (Skills)。\n================================================================================\n\n[角色底層系統提示詞 / SYSTEM PROMPT]\n${agent.prompt_template}\n\n================================================================================\n【喚醒完成指示】：\n請直接以【${heroName}】的神態與口吻，用繁體中文向我問好，並用 3 點簡要概述你能如何為我的專案提供最高水準的專家支援！\n================================================================================`;
+            return `================================================================================\n${header}\n================================================================================\n【專案指揮指令 / Master Directive】：\n你現在已受指派接管【${heroName} ${nick}】之專業職責！請立即套用以下角色設定：\n1. 全程強制使用「台灣繁體中文」與我對話，用語精準、專業接地氣。\n2. 嚴格遵守該角色所屬領域的業界標準、最佳實踐與防禦邊界。\n3. 確實執行下方所定義的行為規範 (Rules) 與專業技能 (Skills)。\n================================================================================\n\n[核心系統提示詞 / SYSTEM PROMPT]\n${agent.prompt_template}\n\n================================================================================\n【請回覆確認】：\n請直接以【${heroName}】身份，用親切專業的繁體中文向我報到，並條列 3 點你將如何協助我推進當前專案與解決難題！\n================================================================================`;
           }
         }
 
@@ -1633,6 +1718,82 @@
         const editNicknameInput = ref('');
         const toastMessage = ref('');
         const showDisclaimerModal = ref(false);
+
+        // 快捷場景急救箱狀態
+        const activeScenario = ref('all');
+        const activeScenarioCustom = ref('');
+
+        const scenarioFilters = computed(() => {
+          if (currentLang.value === 'en') {
+            return [
+              { id: 'all', icon: '🌟', name: 'All' },
+              { id: 'debug', icon: '🐛', name: 'Debug & Fix' },
+              { id: 'architecture', icon: '🏗️', name: 'Architecture' },
+              { id: 'growth', icon: '📈', name: 'Traffic & Growth' },
+              { id: 'proposal', icon: '📝', name: 'Proposals & Specs' },
+              { id: 'security', icon: '🛡️', name: 'Security & Pentest' },
+              { id: 'uiux', icon: '🎨', name: 'UI/UX & Design' },
+              { id: 'performance', icon: '⚡', name: 'Performance' },
+              { id: 'business', icon: '💰', name: 'Business & Finance' }
+            ];
+          } else if (currentLang.value === 'ja') {
+            return [
+              { id: 'all', icon: '🌟', name: '全て' },
+              { id: 'debug', icon: '🐛', name: '緊急デバッグ' },
+              { id: 'architecture', icon: '🏗️', name: 'アーキテクチャ' },
+              { id: 'growth', icon: '📈', name: 'トラフィック増長' },
+              { id: 'proposal', icon: '📝', name: '企画仕様・提案' },
+              { id: 'security', icon: '🛡️', name: 'セキュリティ防衛' },
+              { id: 'uiux', icon: '🎨', name: 'UI/UXデザイン' },
+              { id: 'performance', icon: '⚡', name: '極限パフォーマンス' },
+              { id: 'business', icon: '💰', name: 'ビジネス・金融' }
+            ];
+          }
+          return [
+            { id: 'all', icon: '🌟', name: '全部專家' },
+            { id: 'debug', icon: '🐛', name: '線上除錯急救' },
+            { id: 'architecture', icon: '🏗️', name: '架構設計重構' },
+            { id: 'growth', icon: '📈', name: '流量爆款增長' },
+            { id: 'proposal', icon: '📝', name: '標案規格文檔' },
+            { id: 'security', icon: '🛡️', name: '資安合規防禦' },
+            { id: 'uiux', icon: '🎨', name: '介面與體驗設計' },
+            { id: 'performance', icon: '⚡', name: '效能與高併發' },
+            { id: 'business', icon: '💰', name: '商業財務量化' }
+          ];
+        });
+
+        const currentScenarioLabel = computed(() => {
+          const match = scenarioFilters.value.find(s => s.id === activeScenario.value);
+          return match ? `${match.icon} ${match.name}` : '';
+        });
+
+        function toggleScenarioFilter(scId) {
+          if (activeScenario.value === scId) {
+            activeScenario.value = 'all';
+          } else {
+            activeScenario.value = scId;
+          }
+          activeScenarioCustom.value = '';
+        }
+
+        function filterByScenario(scStr) {
+          if (activeScenarioCustom.value === scStr) {
+            activeScenarioCustom.value = '';
+          } else {
+            activeScenarioCustom.value = scStr;
+            activeScenario.value = 'all';
+          }
+        }
+
+        function getAgentScenarios(agent) {
+          if (!agent) return [];
+          return agent.scenarios || [];
+        }
+
+        function getScenarioCount(catId) {
+          if (catId === 'all') return agents.value.length;
+          return agents.value.filter(a => a.scenario_categories && a.scenario_categories.includes(catId)).length;
+        }
 
         // 本地持久化資料 (稱號、收藏與召喚計數器)
         const nicknames = ref(JSON.parse(localStorage.getItem('valhalla_nicknames') || '{}'));
@@ -1815,6 +1976,17 @@
           if (isTop10Mode.value) {
             list = rankedLeaderboard.value.slice(0, 10);
           } else {
+            // 場景急救箱分類篩選
+            if (activeScenario.value !== 'all') {
+              list = list.filter(a => a.scenario_categories && a.scenario_categories.includes(activeScenario.value));
+            }
+
+            // 自訂點選卡片場景標籤篩選
+            if (activeScenarioCustom.value) {
+              const scQ = activeScenarioCustom.value.toLowerCase();
+              list = list.filter(a => (a.scenarios || []).some(s => s.toLowerCase().includes(scQ)));
+            }
+
             if (selectedDomain.value !== 'all') {
               list = list.filter(a => a.domain === selectedDomain.value);
             }
@@ -1837,13 +2009,16 @@
                 const vibe = getHeroVibe(a).toLowerCase();
                 const skills = getHeroSkills(a).join(' ').toLowerCase();
 
+                const scenarios = (a.scenarios || []).join(' ').toLowerCase();
+
                 return (
                   customNick.includes(q) ||
                   nameZh.includes(q) ||
                   enName.includes(q) ||
                   aid.includes(q) ||
                   vibe.includes(q) ||
-                  skills.includes(q)
+                  skills.includes(q) ||
+                  scenarios.includes(q)
                 );
               });
             }
