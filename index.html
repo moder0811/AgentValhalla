@@ -41,7 +41,7 @@
   <!-- Vue 3 CDN -->
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <!-- Local data script -->
-  <script src="agents_catalog.js?v=20261030_v9"></script>
+  <script src="agents_catalog.js?v=20261030_v10"></script>
   <!-- Pixel Avatar Engine -->
   <script src="pixel_avatar.js"></script>
   <style>
@@ -1276,18 +1276,9 @@
 
           <!-- 原始 System Prompt 劇本 -->
           <div class="space-y-2">
-            <div class="flex items-center justify-between">
-              <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                ⚡ {{ t('modal_prompt_title') }}
-              </h4>
-              <button 
-                @click="copyText(activeHero.prompt_template, t('copied_full_prompt'))"
-                class="text-xs text-amber-400 hover:underline flex items-center space-x-1"
-              >
-                <span>📋</span>
-                <span>{{ t('copy_code_btn') }}</span>
-              </button>
-            </div>
+            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              ⚡ {{ t('modal_prompt_title') }}
+            </h4>
             <pre class="p-4 bg-slate-950 rounded-2xl border border-slate-800 text-xs font-mono text-slate-300 overflow-x-auto max-h-60 leading-relaxed whitespace-pre-wrap select-all">{{ activeHero.prompt_template }}</pre>
           </div>
 
