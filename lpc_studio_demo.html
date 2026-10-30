@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🏛️ LPC 真實手繪像素圖層合成器 | Agent Valhalla</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* 像素無損抗鋸齒渲染關鍵樣式 */
+    .pixelated {
+      image-rendering: pixelated;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: crisp-edges;
+    }
+    @keyframes subtleGlow {
+      0%, 100% { filter: drop-shadow(0 0 15px rgba(236, 72, 153, 0.4)); }
+      50% { filter: drop-shadow(0 0 25px rgba(168, 85, 247, 0.6)); }
+    }
+    .preview-glow {
+      animation: subtleGlow 3s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-pink-500 selection:text-white">
+
+  <!-- 頂部導航 -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <span class="text-2xl">👗</span>
+      <div>
+        <h1 class="text-lg font-black bg-gradient-to-r from-pink-400 via-purple-300 to-amber-300 bg-clip-text text-transparent">
+          LPC 真實手繪像素圖層合成器
+        </h1>
+        <p class="text-[11px] text-slate-400">
+          以開源專業像素繪師實體 PNG 賽璐珞多軌疊合 · 100% 手繪質感 · 告別樂高方塊
+        </p>
+      </div>
+    </div>
+    <div class="flex items-center space-x-3">
+      <a href="index.html" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-lg border border-slate-700 transition flex items-center space-x-1">
+        <span>🏛️</span>
+        <span>回英雄殿</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- 主要內容區 -->
+  <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+    <!-- 左側：即時渲染預覽視窗 (5 Cols) -->
+    <div class="lg:col-span-5 bg-slate-900/90 border border-slate-800 rounded-2xl p-6 flex flex-col items-center shadow-2xl relative overflow-hidden">
+      <div class="absolute -top-12 -left-12 w-48 h-48 bg-pink-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-12 -right-12 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <!-- 標題與模式標籤 -->
+      <div class="w-full flex items-center justify-between mb-4">
+        <span class="text-xs font-bold text-slate-400 flex items-center space-x-1">
+          <span>🎥</span>
+          <span id="framingLabel">胸部黃金特寫 (128x128)</span>
+        </span>
+        <span id="animBadge" class="text-[10px] px-2 py-0.5 rounded-full font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center space-x-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+          <span>動態呼吸運行中</span>
+        </span>
+      </div>
+
+      <!-- Canvas 像素預覽容器 (256x256 放大顯示，保持銳利) -->
+      <div class="relative w-64 h-64 bg-slate-950 rounded-2xl border-2 border-slate-700/80 p-2 flex items-center justify-center preview-glow shadow-inner">
+        <canvas id="previewCanvas" width="128" height="128" class="w-56 h-56 pixelated rounded-xl shadow-2xl"></canvas>
+      </div>
+
+      <!-- 視角切換與動態控制 -->
+      <div class="w-full grid grid-cols-2 gap-2 mt-4">
+        <button id="toggleFramingBtn" class="py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 rounded-xl border border-slate-700 transition flex items-center justify-center space-x-1">
+          <span>🔍</span>
+          <span id="toggleFramingText">切換為全身立繪</span>
+        </button>
+        <button id="toggleAnimBtn" class="py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 rounded-xl border border-slate-700 transition flex items-center justify-center space-x-1">
+          <span>🫁</span>
+          <span id="toggleAnimText">暫停動態呼吸</span>
+        </button>
+      </div>
+
+      <!-- 快捷操作：隨機情趣搭配與導出 -->
+      <div class="w-full flex space-x-2 mt-3 pt-3 border-t border-slate-800">
+        <button id="randomBtn" class="flex-1 py-2.5 bg-gradient-to-r from-pink-500/20 to-purple-500/20 hover:from-pink-500/30 hover:to-purple-500/30 text-pink-300 hover:text-white text-xs font-black rounded-xl border border-pink-500/30 transition flex items-center justify-center space-x-1.5 shadow">
+          <span>🎲</span>
+          <span>隨機性感混搭</span>
+        </button>
+        <button id="downloadBtn" class="flex-1 py-2.5 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 hover:text-white text-xs font-black rounded-xl border border-emerald-500/30 transition flex items-center justify-center space-x-1.5 shadow">
+          <span>💾</span>
+          <span>下載 128x128 PNG</span>
+        </button>
+      </div>
+
+      <!-- 說明備註 -->
+      <p class="text-[10px] text-slate-500 mt-3 text-center leading-relaxed">
+        ※ 100% 採用 LPC 開源繪師手繪素材 · 透過 Canvas 多層疊合與無損放大輸出
+      </p>
+    </div>
+
+    <!-- 右側：賽璐珞圖層控制面板 (7 Cols) -->
+    <div class="lg:col-span-7 bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-5">
+      
+      <!-- 1. 性別與身軀素體 -->
+      <div>
+        <label class="text-xs font-black text-amber-400 flex items-center space-x-1.5 mb-2">
+          <span>👤</span>
+          <span>第 1 層：身軀素體 (Body Layer)</span>
+        </label>
+        <div class="grid grid-cols-2 gap-2" id="genderGroup">
+          <button data-gender="female" class="gender-btn active py-2 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center space-x-1.5 bg-pink-500/20 border-pink-500 text-pink-200">
+            <span>🛡️</span>
+            <span>女武神素體 (女性人體曲線)</span>
+          </button>
+          <button data-gender="male" class="gender-btn py-2 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center space-x-1.5 bg-slate-800 border-slate-700 text-slate-400">
+            <span>⚔️</span>
+            <span>男勇者素體 (健壯戰士身形)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. 性感馬甲與服飾 (Bodice / Costumes) -->
+      <div>
+        <label class="text-xs font-black text-pink-400 flex items-center space-x-1.5 mb-2">
+          <span>👙</span>
+          <span>第 2 層：手繪性感胸衣與鎧甲 (Bodice & Armor)</span>
+        </label>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="bodiceGroup">
+          <!-- 動態注入 -->
+        </div>
+      </div>
+
+      <!-- 3. 飄逸髮型選擇 (Hair Style) -->
+      <div>
+        <label class="text-xs font-black text-purple-400 flex items-center space-x-1.5 mb-2">
+          <span>💇‍♀️</span>
+          <span>第 3 層：手繪飄逸髮型 (Hair Style)</span>
+        </label>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="hairStyleGroup">
+          <!-- 動態注入 -->
+        </div>
+      </div>
+
+      <!-- 4. 髮色即時染色 (Hair Tint) -->
+      <div>
+        <label class="text-xs font-black text-cyan-400 flex items-center space-x-1.5 mb-2">
+          <span>🎨</span>
+          <span>第 4 層：髮色光學染色 (Hair Color Tint)</span>
+        </label>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="hairColorGroup">
+          <!-- 動態注入 -->
+        </div>
+      </div>
+
+      <!-- 5. 靈魂五官瞳色 (Eye Color) -->
+      <div>
+        <label class="text-xs font-black text-emerald-400 flex items-center space-x-1.5 mb-2">
+          <span>👁️</span>
+          <span>第 5 層：五官眼神與瞳色 (Eye Color)</span>
+        </label>
+        <div class="grid grid-cols-3 sm:grid-cols-5 gap-2" id="eyeColorGroup">
+          <!-- 動態注入 -->
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- 引入 LPC 合成器核心 -->
+  <script src="./lpc_compositor.js?v=20261031_lpc1"></script>
+
+  <script>
+    // 即時設定狀態
+    const state = {
+      gender: 'female',
+      bodiceColor: 'black',
+      hairStyle: 'bangslong',
+      hairColor: 'blonde',
+      eyeColor: 'purple',
+      framing: 'portrait', // 'portrait' | 'fullbody'
+      frame: 0,
+      isAnimating: true
+    };
+
+    const canvas = document.getElementById('previewCanvas');
+    let animTimer = null;
+
+    // 1. 初始化按鈕群組
+    function initButtons() {
+      // Bodice 按鈕
+      const bodiceContainer = document.getElementById('bodiceGroup');
+      bodiceContainer.innerHTML = '';
+      window.LpcCompositor.bodiceColors.forEach(item => {
+        const btn = document.createElement('button');
+        btn.className = `bodice-btn py-1.5 px-2 rounded-xl text-xs font-bold border transition text-left ${item.id === state.bodiceColor ? 'bg-pink-500/20 border-pink-500 text-pink-200' : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'}`;
+        btn.textContent = item.label;
+        btn.onclick = () => {
+          state.bodiceColor = item.id;
+          updateSelectionStyles('bodice-btn', item.id, 'data-bodice');
+          render();
+        };
+        btn.setAttribute('data-bodice', item.id);
+        bodiceContainer.appendChild(btn);
+      });
+
+      // Hair Style 按鈕
+      const hairStyleContainer = document.getElementById('hairStyleGroup');
+      hairStyleContainer.innerHTML = '';
+      window.LpcCompositor.hairStyles.forEach(item => {
+        const btn = document.createElement('button');
+        btn.className = `hair-style-btn py-1.5 px-2 rounded-xl text-xs font-bold border transition text-left truncate ${item.id === state.hairStyle ? 'bg-purple-500/20 border-purple-500 text-purple-200' : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'}`;
+        btn.textContent = item.label;
+        btn.onclick = () => {
+          state.hairStyle = item.id;
+          updateSelectionStyles('hair-style-btn', item.id, 'data-style');
+          render();
+        };
+        btn.setAttribute('data-style', item.id);
+        hairStyleContainer.appendChild(btn);
+      });
+
+      // Hair Color 按鈕
+      const hairColorContainer = document.getElementById('hairColorGroup');
+      hairColorContainer.innerHTML = '';
+      Object.entries(window.LpcCompositor.palettes).forEach(([id, item]) => {
+        const btn = document.createElement('button');
+        btn.className = `hair-color-btn py-1.5 px-2 rounded-xl text-xs font-bold border transition text-left truncate ${id === state.hairColor ? 'bg-cyan-500/20 border-cyan-500 text-cyan-200' : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'}`;
+        btn.textContent = item.label;
+        btn.onclick = () => {
+          state.hairColor = id;
+          updateSelectionStyles('hair-color-btn', id, 'data-color');
+          render();
+        };
+        btn.setAttribute('data-color', id);
+        hairColorContainer.appendChild(btn);
+      });
+
+      // Eye Color 按鈕
+      const eyeColorContainer = document.getElementById('eyeColorGroup');
+      eyeColorContainer.innerHTML = '';
+      window.LpcCompositor.eyeColors.forEach(item => {
+        const btn = document.createElement('button');
+        btn.className = `eye-color-btn py-1.5 px-2 rounded-xl text-xs font-bold border transition text-left truncate ${item.id === state.eyeColor ? 'bg-emerald-500/20 border-emerald-500 text-emerald-200' : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'}`;
+        btn.textContent = item.label;
+        btn.onclick = () => {
+          state.eyeColor = item.id;
+          updateSelectionStyles('eye-color-btn', item.id, 'data-eye');
+          render();
+        };
+        btn.setAttribute('data-eye', item.id);
+        eyeColorContainer.appendChild(btn);
+      });
+
+      // Gender 切換
+      document.querySelectorAll('.gender-btn').forEach(btn => {
+        btn.onclick = () => {
+          state.gender = btn.getAttribute('data-gender');
+          document.querySelectorAll('.gender-btn').forEach(b => {
+            b.className = `gender-btn py-2 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center space-x-1.5 ${b.getAttribute('data-gender') === state.gender ? 'bg-pink-500/20 border-pink-500 text-pink-200' : 'bg-slate-800 border-slate-700 text-slate-400'}`;
+          });
+          render();
+        };
+      });
+    }
+
+    function updateSelectionStyles(cls, activeVal, attr) {
+      document.querySelectorAll('.' + cls).forEach(btn => {
+        const isActive = btn.getAttribute(attr) === activeVal;
+        btn.className = `${cls} py-1.5 px-2 rounded-xl text-xs font-bold border transition text-left truncate ${isActive ? 'bg-pink-500/20 border-pink-500 text-pink-200 shadow' : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'}`;
+      });
+    }
+
+    // 2. 渲染函式
+    async function render() {
+      if (!window.LpcCompositor) return;
+      await window.LpcCompositor.composite({
+        gender: state.gender,
+        bodiceColor: state.bodiceColor,
+        hairStyle: state.hairStyle,
+        hairColor: state.hairColor,
+        eyeColor: state.eyeColor,
+        framing: state.framing,
+        frame: state.frame
+      }, canvas);
+    }
+
+    // 3. 動態呼吸迴圈 (兩格交替)
+    function startAnimation() {
+      if (animTimer) clearInterval(animTimer);
+      animTimer = setInterval(() => {
+        if (state.isAnimating) {
+          state.frame = state.frame === 0 ? 1 : 0;
+          render();
+        }
+      }, 350);
+    }
+
+    // 4. 控制項事件
+    document.getElementById('toggleFramingBtn').onclick = () => {
+      state.framing = state.framing === 'portrait' ? 'fullbody' : 'portrait';
+      document.getElementById('framingLabel').textContent = state.framing === 'portrait' ? '胸部黃金特寫 (128x128)' : '全身立繪視野 (128x128)';
+      document.getElementById('toggleFramingText').textContent = state.framing === 'portrait' ? '切換為全身立繪' : '切換為胸部特寫';
+      render();
+    };
+
+    document.getElementById('toggleAnimBtn').onclick = () => {
+      state.isAnimating = !state.isAnimating;
+      document.getElementById('toggleAnimText').textContent = state.isAnimating ? '暫停動態呼吸' : '啟動動態呼吸';
+      const badge = document.getElementById('animBadge');
+      if (state.isAnimating) {
+        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span><span>動態呼吸運行中</span>';
+        badge.className = 'text-[10px] px-2 py-0.5 rounded-full font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center space-x-1';
+      } else {
+        badge.innerHTML = '<span>⏸️ 已暫停</span>';
+        badge.className = 'text-[10px] px-2 py-0.5 rounded-full font-mono bg-slate-800 text-slate-400 border border-slate-700 flex items-center space-x-1';
+      }
+    };
+
+    document.getElementById('randomBtn').onclick = () => {
+      const bodices = window.LpcCompositor.bodiceColors.filter(b => b.id !== 'none');
+      const hairs = window.LpcCompositor.hairStyles;
+      const hairColors = Object.keys(window.LpcCompositor.palettes);
+      const eyes = window.LpcCompositor.eyeColors;
+
+      state.bodiceColor = bodices[Math.floor(Math.random() * bodices.length)].id;
+      state.hairStyle = hairs[Math.floor(Math.random() * hairs.length)].id;
+      state.hairColor = hairColors[Math.floor(Math.random() * hairColors.length)];
+      state.eyeColor = eyes[Math.floor(Math.random() * eyes.length)].id;
+
+      updateSelectionStyles('bodice-btn', state.bodiceColor, 'data-bodice');
+      updateSelectionStyles('hair-style-btn', state.hairStyle, 'data-style');
+      updateSelectionStyles('hair-color-btn', state.hairColor, 'data-color');
+      updateSelectionStyles('eye-color-btn', state.eyeColor, 'data-eye');
+
+      render();
+    };
+
+    document.getElementById('downloadBtn').onclick = () => {
+      const link = document.createElement('a');
+      link.download = `lpc_avatar_${state.gender}_${state.bodiceColor}_${state.hairStyle}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    };
+
+    // 啟動
+    window.addEventListener('DOMContentLoaded', () => {
+      initButtons();
+      render();
+      startAnimation();
+    });
+  </script>
+</body>
+</html>

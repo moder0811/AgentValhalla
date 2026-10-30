@@ -1431,6 +1431,17 @@
 
     <!-- 👑 右下角懸浮【召喚師冒險 HUD 膠囊】(完全不推擠卡片，點擊開啟檔案手冊) -->
     <div class="fixed bottom-5 right-5 z-40 flex items-center space-x-2">
+      <!-- 👗 LPC 手繪真機工坊膠囊 (實體繪師素材) -->
+      <a 
+        href="lpc_studio_demo.html"
+        target="_blank"
+        class="bg-gradient-to-r from-pink-600/90 to-purple-600/90 hover:from-pink-500 hover:to-purple-500 text-white border border-pink-400/50 rounded-full px-3 py-1.5 shadow-[0_8px_25px_rgba(236,72,153,0.4)] backdrop-blur-md flex items-center space-x-1.5 transition-all transform hover:scale-105 active:scale-95 group text-xs font-bold"
+        title="LPC 真實手繪像素圖層合成器 (100% 繪師素材手繪立繪)"
+      >
+        <span>👗</span>
+        <span class="hidden sm:inline">手繪工坊</span>
+      </a>
+
       <!-- 🚨 每日急診室戰役膠囊 (零算力確定性推導) -->
       <button 
         @click="openEmergencyModal"
@@ -1507,12 +1518,23 @@
               <p class="text-xs text-slate-400">十年獨立遊戲性感代表作 · 4 幀次像素呼吸動態 · LPC 6 階漸層抗鋸齒</p>
             </div>
           </div>
-          <button 
-            @click="showStudioModal = false" 
-            class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition"
-          >
-            ✕
-          </button>
+          <div class="flex items-center space-x-2">
+            <a 
+              href="lpc_studio_demo.html" 
+              target="_blank"
+              class="px-3 py-1.5 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white text-xs font-black rounded-xl shadow-lg shadow-pink-500/30 flex items-center space-x-1.5 transition"
+              title="開啟 LPC 真實手繪像素圖層工坊"
+            >
+              <span>👗</span>
+              <span>手繪真機工坊</span>
+            </a>
+            <button 
+              @click="showStudioModal = false" 
+              class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         <!-- 彈窗主體雙欄佈局 (左側大畫布預覽，右側選項) -->
