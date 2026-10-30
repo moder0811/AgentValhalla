@@ -41,9 +41,11 @@
   <!-- Vue 3 CDN -->
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <!-- Local data script -->
-  <script src="agents_catalog.js?v=20261030_v11"></script>
+  <script src="agents_catalog.js?v=20261030_v12"></script>
   <!-- Pixel Avatar Engine -->
   <script src="pixel_avatar.js"></script>
+  <!-- 0 KB Procedural Web Audio & RPG Engine -->
+  <script src="rpg_engine.js?v=20261030_v12"></script>
   <style>
     /* Custom scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -176,6 +178,35 @@
       <!-- 左下角微光地平線 -->
       <div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500/40 via-pink-500/40 to-orange-500/40 blur-[1px]"></div>
     </div>
+
+    <!-- 👑 頂部 2.5px 極致微型霓虹經驗條 (完全不佔任何版面高度) -->
+    <div 
+      class="fixed top-0 left-0 right-0 h-[2.5px] z-50 pointer-events-none bg-slate-950/80 overflow-hidden"
+      :title="'EXP: ' + levelInfo.currentExp + ' / ' + levelInfo.neededExp"
+    >
+      <div 
+        class="h-full bg-gradient-to-r from-amber-500 via-amber-300 to-cyan-400 transition-all duration-700 shadow-[0_0_12px_rgba(245,158,11,0.9)]"
+        :style="{ width: levelInfo.progressPercent + '%' }"
+      ></div>
+    </div>
+
+    <!-- 💥 LEVEL UP 浮空動態橫幅 (PS5 白金成就風格，自動淡出) -->
+    <transition enter-active-class="transform transition ease-out duration-500" enter-from-class="opacity-0 -translate-y-10 scale-90" enter-to-class="opacity-100 translate-y-0 scale-100" leave-active-class="transition ease-in duration-300" leave-from-class="opacity-100 scale-100" leave-to-class="opacity-0 -translate-y-8 scale-90">
+      <div 
+        v-if="levelUpToast" 
+        class="fixed top-12 left-1/2 transform -translate-x-1/2 z-50 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-black px-6 py-3.5 rounded-2xl shadow-[0_0_35px_rgba(245,158,11,0.95)] border-2 border-amber-200 flex items-center space-x-3.5 pointer-events-none"
+      >
+        <span class="text-3xl animate-bounce">🏆</span>
+        <div>
+          <div class="text-[10px] uppercase font-black tracking-widest text-black/80 font-mono">LEVEL UP! 晉升榮耀</div>
+          <div class="text-base font-extrabold text-black flex items-center space-x-2">
+            <span>Lv.{{ levelUpToast.level }}</span>
+            <span>·</span>
+            <span>{{ levelUpToast.title }}</span>
+          </div>
+        </div>
+      </div>
+    </transition>
 
     <!-- 🏰 頂層導航列與英靈殿招牌 (Valhalla Header) -->
     <header class="glass-panel sticky top-0 z-40 border-b border-slate-800/80 shadow-2xl">
@@ -1387,6 +1418,152 @@
       </div>
     </footer>
 
+    <!-- 👑 右下角懸浮【召喚師冒險 HUD 膠囊】(完全不推擠卡片，點擊開啟檔案手冊) -->
+    <div class="fixed bottom-5 right-5 z-40 flex items-center space-x-2">
+      <button 
+        @click="showCommanderModal = true"
+        class="bg-slate-900/90 hover:bg-slate-800 text-slate-200 border border-amber-500/40 hover:border-amber-400 rounded-full px-3 py-1.5 shadow-[0_8px_25px_rgba(0,0,0,0.6)] backdrop-blur-md flex items-center space-x-2 transition-all transform hover:scale-105 active:scale-95 group"
+        :title="t('rpg_hud_hint')"
+      >
+        <span class="text-amber-400 text-sm animate-pulse">👑</span>
+        <div class="flex flex-col text-left leading-tight">
+          <div class="flex items-center space-x-1">
+            <span class="text-[11px] font-black text-amber-300 font-mono">Lv.{{ levelInfo.level }}</span>
+            <span class="text-[11px] font-bold text-slate-200 hidden sm:inline">{{ commanderTitle }}</span>
+          </div>
+          <div class="w-16 sm:w-20 bg-slate-950 rounded-full h-1 mt-0.5 border border-slate-700/60 overflow-hidden">
+            <div 
+              class="bg-amber-400 h-full rounded-full transition-all duration-500 shadow-[0_0_6px_rgba(245,158,11,0.8)]" 
+              :style="{ width: levelInfo.progressPercent + '%' }"
+            ></div>
+          </div>
+        </div>
+        <span class="text-[10px] text-amber-400/90 font-mono ml-0.5">{{ levelInfo.progressPercent }}%</span>
+      </button>
+
+      <!-- 🔊 靜音/開音切換按鈕 -->
+      <button 
+        @click="toggleSound"
+        :class="isSoundOn ? 'bg-slate-900/85 text-amber-400 border-amber-500/30' : 'bg-slate-950/85 text-slate-500 border-slate-800'"
+        class="w-9 h-9 rounded-full border flex items-center justify-center text-xs backdrop-blur-md hover:scale-105 transition shadow-lg"
+        :title="isSoundOn ? t('sound_on') : t('sound_off')"
+      >
+        {{ isSoundOn ? '🔊' : '🔇' }}
+      </button>
+    </div>
+
+    <!-- 👑 召喚師冒險檔案卡彈窗 (Commander Battle Profile Modal) -->
+    <div 
+      v-if="showCommanderModal" 
+      class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/85 backdrop-blur-md transition"
+      @click.self="showCommanderModal = false"
+    >
+      <div 
+        :class="currentTheme === 'gta6' ? 'border-pink-500/40 shadow-[0_0_50px_rgba(255,42,133,0.3)]' : 'border-amber-500/30 shadow-[0_0_50px_rgba(245,158,11,0.2)]'"
+        class="relative w-full max-w-xl bg-slate-900 border rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
+      >
+        <!-- 彈窗頂部 Header -->
+        <div class="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
+          <div class="flex items-center space-x-3">
+            <span class="text-2xl">👑</span>
+            <div>
+              <h3 class="text-base font-bold text-slate-100 flex items-center space-x-2">
+                <span>{{ t('commander_profile_title') }}</span>
+              </h3>
+              <p class="text-xs text-slate-400 font-mono">Agent Valhalla RPG Engine</p>
+            </div>
+          </div>
+          <button 
+            @click="showCommanderModal = false" 
+            class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- 彈窗內容區 -->
+        <div class="p-5 overflow-y-auto space-y-5 text-slate-300 text-xs">
+          
+          <!-- 等級與稱號卡片 -->
+          <div class="p-4 rounded-2xl bg-gradient-to-br from-slate-950 to-slate-900 border border-slate-800 flex items-center justify-between">
+            <div class="space-y-1">
+              <span class="text-[11px] uppercase tracking-wider text-amber-400 font-bold font-mono">{{ t('commander_level_label') }}</span>
+              <div class="flex items-center space-x-2">
+                <span class="text-2xl font-black text-amber-300 font-mono">Lv.{{ levelInfo.level }}</span>
+                <span class="text-sm font-extrabold text-slate-100 bg-amber-500/10 px-2.5 py-0.5 rounded-lg border border-amber-500/20">{{ commanderTitle }}</span>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="text-[11px] text-slate-400 font-mono">EXP {{ levelInfo.currentExp }} / {{ levelInfo.neededExp }}</span>
+              <div class="w-32 bg-slate-950 rounded-full h-2 mt-1 border border-slate-700 overflow-hidden">
+                <div class="bg-gradient-to-r from-amber-500 to-amber-300 h-full rounded-full transition-all duration-500" :style="{ width: levelInfo.progressPercent + '%' }"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 冒險數據統計盤 -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <div class="p-3 bg-slate-950/70 border border-slate-800 rounded-xl text-center">
+              <div class="text-[10px] text-slate-500">已解鎖特工</div>
+              <div class="text-base font-bold text-amber-300 font-mono mt-0.5">{{ summonedAgentIds.length }} <span class="text-[10px] text-slate-500">/ 272</span></div>
+            </div>
+            <div class="p-3 bg-slate-950/70 border border-slate-800 rounded-xl text-center">
+              <div class="text-[10px] text-slate-500">主力陣容</div>
+              <div class="text-base font-bold text-amber-300 font-mono mt-0.5">{{ favoriteIds.length }} 位</div>
+            </div>
+            <div class="p-3 bg-slate-950/70 border border-slate-800 rounded-xl text-center">
+              <div class="text-[10px] text-slate-500">總冒險經驗</div>
+              <div class="text-base font-bold text-cyan-400 font-mono mt-0.5">{{ levelInfo.totalExp }}</div>
+            </div>
+            <div class="p-3 bg-slate-950/70 border border-slate-800 rounded-xl text-center">
+              <div class="text-[10px] text-slate-500">3A 專屬音效</div>
+              <button @click="toggleSound" class="text-xs font-bold text-slate-300 hover:text-white mt-0.5 flex items-center justify-center space-x-1 mx-auto">
+                <span>{{ isSoundOn ? '🔊 開啟' : '🔇 靜音' }}</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 🏆 成就榮耀牆 (Trophies) -->
+          <div class="space-y-2.5">
+            <div class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center space-x-1.5">
+              <span>🏆</span>
+              <span>{{ t('achievements_title') }}</span>
+            </div>
+            <div class="space-y-2">
+              <div 
+                v-for="trophy in commanderAchievements" 
+                :key="trophy.id"
+                :class="trophy.unlocked ? 'bg-slate-950/80 border-amber-500/30' : 'bg-slate-950/30 border-slate-800/60 opacity-50'"
+                class="p-3 border rounded-xl flex items-center justify-between transition"
+              >
+                <div class="flex items-center space-x-3">
+                  <span class="text-xl">{{ trophy.icon }}</span>
+                  <div>
+                    <div class="font-bold text-slate-100 flex items-center space-x-2">
+                      <span>{{ trophy.title }}</span>
+                      <span v-if="trophy.unlocked" class="text-[10px] text-amber-400 bg-amber-500/10 px-1.5 py-0.2 rounded border border-amber-500/20 font-mono">UNLOCKED</span>
+                    </div>
+                    <div class="text-[11px] text-slate-400">{{ trophy.desc }}</div>
+                  </div>
+                </div>
+                <span class="text-sm">{{ trophy.unlocked ? '✨' : '🔒' }}</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 彈窗底部按鈕 -->
+        <div class="p-4 border-t border-slate-800 bg-slate-950/80 flex items-center justify-end">
+          <button 
+            @click="showCommanderModal = false"
+            class="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs rounded-xl shadow-glow-gold transition"
+          >
+            {{ t('close_btn') }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -1493,6 +1670,30 @@
         copy_code_btn: '複製全文',
         copied_full_prompt: '已複製完整 System Prompt！',
         close_btn: '關閉',
+        title_novice: '見習召喚師',
+        title_explorer: '殿堂探索者',
+        title_tactician: '資深戰術家',
+        title_legend: '傳奇架構師',
+        title_grandmaster: '萬象宗師',
+        title_sovereign: '神域統御者',
+        rpg_hud_hint: '查看召喚師個人檔案與冒險等級',
+        commander_profile_title: '👑 召喚師冒險檔案',
+        commander_level_label: '當前召喚師等級',
+        commander_exp_label: '經驗值進度',
+        achievements_title: '🏆 殿堂成就榮耀',
+        sound_on: '🔊 音效：開啟 (點擊關閉)',
+        sound_off: '🔇 音效：已靜音 (點擊開啟)',
+        sound_toggle: '音效開關',
+        trophy_first_summon: '初入殿堂',
+        trophy_first_summon_desc: '完成生涯第一次特工召喚',
+        trophy_squad: '精銳小隊',
+        trophy_squad_desc: '建立 5 位以上主力陣容',
+        trophy_domains: '多元涉獵',
+        trophy_domains_desc: '探索並召喚過 5 個以上不同領域',
+        trophy_veteran: '百戰名將',
+        trophy_veteran_desc: '累計完成 20 次特工召喚',
+        trophy_level5: '殿堂之星',
+        trophy_level5_desc: '冒險等級達到 Lv.5',
         empty_title: '未找到符合條件的特工角色',
         empty_desc: '找不到符合當前條件的專家，試著清除關鍵字或切換領域分類。',
         reset_filters: '重設所有過濾條件',
@@ -1617,6 +1818,30 @@
         copy_code_btn: 'Copy Full Text',
         copied_full_prompt: 'Full System Prompt copied!',
         close_btn: 'Close',
+        title_novice: 'Novice Summoner',
+        title_explorer: 'Pantheon Explorer',
+        title_tactician: 'Veteran Tactician',
+        title_legend: 'Legendary Architect',
+        title_grandmaster: 'Master of All Domains',
+        title_sovereign: 'Sovereign of Valhalla',
+        rpg_hud_hint: 'View Commander Profile & RPG Level',
+        commander_profile_title: '👑 Commander Battle Profile',
+        commander_level_label: 'Current Commander Level',
+        commander_exp_label: 'EXP Progress',
+        achievements_title: '🏆 Pantheon Achievements',
+        sound_on: '🔊 Sound: ON (Click to Mute)',
+        sound_off: '🔇 Sound: MUTED (Click to Unmute)',
+        sound_toggle: 'Sound FX Toggle',
+        trophy_first_summon: 'First Blood',
+        trophy_first_summon_desc: 'Summon your first specialist agent into battle',
+        trophy_squad: 'Elite Squad',
+        trophy_squad_desc: 'Assemble 5 or more heroes in your main squad',
+        trophy_domains: 'Cross-Domain Mind',
+        trophy_domains_desc: 'Explore and summon agents across 5+ distinct domains',
+        trophy_veteran: 'Veteran Vanguard',
+        trophy_veteran_desc: 'Reach 20 total agent summons',
+        trophy_level5: 'Pantheon Star',
+        trophy_level5_desc: 'Reach Commander Level 5',
         empty_title: 'No Hero Found in the Pantheon...',
         empty_desc: 'Try clearing your search query or selecting another domain filter.',
         reset_filters: 'Reset All Filters',
@@ -1741,6 +1966,30 @@
         copy_code_btn: '全文コピー',
         copied_full_prompt: 'システムプロンプトを全文コピーしました！',
         close_btn: '閉じる',
+        title_novice: '見習い召喚士',
+        title_explorer: '神殿の探求者',
+        title_tactician: '百戦錬磨の戦術家',
+        title_legend: '伝説の設計士',
+        title_grandmaster: '万象の導師',
+        title_sovereign: 'ヴァルハラの統治者',
+        rpg_hud_hint: '召喚士プロファイルとRPGレベル',
+        commander_profile_title: '👑 召喚士の冒険プロファイル',
+        commander_level_label: '現在の召喚士レベル',
+        commander_exp_label: '経験値進捗',
+        achievements_title: '🏆 神殿の実績・トロフィー',
+        sound_on: '🔊 効果音：オン',
+        sound_off: '🔇 効果音：ミュート',
+        sound_toggle: '効果音切り替え',
+        trophy_first_summon: '初陣の契り',
+        trophy_first_summon_desc: '初めてエージェントを召喚する',
+        trophy_squad: '精鋭部隊',
+        trophy_squad_desc: '主力陣容に5名以上を編成する',
+        trophy_domains: '万象の視座',
+        trophy_domains_desc: '5つ以上の異なる領域のエージェントを召喚する',
+        trophy_veteran: '百戦錬磨',
+        trophy_veteran_desc: '累計召喚回数が20回に到達する',
+        trophy_level5: '神殿の明星',
+        trophy_level5_desc: '召喚士レベルが Lv.5 に到達する',
         empty_title: '該当する英雄が見つかりません...',
         empty_desc: '検索キーワードをクリアするか、別のドメインを選択してください。',
         reset_filters: '条件をリセット',
@@ -1984,6 +2233,129 @@
         const nicknames = ref(JSON.parse(localStorage.getItem('valhalla_nicknames') || '{}'));
         const nicknameCount = computed(() => Object.keys(nicknames.value || {}).length);
         const favoriteIds = ref(JSON.parse(localStorage.getItem('valhalla_favorites') || '[]'));
+        
+        // 🎮 RPG 召喚師等級與經驗值系統 (EXP、等級、音效與成就)
+        const commanderExp = ref(parseInt(localStorage.getItem('valhalla_rpg_exp') || '0', 10));
+        const summonedAgentIds = ref(JSON.parse(localStorage.getItem('valhalla_summoned_ids') || '[]'));
+        const isSoundOn = ref(window.ValhallaAudio ? window.ValhallaAudio.isSoundEnabled() : true);
+        const showCommanderModal = ref(false);
+        const levelUpToast = ref(null);
+
+        function toggleSound() {
+          if (window.ValhallaAudio) {
+            isSoundOn.value = window.ValhallaAudio.toggleSound();
+          }
+        }
+
+        function calculateLevelInfo(totalExp) {
+          let lvl = 1;
+          let needed = 100;
+          let curExp = totalExp;
+          while (curExp >= needed && lvl < 99) {
+            curExp -= needed;
+            lvl++;
+            needed = lvl * 100;
+          }
+          const progressPercent = Math.min(100, Math.floor((curExp / needed) * 100));
+          return {
+            level: lvl,
+            currentExp: curExp,
+            neededExp: needed,
+            progressPercent: progressPercent,
+            totalExp: totalExp
+          };
+        }
+
+        const levelInfo = computed(() => {
+          return calculateLevelInfo(commanderExp.value);
+        });
+
+        const commanderTitle = computed(() => {
+          const lvl = levelInfo.value.level;
+          if (lvl >= 30) return t('title_sovereign');
+          if (lvl >= 20) return t('title_grandmaster');
+          if (lvl >= 13) return t('title_legend');
+          if (lvl >= 8) return t('title_tactician');
+          if (lvl >= 4) return t('title_explorer');
+          return t('title_novice');
+        });
+
+        const commanderAchievements = computed(() => {
+          const lvl = levelInfo.value.level;
+          const distinctDomains = new Set();
+          summonedAgentIds.value.forEach(aid => {
+            const ag = agents.value.find(a => a.id === aid);
+            if (ag && ag.domain) distinctDomains.add(ag.domain);
+          });
+
+          const totalSummonsCount = Object.values(summonCounts.value).reduce((a, b) => a + b, 0);
+
+          return [
+            {
+              id: 'first_summon',
+              title: t('trophy_first_summon'),
+              desc: t('trophy_first_summon_desc'),
+              icon: '🥉',
+              unlocked: summonedAgentIds.value.length >= 1
+            },
+            {
+              id: 'squad',
+              title: t('trophy_squad'),
+              desc: t('trophy_squad_desc'),
+              icon: '🥈',
+              unlocked: favoriteIds.value.length >= 5
+            },
+            {
+              id: 'domains',
+              title: t('trophy_domains'),
+              desc: t('trophy_domains_desc'),
+              icon: '🥇',
+              unlocked: distinctDomains.size >= 5
+            },
+            {
+              id: 'veteran',
+              title: t('trophy_veteran'),
+              desc: t('trophy_veteran_desc'),
+              icon: '💎',
+              unlocked: totalSummonsCount >= 20
+            },
+            {
+              id: 'level5',
+              title: t('trophy_level5'),
+              desc: t('trophy_level5_desc'),
+              icon: '👑',
+              unlocked: lvl >= 5
+            }
+          ];
+        });
+
+        function addExp(amount, reason) {
+          const oldLvl = levelInfo.value.level;
+          commanderExp.value += amount;
+          localStorage.setItem('valhalla_rpg_exp', commanderExp.value);
+
+          const newLvl = levelInfo.value.level;
+          if (newLvl > oldLvl) {
+            if (window.ValhallaAudio) {
+              window.ValhallaAudio.playLevelUpSound();
+            }
+            levelUpToast.value = {
+              level: newLvl,
+              title: commanderTitle.value
+            };
+            setTimeout(() => {
+              levelUpToast.value = null;
+            }, 3500);
+          }
+        }
+
+        try {
+          const todayDate = new Date().toISOString().slice(0, 10);
+          if (localStorage.getItem('valhalla_last_signin') !== todayDate) {
+            localStorage.setItem('valhalla_last_signin', todayDate);
+            addExp(50, '每日登入獎勵');
+          }
+        } catch (e) {}
         const summonCounts = ref(JSON.parse(localStorage.getItem('valhalla_summons') || '{}'));
 
         // 模擬動態真實基礎造訪人次
@@ -2238,7 +2610,8 @@
           const val = editNicknameInput.value.trim();
           if (val) {
             nicknames.value[agentId] = val;
-          } else {
+            addExp(20, '自訂稱號');
+          } else 
             delete nicknames.value[agentId];
           }
           localStorage.setItem('valhalla_nicknames', JSON.stringify(nicknames.value));
@@ -2256,6 +2629,7 @@
             favoriteIds.value.splice(idx, 1);
           } else {
             favoriteIds.value.push(agentId);
+            addExp(15, '加入主力');
           }
           localStorage.setItem('valhalla_favorites', JSON.stringify(favoriteIds.value));
         }
@@ -2264,6 +2638,9 @@
         function openModal(agent, focusNickname = false) {
           activeHero.value = agent;
           editNicknameInput.value = nicknames.value[agent.id] || '';
+          if (window.ValhallaAudio) {
+            window.ValhallaAudio.playHeroChime(agent);
+          }
         }
 
         // 召喚點擊事件（累加計數 ＋ 複製 Prompt）
@@ -2274,6 +2651,18 @@
             [agent.id]: (summonCounts.value[agent.id] || 0) + 1
           };
           localStorage.setItem('valhalla_summons', JSON.stringify(summonCounts.value));
+
+          if (window.ValhallaAudio) {
+            window.ValhallaAudio.playSummonSound(agent);
+          }
+
+          // 獲取冒險經驗值
+          addExp(25, '召喚特工');
+          if (!summonedAgentIds.value.includes(agent.id)) {
+            summonedAgentIds.value.push(agent.id);
+            localStorage.setItem('valhalla_summoned_ids', JSON.stringify(summonedAgentIds.value));
+            addExp(50, '首次解鎖特工');
+          }
 
           // 複製高階多語系結構化召喚咒文 (內嵌強制語言指示與神格喚醒)
           const heroName = getHeroName(agent);
@@ -2530,7 +2919,17 @@
           triggerImportFile,
           handleImportFile,
           getRarityBadgeClass,
-          getCardBorderClass
+          getCardBorderClass,
+          commanderExp,
+          summonedAgentIds,
+          isSoundOn,
+          showCommanderModal,
+          levelUpToast,
+          toggleSound,
+          levelInfo,
+          commanderTitle,
+          commanderAchievements,
+          addExp
         };
       }
     }).mount('#app');
