@@ -43,11 +43,11 @@
   <!-- Local data script -->
   <script src="agents_catalog.js?v=20261031_v16"></script>
   <!-- Pixel Avatar Engine -->
-  <script src="pixel_avatar.js?v=20261031_v21"></script>
+  <script src="pixel_avatar.js?v=20261031_v22"></script>
   <!-- 0 KB Procedural Web Audio & RPG Engine -->
-  <script src="rpg_engine.js?v=20261031_v21"></script>
+  <script src="rpg_engine.js?v=20261031_v22"></script>
   <!-- 👑 現代 64x64 高解析次像素藝術與動態呼吸紙娃娃引擎 (2016-2026 經典殿堂角色) -->
-  <script src="modern_avatar.js?v=20261031_v21"></script>
+  <script src="modern_avatar.js?v=20261031_v22"></script>
   <style>
     /* Custom scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -1529,7 +1529,7 @@
               <div class="text-xs font-bold text-slate-200">{{ studioHero.name }}</div>
               <div class="text-[11px] text-slate-400 font-mono">特工 Lv.{{ getHeroLevel(studioHero.id) }} (EXP: {{ getHeroExp(studioHero.id) }})</div>
               <div class="text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                {{ studioOptions.gender === 'female' ? '🛡️ 女武神形態' : (studioOptions.gender === 'cat' ? '🐱 貓耳萌系' : '⚔️ 男勇者形態') }}
+                128x128 HD · {{ selectedCategory === 'female' ? '🛡️ 女武神' : (selectedCategory === 'male' ? '⚔️ 男勇者' : (selectedCategory === 'cat' ? '🐱 貓魔導' : '🐶 柴犬將軍')) }}
               </div>
             </div>
 
@@ -1566,22 +1566,36 @@
             </div>
           </div>
 
-          <!-- 右側選項矩陣：專注 64x64 HD-2D 十年殿堂神作立繪 -->
+          <!-- 右側選項矩陣：四大陣營 20 款 128x128 HD-2D 神級名作立繪 -->
           <div class="flex-1 space-y-3.5">
-            <div class="flex items-center justify-between text-xs border-b border-slate-800 pb-2.5">
+            <!-- 四大陣營選擇器 -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 border-b border-slate-800 pb-3">
+              <button 
+                v-for="cat in modernCategories"
+                :key="cat.id"
+                @click="onCategoryChange(cat.id)"
+                :class="selectedCategory === cat.id ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black border-pink-400 shadow-[0_0_15px_rgba(236,72,153,0.35)]' : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'"
+                class="py-2 px-2.5 rounded-xl border text-xs transition flex items-center justify-center space-x-1.5"
+              >
+                <span>{{ cat.icon }}</span>
+                <span>{{ cat.label }}</span>
+              </button>
+            </div>
+
+            <div class="flex items-center justify-between text-xs px-1">
               <span class="text-pink-300 font-extrabold flex items-center space-x-1.5">
-                <span>👑</span>
-                <span>十年獨立遊戲性感代表作（點選立即套用）</span>
+                <span>✨</span>
+                <span>{{ selectedCategory === 'female' ? '女武神 5 款極致色氣女神' : (selectedCategory === 'male' ? '男勇者 5 款帥氣硬漢貴公子' : (selectedCategory === 'cat' ? '貓魔導 5 款超絕萌系靈動貓娘' : '柴犬將軍 5 款英勇忠犬萌犬特務')) }}</span>
               </span>
               <span class="text-[10px] text-amber-400 font-mono bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                64x64 HD-2D · 4 幀次像素呼吸
+                128x128 HD · 4 幀次像素呼吸
               </span>
             </div>
 
-            <!-- 5 大神作立繪清單 -->
-            <div class="grid grid-cols-1 gap-3 max-h-[55vh] overflow-y-auto pr-1">
+            <!-- 當前分類下的 5 款神級立繪清單 -->
+            <div class="grid grid-cols-1 gap-2.5 max-h-[50vh] overflow-y-auto pr-1">
               <div 
-                v-for="p in modernPresets" 
+                v-for="p in currentCategoryPresets" 
                 :key="p.id"
                 @click="applyModernPreset(p)"
                 :class="(studioOptions.modernPresetId === p.id || studioOptions.presetId === p.id) ? 'bg-gradient-to-r from-purple-950/70 via-pink-950/40 to-slate-900 border-pink-500 shadow-[0_0_20px_rgba(236,72,153,0.35)] ring-1 ring-pink-400' : 'bg-slate-950/80 border-slate-800 hover:border-purple-500/50'"
@@ -1591,7 +1605,7 @@
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center justify-between">
                     <div class="text-sm font-black text-slate-100 group-hover:text-pink-300 transition">{{ p.name }}</div>
-                    <span class="text-[11px] text-pink-400 bg-pink-500/15 px-2.5 py-0.5 rounded-full border border-pink-500/30 font-extrabold shadow-sm">{{ p.bustSize }} CUP</span>
+                    <span class="text-[11px] text-pink-400 bg-pink-500/15 px-2.5 py-0.5 rounded-full border border-pink-500/30 font-extrabold shadow-sm">{{ p.bustSize }}</span>
                   </div>
                   <div class="text-xs text-amber-400/90 font-mono mt-0.5">{{ p.subName }}</div>
                   <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">{{ p.desc }}</p>
@@ -2823,16 +2837,28 @@
           }
         }
 
-        // 🎮 JRPG 成長與特工微雕紙娃娃狀態變數
-        // 🎮 JRPG 成長與現代 64x64 高解析紙娃娃狀態變數 (2016-2026 經典殿堂角色)
+        // 🎮 JRPG 成長與現代 128x128 HD-2D 神級像素立繪狀態變數 (四大陣營 20 款名作)
         const customAvatars = ref(JSON.parse(localStorage.getItem('valhalla_custom_avatars') || '{}'));
         const studioHero = ref(null);
+        const selectedCategory = ref('female');
+        const modernCategories = computed(() => (window.ModernPixelEngine && window.ModernPixelEngine.categories) || []);
         const modernPresets = computed(() => (window.ModernPixelEngine && window.ModernPixelEngine.presets) || []);
+        const currentCategoryPresets = computed(() => {
+          if (!window.ModernPixelEngine || !window.ModernPixelEngine.presetsByCategory) return [];
+          return window.ModernPixelEngine.presetsByCategory[selectedCategory.value] || [];
+        });
         const breathingFrame = ref(0);
         const isBreathingActive = ref(true);
-        // 🌟 核心防禦：大頭貼即時換裝響應版本號與工坊 Tab
         const avatarVersion = ref(0);
         const studioActiveTab = ref('modern');
+
+        function onCategoryChange(catId) {
+          selectedCategory.value = catId;
+          const list = window.ModernPixelEngine && window.ModernPixelEngine.presetsByCategory && window.ModernPixelEngine.presetsByCategory[catId];
+          if (list && list.length > 0) {
+            applyModernPreset(list[0]);
+          }
+        }
 
         const studioOptions = ref({
           modernMode: true,
@@ -2867,11 +2893,15 @@
         function applyModernPreset(preset) {
           if (!preset) return;
           studioActiveTab.value = 'modern';
+          selectedCategory.value = preset.category || 'female';
           studioOptions.value = {
             ...studioOptions.value,
             modernMode: true,
             modernPresetId: preset.id,
             presetId: preset.id,
+            id: preset.id,
+            category: preset.category,
+            name: preset.name,
             skin: preset.skin,
             hair: preset.hair,
             hairStyle: preset.hairStyle,
@@ -3631,30 +3661,23 @@
             if (!hero) return;
             studioHero.value = hero;
             const existing = customAvatars.value[hero.id];
-            const effLvl = Math.max(levelInfo.value.level, (window.ValhallaProgression ? window.ValhallaProgression.getHeroData(hero.id).level : 1));
-            if (existing) {
+            if (existing && existing.modernPresetId) {
               studioOptions.value = { ...existing };
-              studioActiveTab.value = existing.modernMode ? 'modern' : 'classic';
+              selectedCategory.value = existing.category || 'female';
             } else {
-              studioActiveTab.value = 'modern';
-              studioOptions.value = {
-                modernMode: true,
-                modernPresetId: 'saga',
-                presetId: 'saga',
-                skin: 'porcelain',
-                hair: 'crimson',
-                hairStyle: 'long',
-                bustSize: 'H',
-                outfit: 'saga',
-                accessory: 'silks',
-                gender: 'female',
-                faceIndex: 5,
-                hairIndex: 1,
-                hairColorIndex: 0,
-                skinIndex: 0,
-                sexyCostume: effLvl >= 30 ? 'bunny' : 'none',
-                armorTier: effLvl
-              };
+              selectedCategory.value = 'female';
+              const defaultPreset = window.ModernPixelEngine ? window.ModernPixelEngine.presets[0] : null;
+              if (defaultPreset) {
+                applyModernPreset(defaultPreset);
+              } else {
+                studioOptions.value = {
+                  modernMode: true,
+                  modernPresetId: 'blasphemous',
+                  presetId: 'blasphemous',
+                  category: 'female',
+                  bustSize: 'H'
+                };
+              }
             }
             showStudioModal.value = true;
             if (window.ValhallaAudio) window.ValhallaAudio.playEquipSound();
@@ -3693,19 +3716,12 @@
             showToast('🔄 已還原特工原廠造型');
           },
           randomizeStudioOptions: function() {
-            const busts = ['A', 'B', 'D', 'F', 'H'];
-            const nextGender = ['female', 'male', 'cat'][Math.floor(Math.random() * 3)];
-            studioOptions.value = {
-              modernMode: false,
-              gender: nextGender,
-              faceIndex: Math.floor(Math.random() * 8),
-              hairIndex: Math.floor(Math.random() * 6),
-              hairColorIndex: Math.floor(Math.random() * 8),
-              skinIndex: Math.floor(Math.random() * 5),
-              bustSize: busts[Math.floor(Math.random() * busts.length)],
-              sexyCostume: (levelInfo.value.level >= 30 && nextGender === 'female') ? ['bunny', 'succubus', 'bikini', 'oiran'][Math.floor(Math.random() * 4)] : 'none',
-              armorTier: levelInfo.value.level
-            };
+            if (window.ModernPixelEngine && window.ModernPixelEngine.presets && window.ModernPixelEngine.presets.length > 0) {
+              const all = window.ModernPixelEngine.presets;
+              const pick = all[Math.floor(Math.random() * all.length)];
+              selectedCategory.value = pick.category;
+              applyModernPreset(pick);
+            }
             if (window.ValhallaAudio) window.ValhallaAudio.playEquipSound();
           },
           onStudioOptionChange: function() {
@@ -3788,7 +3804,11 @@
           toggleBreathingAnimation,
           applyModernPreset,
           avatarVersion,
-          studioActiveTab
+          studioActiveTab,
+          selectedCategory,
+          modernCategories,
+          currentCategoryPresets,
+          onCategoryChange
         };
       }
     }).mount('#app');
