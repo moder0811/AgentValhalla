@@ -41,7 +41,7 @@
   <!-- Vue 3 CDN -->
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <!-- Local data script -->
-  <script src="agents_catalog.js?v=20261030_v4"></script>
+  <script src="agents_catalog.js?v=20261030_v5"></script>
   <!-- Pixel Avatar Engine -->
   <script src="pixel_avatar.js"></script>
   <style>
@@ -234,11 +234,11 @@
           </div>
         </div>
 
-        <!-- 右側控制群：主題切換 ＋ 語系切換 ＋ 備份匯出入 -->
-        <div class="flex items-center space-x-2">
+        <!-- 右側控制群：主題切換 ＋ 語系切換(含)右側按鈕全數向右靠齊 (ml-auto justify-end) -->
+        <div class="flex items-center space-x-2 sm:space-x-3 ml-auto justify-end flex-wrap gap-y-1">
           
           <!-- 🌴 主題風格切換器 (Theme Switcher: Valhalla vs GTA 6) -->
-          <div class="flex items-center bg-slate-900 border border-slate-700/80 rounded-xl p-0.5 sm:p-1 space-x-0.5 text-xs shadow-inner">
+          <div class="flex items-center bg-slate-900 border border-slate-700/80 rounded-xl p-0.5 sm:p-1 space-x-0.5 text-xs shadow-inner flex-shrink-0">
             <button 
               @click="setTheme('valhalla')"
               :class="currentTheme === 'valhalla' 
@@ -263,71 +263,73 @@
             </button>
           </div>
 
-          <!-- 🌐 語系切換器 (i18n Switcher) -->
-          <div class="flex items-center bg-slate-900 border border-slate-700/80 rounded-xl p-0.5 sm:p-1 space-x-0.5 text-xs">
-            <button 
-              @click="changeLang('zh')"
-              :class="currentLang === 'zh' ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
-              class="px-2 py-1 rounded-lg transition text-[11px] sm:text-xs"
-              title="繁體中文"
-            >
-              繁中
-            </button>
-            <button 
-              @click="changeLang('en')"
-              :class="currentLang === 'en' ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
-              class="px-2 py-1 rounded-lg transition text-[11px] sm:text-xs"
-              title="English"
-            >
-              EN
-            </button>
-            <button 
-              @click="changeLang('ja')"
-              :class="currentLang === 'ja' ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
-              class="px-2 py-1 rounded-lg transition text-[11px] sm:text-xs"
-              title="日本語"
-            >
-              日
-            </button>
-          </div>
+          <!-- 🌐 語系切換器 (i18n Switcher) 及右側按鈕群 (全部往右靠齊) -->
+          <div class="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0">
+            <div class="flex items-center bg-slate-900 border border-slate-700/80 rounded-xl p-0.5 sm:p-1 space-x-0.5 text-xs shadow-inner">
+              <button 
+                @click="changeLang('zh')"
+                :class="currentLang === 'zh' ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
+                class="px-2 py-1 rounded-lg transition text-[11px] sm:text-xs"
+                title="繁體中文"
+              >
+                繁中
+              </button>
+              <button 
+                @click="changeLang('en')"
+                :class="currentLang === 'en' ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
+                class="px-2 py-1 rounded-lg transition text-[11px] sm:text-xs"
+                title="English"
+              >
+                EN
+              </button>
+              <button 
+                @click="changeLang('ja')"
+                :class="currentLang === 'ja' ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
+                class="px-2 py-1 rounded-lg transition text-[11px] sm:text-xs"
+                title="日本語"
+              >
+                日
+              </button>
+            </div>
 
-          <!-- 💾 備份管理 (Backup & Restore) -->
-          <div class="flex items-center space-x-1">
-            <button 
-              @click="exportBackup"
-              class="p-1.5 sm:px-2.5 sm:py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs flex items-center space-x-1 transition shadow-sm"
-              :title="t('export_tooltip')"
-            >
-              <span>📤</span>
-              <span class="hidden md:inline">{{ t('export_btn') }}</span>
-            </button>
+            <!-- 💾 備份管理 (Backup & Restore) ＋ ❓ 殿堂導覽手冊 -->
+            <div class="flex items-center space-x-1">
+              <button 
+                @click="exportBackup"
+                class="p-1.5 sm:px-2.5 sm:py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs flex items-center space-x-1 transition shadow-sm"
+                :title="t('export_tooltip')"
+              >
+                <span>📤</span>
+                <span class="hidden md:inline">{{ t('export_btn') }}</span>
+              </button>
 
-            <button 
-              @click="triggerImportFile"
-              class="p-1.5 sm:px-2.5 sm:py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs flex items-center space-x-1 transition shadow-sm"
-              :title="t('import_tooltip')"
-            >
-              <span>📥</span>
-              <span class="hidden md:inline">{{ t('import_btn') }}</span>
-            </button>
+              <button 
+                @click="triggerImportFile"
+                class="p-1.5 sm:px-2.5 sm:py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs flex items-center space-x-1 transition shadow-sm"
+                :title="t('import_tooltip')"
+              >
+                <span>📥</span>
+                <span class="hidden md:inline">{{ t('import_btn') }}</span>
+              </button>
 
-            <!-- ❓ PS5 新手引導導覽手冊 -->
-            <button 
-              @click="openOnboarding"
-              class="p-1.5 sm:px-2.5 sm:py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 rounded-xl text-xs flex items-center space-x-1 transition shadow-sm"
-              :title="t('onboarding_btn_tooltip')"
-            >
-              <span>❓</span>
-              <span class="hidden lg:inline">{{ t('onboarding_btn') }}</span>
-            </button>
+              <!-- ❓ PS5 新手引導導覽手冊 -->
+              <button 
+                @click="openOnboarding"
+                class="p-1.5 sm:px-2.5 sm:py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 rounded-xl text-xs flex items-center space-x-1 transition shadow-sm"
+                :title="t('onboarding_btn_tooltip')"
+              >
+                <span>❓</span>
+                <span class="hidden lg:inline">{{ t('onboarding_btn') }}</span>
+              </button>
 
-            <input 
-              type="file" 
-              ref="backupFileInput" 
-              accept=".json" 
-              @change="handleImportFile" 
-              class="hidden"
-            />
+              <input 
+                type="file" 
+                ref="backupFileInput" 
+                accept=".json" 
+                @change="handleImportFile" 
+                class="hidden"
+              />
+            </div>
           </div>
 
         </div>
@@ -475,131 +477,109 @@
 
           </div>
 
-          <!-- 🚑 場景急救箱 / 快捷情境篩選 (Scenario Quick-Filters) -->
-          <div class="mt-2.5 pt-2.5 border-t border-slate-800/80 flex items-center space-x-1.5 overflow-x-auto no-scrollbar pb-1">
-            <span class="text-xs font-bold text-amber-400/90 flex items-center space-x-1 flex-shrink-0 mr-1">
-              <span>🚑</span>
-              <span>{{ t('quick_scenarios_label') }}</span>
+        </div>
+      </div>
+
+      <!-- 📌 凍結固定列 (Sticky Frozen Bar)：當前展示 272 / 272 位特工 ＋ 排序按鈕 ＋ 品級篩選 (滾動時不隨頁面位移) -->
+      <div class="border-t border-slate-800/80 bg-slate-950/95 backdrop-blur-md px-3 sm:px-6 lg:px-8 py-2 shadow-md">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+          
+          <!-- 統計與標籤狀態 -->
+          <div class="flex items-center space-x-2 flex-wrap">
+            <span>{{ t('showing_prefix') }} <b class="text-amber-400 font-mono text-sm">{{ filteredAgents.length }}</b> / {{ totalAgentsCount }} {{ t('heroes_unit') }}</span>
+            
+            <span v-if="isTop10Mode" class="px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded border border-amber-500/50 font-bold flex items-center space-x-1">
+              <span>🏆</span>
+              <span>{{ t('top10_active') }}</span>
             </span>
-            <button
-              v-for="sc in scenarioFilters"
-              :key="sc.id"
-              @click="toggleScenarioFilter(sc.id)"
-              :class="activeScenario === sc.id
-                ? (currentTheme === 'gta6' ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold shadow-lg shadow-pink-500/30' : 'bg-amber-500 text-black font-bold shadow-glow-gold')
-                : 'bg-slate-900/90 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-700/60'"
-              class="px-2.5 py-1 rounded-lg text-xs transition whitespace-nowrap flex items-center space-x-1 flex-shrink-0"
-            >
-              <span>{{ sc.icon }}</span>
-              <span>{{ sc.name }}</span>
-              <span class="opacity-75 text-[10px] ml-0.5">({{ getScenarioCount(sc.id) }})</span>
-            </button>
+
+            <span v-if="selectedDomain !== 'all'" class="px-2 py-0.5 bg-slate-800 rounded text-slate-300 border border-slate-700">
+              {{ selectedDomainName }}
+            </span>
+
+            <span v-if="filterFavoriteOnly" class="px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded border border-amber-500/40">
+              ⭐ {{ t('squad_active') }}
+            </span>
+
+            <!-- 自訂點選卡片場景標籤過濾徽章 -->
+            <span v-if="activeScenarioCustom" class="px-2 py-0.5 bg-rose-500/20 text-rose-300 rounded border border-rose-500/40 flex items-center space-x-1">
+              <span>🎯 {{ activeScenarioCustom }}</span>
+              <button @click="activeScenarioCustom = ''" class="hover:text-white ml-1 font-bold text-xs" title="清除情境篩選">×</button>
+            </span>
           </div>
 
+          <!-- 排序與品級篩選 (常駐頂部隨時操作) -->
+          <div class="flex items-center space-x-1.5 flex-wrap gap-y-1">
+            
+            <!-- 排序膠囊按鈕群 -->
+            <div class="flex items-center bg-slate-900 border border-slate-700/80 rounded-xl p-0.5 space-x-1 text-xs">
+              <button 
+                @click="setSort('default')"
+                :class="currentSort === 'default' && !isTop10Mode ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
+                class="px-2 py-1 rounded-lg transition"
+              >
+                ⚡ {{ t('sort_default') }}
+              </button>
+
+              <button 
+                @click="setSort('summons')"
+                :class="currentSort === 'summons' && !isTop10Mode ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
+                class="px-2 py-1 rounded-lg transition"
+              >
+                🔥 {{ t('sort_summons_btn') }}
+              </button>
+
+              <button 
+                @click="setSort('rarity')"
+                :class="currentSort === 'rarity' && !isTop10Mode ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
+                class="px-2 py-1 rounded-lg transition"
+              >
+                👑 {{ t('sort_rarity_btn') }}
+              </button>
+
+              <button 
+                @click="setSort('name')"
+                :class="currentSort === 'name' && !isTop10Mode ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
+                class="px-2 py-1 rounded-lg transition"
+              >
+                🔤 {{ t('sort_name_btn') }}
+              </button>
+            </div>
+
+            <!-- 稀有度按鈕 -->
+            <div class="hidden md:flex items-center space-x-1 text-xs pl-1">
+              <button 
+                @click="selectedRarity = 'all'"
+                :class="selectedRarity === 'all' ? 'text-amber-400 font-bold underline' : 'text-slate-400 hover:text-white'"
+                class="px-1.5 py-0.5"
+              >
+                {{ t('all_rarity') }}
+              </button>
+              <span>·</span>
+              <button 
+                @click="selectedRarity = 'Legendary'"
+                :class="selectedRarity === 'Legendary' ? 'text-amber-400 font-bold underline' : 'text-slate-400 hover:text-amber-400'"
+                class="px-1.5 py-0.5"
+              >
+                {{ t('legendary') }}
+              </button>
+              <span>·</span>
+              <button 
+                @click="selectedRarity = 'Epic'"
+                :class="selectedRarity === 'Epic' ? 'text-purple-400 font-bold underline' : 'text-slate-400 hover:text-purple-400'"
+                class="px-1.5 py-0.5"
+              >
+                {{ t('epic') }}
+              </button>
+            </div>
+
+          </div>
         </div>
       </div>
     </header>
 
     <!-- 🎴 英雄展台主體 (Hero Cards Grid) -->
     <main class="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-6 lg:px-8 py-5 sm:py-6">
-      
-      <!-- 過濾與排序狀態資訊列 -->
-      <div class="flex flex-wrap items-center justify-between mb-4 gap-2 text-xs text-slate-400">
-        <div class="flex items-center space-x-2 flex-wrap">
-          <span>{{ t('showing_prefix') }} <b class="text-amber-400 font-mono text-sm">{{ filteredAgents.length }}</b> / {{ totalAgentsCount }} {{ t('heroes_unit') }}</span>
-          
-          <span v-if="isTop10Mode" class="px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded border border-amber-500/50 font-bold flex items-center space-x-1">
-            <span>🏆</span>
-            <span>{{ t('top10_active') }}</span>
-          </span>
-
-          <span v-if="selectedDomain !== 'all'" class="px-2 py-0.5 bg-slate-800 rounded text-slate-300 border border-slate-700">
-            {{ selectedDomainName }}
-          </span>
-
-          <span v-if="filterFavoriteOnly" class="px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded border border-amber-500/40">
-            ⭐ {{ t('squad_active') }}
-          </span>
-
-          <!-- 活躍場景徽章 -->
-          <span v-if="activeScenario !== 'all'" class="px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded border border-amber-500/40 flex items-center space-x-1">
-            <span>🚑 {{ currentScenarioLabel }}</span>
-            <button @click="activeScenario = 'all'" class="hover:text-white ml-1 font-bold text-xs">×</button>
-          </span>
-
-          <span v-if="activeScenarioCustom" class="px-2 py-0.5 bg-rose-500/20 text-rose-300 rounded border border-rose-500/40 flex items-center space-x-1">
-            <span>🎯 {{ activeScenarioCustom }}</span>
-            <button @click="activeScenarioCustom = ''" class="hover:text-white ml-1 font-bold text-xs">×</button>
-          </span>
-        </div>
-
-        <!-- 排序與品級篩選 (全面旗艦升級：一鍵點選即時排序) -->
-        <div class="flex items-center space-x-1.5 flex-wrap gap-y-1">
-          
-          <!-- 排序膠囊按鈕群 -->
-          <div class="flex items-center bg-slate-900 border border-slate-700/80 rounded-xl p-0.5 space-x-1 text-xs">
-            <button 
-              @click="setSort('default')"
-              :class="currentSort === 'default' && !isTop10Mode ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
-              class="px-2 py-1 rounded-lg transition"
-            >
-              ⚡ {{ t('sort_default') }}
-            </button>
-
-            <button 
-              @click="setSort('summons')"
-              :class="currentSort === 'summons' && !isTop10Mode ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
-              class="px-2 py-1 rounded-lg transition"
-            >
-              🔥 {{ t('sort_summons_btn') }}
-            </button>
-
-            <button 
-              @click="setSort('rarity')"
-              :class="currentSort === 'rarity' && !isTop10Mode ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
-              class="px-2 py-1 rounded-lg transition"
-            >
-              👑 {{ t('sort_rarity_btn') }}
-            </button>
-
-            <button 
-              @click="setSort('name')"
-              :class="currentSort === 'name' && !isTop10Mode ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
-              class="px-2 py-1 rounded-lg transition"
-            >
-              🔤 {{ t('sort_name_btn') }}
-            </button>
-          </div>
-
-          <!-- 稀有度按鈕 -->
-          <div class="hidden md:flex items-center space-x-1 text-xs pl-1">
-            <button 
-              @click="selectedRarity = 'all'"
-              :class="selectedRarity === 'all' ? 'text-amber-400 font-bold underline' : 'text-slate-400 hover:text-white'"
-              class="px-1.5 py-0.5"
-            >
-              {{ t('all_rarity') }}
-            </button>
-            <span>·</span>
-            <button 
-              @click="selectedRarity = 'Legendary'"
-              :class="selectedRarity === 'Legendary' ? 'text-amber-400 font-bold underline' : 'text-slate-400 hover:text-amber-400'"
-              class="px-1.5 py-0.5"
-            >
-              {{ t('legendary') }}
-            </button>
-            <span>·</span>
-            <button 
-              @click="selectedRarity = 'Epic'"
-              :class="selectedRarity === 'Epic' ? 'text-purple-400 font-bold underline' : 'text-slate-400 hover:text-purple-400'"
-              class="px-1.5 py-0.5"
-            >
-              {{ t('epic') }}
-            </button>
-          </div>
-
-        </div>
-      </div>
 
       <!-- 空白狀態 (Empty State) -->
       <div v-if="filteredAgents.length === 0" class="text-center py-20 glass-panel rounded-2xl border border-slate-800">
