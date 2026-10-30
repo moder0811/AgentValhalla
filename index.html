@@ -79,31 +79,142 @@
       mask-image: linear-gradient(to right, black 85%, transparent 100%);
       -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
     }
+
+    /* =========================================================================
+     *  🌴 GTA 6 (Vice City Sunset) 主題風格 CSS 引擎
+     * ========================================================================= */
+    body.theme-gta6,
+    .theme-gta6 {
+      background: radial-gradient(circle at 50% -10%, rgba(255, 42, 133, 0.28) 0%, rgba(255, 113, 67, 0.16) 35%, rgba(13, 4, 23, 0.98) 75%),
+                  linear-gradient(180deg, #18052e 0%, #0d0417 100%) !important;
+      color: #fce7f3 !important;
+    }
+
+    body.theme-gta6 ::selection,
+    .theme-gta6 ::selection {
+      background-color: #ff2a85 !important;
+      color: #ffffff !important;
+    }
+
+    .theme-gta6 .glass-panel {
+      background: rgba(26, 8, 42, 0.85) !important;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-color: rgba(255, 42, 133, 0.22) !important;
+      box-shadow: 0 8px 32px 0 rgba(255, 42, 133, 0.08);
+    }
+
+    .theme-gta6 .border-slate-800,
+    .theme-gta6 .border-slate-800\/80 {
+      border-color: rgba(255, 42, 133, 0.2) !important;
+    }
+
+    .theme-gta6 .bg-slate-900,
+    .theme-gta6 .bg-slate-900\/90,
+    .theme-gta6 .bg-slate-950\/70 {
+      background-color: rgba(20, 6, 32, 0.9) !important;
+      border-color: rgba(255, 42, 133, 0.25) !important;
+    }
+
+    .theme-gta6 .bg-slate-800,
+    .theme-gta6 .bg-slate-800\/80 {
+      background-color: rgba(36, 12, 56, 0.7) !important;
+      border-color: rgba(255, 42, 133, 0.2) !important;
+    }
+
+    .theme-gta6 .bg-slate-800:hover {
+      background-color: rgba(55, 18, 85, 0.85) !important;
+    }
+
+    .theme-gta6 .text-amber-400,
+    .theme-gta6 .text-amber-300 {
+      color: #ff7143 !important;
+    }
+
+    .theme-gta6 .text-amber-200 {
+      color: #ff9d79 !important;
+    }
+
+    .theme-gta6 .bg-amber-500 {
+      background: linear-gradient(135deg, #ff2a85 0%, #ff7143 100%) !important;
+      color: #ffffff !important;
+    }
+
+    .theme-gta6 .shadow-glow-gold {
+      box-shadow: 0 0 25px -2px rgba(255, 42, 133, 0.6) !important;
+    }
+
+    .theme-gta6 .shadow-glow-star {
+      box-shadow: 0 0 18px 3px rgba(255, 42, 133, 0.8) !important;
+    }
+
+    /* GTA 6 復古邁阿密霓虹掃描線 (精緻低透明度，不干擾文字可讀性) */
+    .theme-gta6::after {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.15) 1px, transparent 1px, transparent 3px);
+      opacity: 0.3;
+      z-index: 30;
+    }
   </style>
 </head>
 <body class="bg-obsidian text-slate-100 min-h-screen selection:bg-amber-500 selection:text-black font-sans antialiased overflow-x-hidden">
-  <div id="app" class="flex flex-col min-h-screen">
+  <div id="app" class="flex flex-col min-h-screen relative transition-colors duration-500" :class="currentTheme === 'gta6' ? 'theme-gta6' : 'theme-valhalla'">
+
+    <!-- 🌴 GTA 6 邁阿密夕陽與棕櫚樹專屬視覺氛圍層 (僅在 GTA 6 主題啟用) -->
+    <div v-if="currentTheme === 'gta6'" class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+      <!-- 頂部巨大夕陽漸層熱暈 -->
+      <div class="absolute -top-32 left-1/2 -translate-x-1/2 w-[1000px] h-[550px] bg-gradient-to-b from-pink-600/25 via-rose-500/15 to-transparent blur-3xl rounded-full"></div>
+      <!-- 右下角熱帶棕櫚樹霓虹剪影 -->
+      <div class="absolute -bottom-10 -right-10 w-80 sm:w-96 h-80 sm:h-96 opacity-15 text-pink-500 select-none">
+        <svg viewBox="0 0 200 200" fill="currentColor">
+          <path d="M100 180 C95 140 85 90 60 70 C50 62 30 65 20 60 C40 50 65 52 75 60 C80 40 70 20 50 10 C70 15 85 30 88 50 C95 30 105 15 130 5 C120 20 115 35 110 52 C125 40 145 35 170 30 C150 45 135 55 120 62 C140 70 160 80 180 100 C155 95 135 88 118 78 C112 110 108 150 105 180 Z"/>
+        </svg>
+      </div>
+      <!-- 左下角微光地平線 -->
+      <div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500/40 via-pink-500/40 to-orange-500/40 blur-[1px]"></div>
+    </div>
 
     <!-- 🏰 頂層導航列與英靈殿招牌 (Valhalla Header) -->
     <header class="glass-panel sticky top-0 z-40 border-b border-slate-800/80 shadow-2xl">
-      <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 flex flex-wrap items-center justify-between gap-3">
+      <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 flex flex-wrap items-center justify-between gap-3 relative z-10">
         
         <!-- 招牌 Title & Badges -->
         <div class="flex items-center space-x-2.5 sm:space-x-3.5">
-          <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-yellow-600 flex items-center justify-center text-xl sm:text-2xl shadow-glow-gold flex-shrink-0 animate-pulse">
-            ⚡
+          <div 
+            :class="currentTheme === 'gta6' 
+              ? 'bg-gradient-to-br from-pink-500 via-rose-500 to-orange-500 shadow-[0_0_25px_rgba(255,42,133,0.8)] border border-pink-300/40' 
+              : 'bg-gradient-to-br from-amber-400 via-amber-500 to-yellow-600 shadow-glow-gold'"
+            class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center text-xl sm:text-2xl flex-shrink-0 animate-pulse transition duration-500"
+          >
+            {{ currentTheme === 'gta6' ? '🌴' : '⚡' }}
           </div>
           <div>
             <div class="flex items-center space-x-2">
-              <h1 class="text-lg sm:text-2xl font-black tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-100 to-yellow-500">
-                {{ t('title') }}
+              <h1 
+                :class="currentTheme === 'gta6' 
+                  ? 'text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-rose-300 to-amber-300 tracking-wider' 
+                  : 'text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-100 to-yellow-500 tracking-wide'"
+                class="text-lg sm:text-2xl font-black transition duration-500"
+              >
+                {{ currentTheme === 'gta6' ? t('gta6_title') : t('title') }}
               </h1>
-              <span class="px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded-full">
-                v2.0 3A
+              <span 
+                :class="currentTheme === 'gta6' 
+                  ? 'bg-pink-500/20 text-pink-300 border-pink-500/50 shadow-[0_0_12px_rgba(255,42,133,0.4)]' 
+                  : 'bg-amber-500/10 text-amber-400 border-amber-500/30'"
+                class="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider border rounded-full transition duration-500"
+              >
+                {{ currentTheme === 'gta6' ? t('gta6_badge') : 'v2.0 3A' }}
               </span>
             </div>
-            <p class="text-[11px] sm:text-xs text-slate-400 hidden sm:block">
-              {{ t('subtitle') }} · {{ totalAgentsCount }} {{ t('heroes_count') }}
+            <p 
+              :class="currentTheme === 'gta6' ? 'text-pink-200/80' : 'text-slate-400'"
+              class="text-[11px] sm:text-xs hidden sm:block transition duration-500"
+            >
+              {{ currentTheme === 'gta6' ? t('gta6_subtitle') : t('subtitle') }} · {{ totalAgentsCount }} {{ t('heroes_count') }}
             </p>
           </div>
         </div>
@@ -123,9 +234,35 @@
           </div>
         </div>
 
-        <!-- 右側控制群：語系切換 ＋ 備份匯出入 -->
+        <!-- 右側控制群：主題切換 ＋ 語系切換 ＋ 備份匯出入 -->
         <div class="flex items-center space-x-2">
           
+          <!-- 🌴 主題風格切換器 (Theme Switcher: Valhalla vs GTA 6) -->
+          <div class="flex items-center bg-slate-900 border border-slate-700/80 rounded-xl p-0.5 sm:p-1 space-x-0.5 text-xs shadow-inner">
+            <button 
+              @click="setTheme('valhalla')"
+              :class="currentTheme === 'valhalla' 
+                ? 'bg-amber-500 text-black font-bold shadow-glow-gold' 
+                : 'text-slate-400 hover:text-white'"
+              class="px-2 py-1 rounded-lg transition text-[11px] sm:text-xs flex items-center space-x-1"
+              :title="t('theme_valhalla_hint')"
+            >
+              <span>🌌</span>
+              <span class="hidden sm:inline">{{ t('theme_valhalla') }}</span>
+            </button>
+            <button 
+              @click="setTheme('gta6')"
+              :class="currentTheme === 'gta6' 
+                ? 'bg-gradient-to-r from-pink-500 via-rose-500 to-orange-500 text-white font-extrabold shadow-[0_0_15px_rgba(255,42,133,0.7)] animate-pulse' 
+                : 'text-slate-400 hover:text-pink-300'"
+              class="px-2 py-1 rounded-lg transition text-[11px] sm:text-xs flex items-center space-x-1"
+              :title="t('theme_gta6_hint')"
+            >
+              <span>🌴</span>
+              <span class="font-bold">{{ t('theme_gta6') }}</span>
+            </button>
+          </div>
+
           <!-- 🌐 語系切換器 (i18n Switcher) -->
           <div class="flex items-center bg-slate-900 border border-slate-700/80 rounded-xl p-0.5 sm:p-1 space-x-0.5 text-xs">
             <button 
@@ -551,10 +688,13 @@
             </button>
             <button 
               @click="handleSummonClick(agent)"
-              class="px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black text-xs font-bold rounded-xl shadow-glow-gold transition flex items-center space-x-1"
+              :class="currentTheme === 'gta6' 
+                ? 'bg-gradient-to-r from-pink-500 via-rose-500 to-orange-500 hover:from-pink-400 hover:to-orange-400 text-white shadow-[0_0_15px_rgba(255,42,133,0.5)]' 
+                : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black shadow-glow-gold'"
+              class="px-3.5 py-1.5 text-xs font-bold rounded-xl transition flex items-center space-x-1"
               :title="t('summon_tooltip')"
             >
-              <span>⚡</span>
+              <span>{{ currentTheme === 'gta6' ? '🌴' : '⚡' }}</span>
               <span>{{ t('summon_btn') }}</span>
             </button>
           </div>
@@ -698,9 +838,12 @@
             </button>
             <button 
               @click="handleSummonClick(activeHero)"
-              class="px-4 py-1.5 sm:px-5 sm:py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black text-xs font-bold rounded-xl shadow-glow-gold transition flex items-center space-x-1.5"
+              :class="currentTheme === 'gta6' 
+                ? 'bg-gradient-to-r from-pink-500 via-rose-500 to-orange-500 hover:from-pink-400 hover:to-orange-400 text-white shadow-[0_0_15px_rgba(255,42,133,0.6)]' 
+                : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black shadow-glow-gold'"
+              class="px-4 py-1.5 sm:px-5 sm:py-2 text-xs font-bold rounded-xl transition flex items-center space-x-1.5"
             >
-              <span>⚡</span>
+              <span>{{ currentTheme === 'gta6' ? '🌴' : '⚡' }}</span>
               <span>{{ t('summon_btn') }}</span>
             </button>
           </div>
@@ -815,6 +958,16 @@
         sort_summons_btn: '召喚榜',
         sort_rarity_btn: '品級榜',
         sort_name_btn: '名稱榜',
+        theme_valhalla: '瓦爾哈拉',
+        theme_valhalla_hint: '切換為 3A 暗黑電玩英靈殿主題',
+        theme_gta6: 'GTA 6 罪惡都市',
+        theme_gta6_hint: '切換為 GTA 6 罪惡都市邁阿密夕陽主題',
+        gta6_title: '瓦爾哈拉：罪惡都市 · VI',
+        gta6_subtitle: '邁阿密夕陽 · 300+ 專家級特工天團 · 終極罪惡都市展台',
+        gta6_badge: 'VI VICE CITY',
+        toast_theme_gta6: '🌴 歡迎來到罪惡都市！已啟用 GTA 6 邁阿密夕陽主題！',
+        toast_theme_valhalla: '🌌 已返回英靈殿！恢復 3A 暗黑奇幻主題！',
+        gta6_prompt_copied: '🌴 罪惡特工【{name}】召喚符文已複製！戰力值 +1！',
         all_rarity: '全部品級',
         legendary: '🟡 傳奇主神',
         epic: '🟣 史詩專精',
@@ -874,6 +1027,16 @@
         sort_summons_btn: 'Summons',
         sort_rarity_btn: 'Rarity',
         sort_name_btn: 'Name',
+        theme_valhalla: 'Valhalla',
+        theme_valhalla_hint: 'Switch to 3A Dark Fantasy Valhalla Theme',
+        theme_gta6: 'GTA 6 Vice City',
+        theme_gta6_hint: 'Switch to GTA 6 Vice City Sunset Theme',
+        gta6_title: 'AGENT VALHALLA · VI',
+        gta6_subtitle: 'Vice City Sunset · 300+ Cyber Specialists · Miami Syndicate Pantheon',
+        gta6_badge: 'VI VICE CITY',
+        toast_theme_gta6: '🌴 Welcome to Vice City! GTA 6 Sunset Theme activated!',
+        toast_theme_valhalla: '🌌 Welcome back to Valhalla! Dark Fantasy Theme restored!',
+        gta6_prompt_copied: '🌴 Vice Agent [{name}] Summon Prompt copied! Rank +1!',
         all_rarity: 'All Rarities',
         legendary: '🟡 Legendary God',
         epic: '🟣 Epic Specialist',
@@ -933,6 +1096,16 @@
         sort_summons_btn: '召喚順',
         sort_rarity_btn: '品級順',
         sort_name_btn: '名前順',
+        theme_valhalla: 'ヴァルハラ',
+        theme_valhalla_hint: '3Aダークファンタジー英霊殿テーマに切替',
+        theme_gta6: 'GTA 6 バイスシティ',
+        theme_gta6_hint: 'GTA 6 バイスシティ夕日テーマに切替',
+        gta6_title: 'ヴァルハラ：バイスシティ · VI',
+        gta6_subtitle: 'バイス・サンセット · 300柱の超知性特工天団 · マイアミ裏社会殿堂',
+        gta6_badge: 'VI バイスシティ',
+        toast_theme_gta6: '🌴 バイスシティへようこそ！GTA 6 夕日テーマを適用しました！',
+        toast_theme_valhalla: '🌌 ヴァルハラへ帰還しました！3Aダークファンタジーに戻りました！',
+        gta6_prompt_copied: '🌴 バイスエージェント【{name}】召喚呪文をコピーしました！召喚数 +1！',
         all_rarity: '全レアリティ',
         legendary: '🟡 レジェンダリー主神',
         epic: '🟣 エピックスペシャリスト',
@@ -975,6 +1148,28 @@
         // 核心資料狀態
         const agents = ref(catalog.agents || []);
         const totalAgentsCount = computed(() => agents.value.length);
+
+        // 主題切換 (valhalla | gta6)
+        const currentTheme = ref(localStorage.getItem('valhalla_theme') || 'valhalla');
+
+        function applyBodyTheme(theme) {
+          if (theme === 'gta6') {
+            document.body.className = 'theme-gta6 min-h-screen selection:bg-pink-600 selection:text-white font-sans antialiased overflow-x-hidden';
+          } else {
+            document.body.className = 'bg-obsidian text-slate-100 min-h-screen selection:bg-amber-500 selection:text-black font-sans antialiased overflow-x-hidden';
+          }
+        }
+
+        function setTheme(theme) {
+          currentTheme.value = theme;
+          localStorage.setItem('valhalla_theme', theme);
+          applyBodyTheme(theme);
+          showToast(theme === 'gta6' ? t('toast_theme_gta6') : t('toast_theme_valhalla'));
+        }
+
+        function toggleTheme() {
+          setTheme(currentTheme.value === 'valhalla' ? 'gta6' : 'valhalla');
+        }
         
         // 語系切換 (zh / en / ja)
         const currentLang = ref(localStorage.getItem('valhalla_lang') || 'zh');
@@ -1172,6 +1367,12 @@
         }
 
         function getRankBadgeClass(rank) {
+          if (currentTheme.value === 'gta6') {
+            if (rank === 1) return 'bg-gradient-to-r from-pink-500/30 to-orange-500/30 text-pink-200 border-pink-400 shadow-[0_0_15px_rgba(255,42,133,0.6)]';
+            if (rank === 2) return 'bg-purple-500/25 text-purple-200 border-purple-400 shadow';
+            if (rank === 3) return 'bg-cyan-500/25 text-cyan-200 border-cyan-400 shadow';
+            return 'bg-pink-500/15 text-pink-300 border-pink-500/40';
+          }
           if (rank === 1) return 'bg-amber-500/30 text-amber-300 border-amber-400 shadow-glow-gold';
           if (rank === 2) return 'bg-slate-300/30 text-slate-100 border-slate-300 shadow';
           if (rank === 3) return 'bg-orange-600/30 text-orange-200 border-orange-400 shadow';
@@ -1301,8 +1502,12 @@
           // 複製召喚咒文
           const heroName = getHeroName(agent);
           const nick = getNickname(agent.id) ? `【${getNickname(agent.id)}】` : '';
-          const summonText = `[召喚英靈] ${heroName} ${nick} (${agent.id})\n\n${agent.prompt_template}`;
-          copyText(summonText, t('prompt_copied').replace('{name}', heroName));
+          const prefix = currentTheme.value === 'gta6' ? '[VICE AGENT 罪惡都市特工召喚]' : '[召喚英靈]';
+          const summonText = `${prefix} ${heroName} ${nick} (${agent.id})\n\n${agent.prompt_template}`;
+          const copyMsg = currentTheme.value === 'gta6'
+            ? t('gta6_prompt_copied').replace('{name}', heroName)
+            : t('prompt_copied').replace('{name}', heroName);
+          copyText(summonText, copyMsg);
         }
 
         function copyText(text, successMsg) {
@@ -1336,6 +1541,7 @@
             app: 'AgentValhalla',
             version: '2.0',
             exported_at: new Date().toISOString(),
+            theme: currentTheme.value,
             lang: currentLang.value,
             avatarForm: currentAvatarForm.value,
             favorites: favoriteIds.value,
@@ -1373,6 +1579,11 @@
                 return;
               }
 
+              if (data.theme && (data.theme === 'valhalla' || data.theme === 'gta6')) {
+                currentTheme.value = data.theme;
+                localStorage.setItem('valhalla_theme', data.theme);
+                applyBodyTheme(data.theme);
+              }
               if (data.lang) changeLang(data.lang);
               if (data.avatarForm) changeAvatarForm(data.avatarForm);
               if (Array.isArray(data.favorites)) {
@@ -1399,6 +1610,14 @@
         }
 
         function getRarityBadgeClass(rarity) {
+          if (currentTheme.value === 'gta6') {
+            if (rarity === 'Legendary') {
+              return 'bg-gradient-to-r from-pink-500/30 to-rose-500/30 text-pink-200 border-pink-400/60 shadow-[0_0_15px_rgba(255,42,133,0.5)]';
+            } else if (rarity === 'Epic') {
+              return 'bg-gradient-to-r from-purple-500/30 to-fuchsia-500/30 text-fuchsia-200 border-fuchsia-400/60 shadow-[0_0_15px_rgba(217,70,239,0.5)]';
+            }
+            return 'bg-gradient-to-r from-cyan-500/30 to-teal-500/30 text-cyan-200 border-cyan-400/60 shadow-[0_0_15px_rgba(6,182,212,0.5)]';
+          }
           if (rarity === 'Legendary') {
             return 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-glow-gold';
           } else if (rarity === 'Epic') {
@@ -1408,6 +1627,20 @@
         }
 
         function getCardBorderClass(agent) {
+          if (currentTheme.value === 'gta6') {
+            if (nicknames.value[agent.id]) {
+              return 'border-pink-500/80 shadow-[0_0_20px_rgba(255,42,133,0.5)]';
+            }
+            if (getHeroRank(agent.id) === 1) {
+              return 'border-pink-400 shadow-[0_0_25px_rgba(255,42,133,0.7)]';
+            }
+            if (agent.rarity === 'Legendary') {
+              return 'border-pink-500/40 hover:border-pink-400 hover:shadow-[0_0_25px_rgba(255,42,133,0.5)]';
+            } else if (agent.rarity === 'Epic') {
+              return 'border-purple-500/40 hover:border-purple-400 hover:shadow-[0_0_25px_rgba(168,85,247,0.5)]';
+            }
+            return 'border-slate-800/80 hover:border-cyan-400/80 hover:shadow-[0_0_20px_rgba(0,240,255,0.4)]';
+          }
           if (nicknames.value[agent.id]) {
             return 'border-amber-500/70 shadow-glow-gold';
           }
@@ -1423,6 +1656,7 @@
         }
 
         onMounted(() => {
+          applyBodyTheme(currentTheme.value);
           window.addEventListener('keydown', (e) => {
             if (e.key === '/' && document.activeElement !== searchInput.value && !activeHero.value) {
               e.preventDefault();
@@ -1438,6 +1672,9 @@
           agents,
           domains,
           totalAgentsCount,
+          currentTheme,
+          setTheme,
+          toggleTheme,
           currentLang,
           currentAvatarForm,
           avatarForms,
