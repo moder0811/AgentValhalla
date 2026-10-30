@@ -354,25 +354,46 @@
           </span>
         </div>
 
-        <!-- 排序與品級篩選 -->
-        <div class="flex items-center space-x-2">
+        <!-- 排序與品級篩選 (全面旗艦升級：一鍵點選即時排序) -->
+        <div class="flex items-center space-x-1.5 flex-wrap gap-y-1">
           
-          <!-- 排序選單 -->
-          <div class="flex items-center space-x-1 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1">
-            <span class="text-[11px] text-slate-400">📊 {{ t('sort_label') }}:</span>
-            <select 
-              v-model="currentSort"
-              class="bg-transparent text-amber-300 text-xs font-semibold focus:outline-none cursor-pointer"
+          <!-- 排序膠囊按鈕群 -->
+          <div class="flex items-center bg-slate-900 border border-slate-700/80 rounded-xl p-0.5 space-x-1 text-xs">
+            <button 
+              @click="setSort('default')"
+              :class="currentSort === 'default' && !isTop10Mode ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
+              class="px-2 py-1 rounded-lg transition"
             >
-              <option value="default" class="bg-slate-900 text-slate-200">{{ t('sort_default') }}</option>
-              <option value="summons" class="bg-slate-900 text-slate-200">{{ t('sort_summons') }}</option>
-              <option value="rarity" class="bg-slate-900 text-slate-200">{{ t('sort_rarity') }}</option>
-              <option value="name" class="bg-slate-900 text-slate-200">{{ t('sort_name') }}</option>
-            </select>
+              ⚡ {{ t('sort_default') }}
+            </button>
+
+            <button 
+              @click="setSort('summons')"
+              :class="currentSort === 'summons' && !isTop10Mode ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
+              class="px-2 py-1 rounded-lg transition"
+            >
+              🔥 {{ t('sort_summons_btn') }}
+            </button>
+
+            <button 
+              @click="setSort('rarity')"
+              :class="currentSort === 'rarity' && !isTop10Mode ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
+              class="px-2 py-1 rounded-lg transition"
+            >
+              👑 {{ t('sort_rarity_btn') }}
+            </button>
+
+            <button 
+              @click="setSort('name')"
+              :class="currentSort === 'name' && !isTop10Mode ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
+              class="px-2 py-1 rounded-lg transition"
+            >
+              🔤 {{ t('sort_name_btn') }}
+            </button>
           </div>
 
           <!-- 稀有度按鈕 -->
-          <div class="hidden sm:flex items-center space-x-1 text-xs">
+          <div class="hidden md:flex items-center space-x-1 text-xs pl-1">
             <button 
               @click="selectedRarity = 'all'"
               :class="selectedRarity === 'all' ? 'text-amber-400 font-bold underline' : 'text-slate-400 hover:text-white'"
@@ -787,10 +808,13 @@
         expand_domains: '展開 (19)',
         collapse_domains: '收合',
         sort_label: '排序',
-        sort_default: '預設推薦',
+        sort_default: '推薦',
         sort_summons: '召喚次數 (由高到低)',
         sort_rarity: '品級 (傳奇優先)',
         sort_name: '英靈名稱 (A-Z)',
+        sort_summons_btn: '召喚榜',
+        sort_rarity_btn: '品級榜',
+        sort_name_btn: '名稱榜',
         all_rarity: '全部品級',
         legendary: '🟡 傳奇主神',
         epic: '🟣 史詩專精',
@@ -843,10 +867,13 @@
         expand_domains: 'Expand (19)',
         collapse_domains: 'Collapse',
         sort_label: 'Sort',
-        sort_default: 'Recommended',
+        sort_default: 'Featured',
         sort_summons: 'Most Summoned',
         sort_rarity: 'Rarity (High to Low)',
         sort_name: 'Name (A-Z)',
+        sort_summons_btn: 'Summons',
+        sort_rarity_btn: 'Rarity',
+        sort_name_btn: 'Name',
         all_rarity: 'All Rarities',
         legendary: '🟡 Legendary God',
         epic: '🟣 Epic Specialist',
@@ -899,10 +926,13 @@
         expand_domains: '全展開 (19)',
         collapse_domains: '折りたたむ',
         sort_label: '並び替え',
-        sort_default: 'おすすめ順',
+        sort_default: 'おすすめ',
         sort_summons: '召喚回数順',
         sort_rarity: 'レアリティ順',
         sort_name: '名前順 (A-Z)',
+        sort_summons_btn: '召喚順',
+        sort_rarity_btn: '品級順',
+        sort_name_btn: '名前順',
         all_rarity: '全レアリティ',
         legendary: '🟡 レジェンダリー主神',
         epic: '🟣 エピックスペシャリスト',
@@ -1155,61 +1185,66 @@
           }
         }
 
+        // 一鍵切換排序方式
+        function setSort(sortKey) {
+          isTop10Mode.value = false;
+          currentSort.value = sortKey;
+        }
+
         // 篩選與排序核心邏輯
         const filteredAgents = computed(() => {
-          let list = agents.value;
+          let list = [...agents.value];
 
           // 若啟用 TOP 10 模式
           if (isTop10Mode.value) {
             list = rankedLeaderboard.value.slice(0, 10);
-            return list;
+          } else {
+            if (selectedDomain.value !== 'all') {
+              list = list.filter(a => a.domain === selectedDomain.value);
+            }
+
+            if (selectedRarity.value !== 'all') {
+              list = list.filter(a => a.rarity === selectedRarity.value);
+            }
+
+            if (filterFavoriteOnly.value) {
+              list = list.filter(a => favoriteIds.value.includes(a.id));
+            }
+
+            if (searchQuery.value.trim()) {
+              const q = searchQuery.value.trim().toLowerCase();
+              list = list.filter(a => {
+                const customNick = (nicknames.value[a.id] || '').toLowerCase();
+                const nameZh = getHeroName(a).toLowerCase();
+                const enName = (a.name || '').toLowerCase();
+                const aid = a.id.toLowerCase();
+                const vibe = getHeroVibe(a).toLowerCase();
+                const skills = getHeroSkills(a).join(' ').toLowerCase();
+
+                return (
+                  customNick.includes(q) ||
+                  nameZh.includes(q) ||
+                  enName.includes(q) ||
+                  aid.includes(q) ||
+                  vibe.includes(q) ||
+                  skills.includes(q)
+                );
+              });
+            }
           }
 
-          if (selectedDomain.value !== 'all') {
-            list = list.filter(a => a.domain === selectedDomain.value);
-          }
-
-          if (selectedRarity.value !== 'all') {
-            list = list.filter(a => a.rarity === selectedRarity.value);
-          }
-
-          if (filterFavoriteOnly.value) {
-            list = list.filter(a => favoriteIds.value.includes(a.id));
-          }
-
-          if (searchQuery.value.trim()) {
-            const q = searchQuery.value.trim().toLowerCase();
-            list = list.filter(a => {
-              const customNick = (nicknames.value[a.id] || '').toLowerCase();
-              const nameZh = getHeroName(a).toLowerCase();
-              const enName = (a.name || '').toLowerCase();
-              const aid = a.id.toLowerCase();
-              const vibe = getHeroVibe(a).toLowerCase();
-              const skills = getHeroSkills(a).join(' ').toLowerCase();
-
-              return (
-                customNick.includes(q) ||
-                nameZh.includes(q) ||
-                enName.includes(q) ||
-                aid.includes(q) ||
-                vibe.includes(q) ||
-                skills.includes(q)
-              );
-            });
-          }
-
-          // 排序處理
-          list = [...list];
+          // 排序處理 (無論是否在 TOP 10 或篩選狀態，皆依 currentSort 重新排序)
+          const sortedList = [...list];
           if (currentSort.value === 'summons') {
-            list.sort((a, b) => getSummonCount(b.id) - getSummonCount(a.id));
+            sortedList.sort((a, b) => getSummonCount(b.id) - getSummonCount(a.id));
           } else if (currentSort.value === 'rarity') {
             const weight = { 'Legendary': 3, 'Epic': 2, 'Rare': 1 };
-            list.sort((a, b) => (weight[b.rarity] || 0) - (weight[a.rarity] || 0));
+            sortedList.sort((a, b) => (weight[b.rarity] || 0) - (weight[a.rarity] || 0));
           } else if (currentSort.value === 'name') {
-            list.sort((a, b) => getHeroName(a).localeCompare(getHeroName(b)));
+            sortedList.sort((a, b) => getHeroName(a).localeCompare(getHeroName(b)));
           }
 
-          return list;
+          return sortedList;
         });
 
         const selectedDomainName = computed(() => {
@@ -1256,8 +1291,11 @@
 
         // 召喚點擊事件（累加計數 ＋ 複製 Prompt）
         function handleSummonClick(agent) {
-          // 累加召喚次數
-          summonCounts.value[agent.id] = (summonCounts.value[agent.id] || 0) + 1;
+          // 累加召喚次數 (替換整個物件引用以保證 Vue 3 深度響應式即時重新計算)
+          summonCounts.value = {
+            ...summonCounts.value,
+            [agent.id]: (summonCounts.value[agent.id] || 0) + 1
+          };
           localStorage.setItem('valhalla_summons', JSON.stringify(summonCounts.value));
 
           // 複製召喚咒文
@@ -1440,6 +1478,7 @@
           getRankIcon,
           getRankBadgeClass,
           toggleTop10Mode,
+          setSort,
           getNickname,
           saveNickname,
           isFavorite,
