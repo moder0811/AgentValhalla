@@ -40,6 +40,8 @@
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <!-- Local data script (bypasses browser CORS for file:// protocol) -->
   <script src="agents_catalog.js"></script>
+  <!-- Pixel Avatar Engine -->
+  <script src="pixel_avatar.js"></script>
   <style>
     /* Custom scrollbar */
     ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -48,9 +50,9 @@
     ::-webkit-scrollbar-thumb:hover { background: #334155; }
     
     .glass-panel {
-      background: rgba(18, 26, 45, 0.75);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      background: rgba(18, 26, 45, 0.85);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
     
@@ -60,6 +62,12 @@
     .card-hover-fx:hover {
       transform: translateY(-4px);
     }
+
+    .pixel-avatar-svg {
+      image-rendering: pixelated;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: crisp-edges;
+    }
   </style>
 </head>
 <body class="bg-obsidian text-slate-100 min-h-screen selection:bg-amber-500 selection:text-black font-sans">
@@ -67,7 +75,7 @@
 
     <!-- 🏰 頂層導航列與英靈殿招牌 (Valhalla Header) -->
     <header class="glass-panel sticky top-0 z-40 border-b border-slate-800/80 shadow-2xl">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
         
         <!-- 招牌 Title & Badges -->
         <div class="flex items-center space-x-3.5">
@@ -77,63 +85,152 @@
           <div>
             <div class="flex items-center space-x-2">
               <h1 class="text-xl sm:text-2xl font-black tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-100 to-yellow-500">
-                AGENT-VALHALLA
+                {{ t('title') }}
               </h1>
-              <span class="px-2 py-0.5 text-xs font-semibold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded-full">
-                英靈殿 v1.0
+              <span class="px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded-full">
+                v2.0 3A
               </span>
             </div>
             <p class="text-xs text-slate-400 hidden sm:block">
-              瓦爾哈拉：AI 英雄英靈殿 · 21 大領域 · {{ totalAgentsCount }} 位眾神級專家隨時聽候差遣
+              {{ t('subtitle') }} · {{ totalAgentsCount }} {{ t('heroes_count') }}
             </p>
           </div>
         </div>
 
-        <!-- 搜尋列與快速統計 -->
-        <div class="flex items-center space-x-3 flex-1 max-w-md">
-          <div class="relative w-full">
-            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-              🔍
-            </span>
-            <input 
-              v-model="searchQuery"
-              ref="searchInput"
-              type="text" 
-              placeholder="搜尋專家、自訂稱號、技能關鍵字 (按 / 聚焦)..."
-              class="w-full pl-9 pr-8 py-2 bg-slate-900/90 border border-slate-700/70 rounded-xl text-sm focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition placeholder-slate-500"
-            />
+        <!-- 右側控制群：語系切換 ＋ 備份匯出入 -->
+        <div class="flex items-center space-x-2.5">
+          
+          <!-- 🌐 語系切換器 (i18n Switcher) -->
+          <div class="flex items-center bg-slate-900 border border-slate-700/80 rounded-xl p-1 space-x-1 text-xs">
             <button 
-              v-if="searchQuery" 
-              @click="searchQuery = ''"
-              class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-white"
+              @click="changeLang('zh')"
+              :class="currentLang === 'zh' ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
+              class="px-2 py-1 rounded-lg transition"
+              title="繁體中文"
             >
-              ✕
+              🇹🇼 繁中
+            </button>
+            <button 
+              @click="changeLang('en')"
+              :class="currentLang === 'en' ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
+              class="px-2 py-1 rounded-lg transition"
+              title="English"
+            >
+              🇺🇸 EN
+            </button>
+            <button 
+              @click="changeLang('ja')"
+              :class="currentLang === 'ja' ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
+              class="px-2 py-1 rounded-lg transition"
+              title="日本語"
+            >
+              🇯🇵 日本語
             </button>
           </div>
 
-          <!-- 收藏夾切換按鈕 -->
-          <button 
-            @click="filterFavoriteOnly = !filterFavoriteOnly"
-            :class="filterFavoriteOnly ? 'bg-amber-500/20 text-amber-300 border-amber-500' : 'bg-slate-800 text-slate-400 border-slate-700'"
-            class="px-3 py-2 border rounded-xl text-xs font-medium flex items-center space-x-1.5 transition hover:border-slate-500 flex-shrink-0"
-            title="僅顯示主力戰鬥陣容"
-          >
-            <span>⭐</span>
-            <span class="hidden md:inline">{{ favoriteIds.length }}</span>
-          </button>
+          <!-- 💾 備份管理 (Backup & Restore) -->
+          <div class="flex items-center space-x-1.5">
+            <button 
+              @click="exportBackup"
+              class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs flex items-center space-x-1 transition shadow-sm"
+              :title="t('export_tooltip')"
+            >
+              <span>📤</span>
+              <span class="hidden md:inline">{{ t('export_btn') }}</span>
+            </button>
+
+            <button 
+              @click="triggerImportFile"
+              class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs flex items-center space-x-1 transition shadow-sm"
+              :title="t('import_tooltip')"
+            >
+              <span>📥</span>
+              <span class="hidden md:inline">{{ t('import_btn') }}</span>
+            </button>
+
+            <!-- 隱藏的檔案上傳輸入框 -->
+            <input 
+              type="file" 
+              ref="backupFileInput" 
+              accept=".json" 
+              @change="handleImportFile" 
+              class="hidden"
+            />
+          </div>
+
         </div>
 
       </div>
 
+      <!-- 🎮 第二層：形態轉換儀 (Avatar Form Matrix) ＋ 搜尋列 -->
+      <div class="border-t border-slate-800/80 bg-slate-950/60 px-4 sm:px-6 lg:px-8 py-2.5">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+          
+          <!-- 形態切換矩陣 -->
+          <div class="flex items-center space-x-1.5 overflow-x-auto no-scrollbar">
+            <span class="text-xs font-semibold text-slate-400 flex items-center space-x-1 mr-1">
+              <span>👾</span>
+              <span class="hidden sm:inline">{{ t('form_label') }}</span>
+            </span>
+
+            <button
+              v-for="form in avatarForms"
+              :key="form.id"
+              @click="changeAvatarForm(form.id)"
+              :class="currentAvatarForm === form.id ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-black font-extrabold shadow-glow-gold' : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 border border-slate-700/60'"
+              class="px-3 py-1 rounded-xl text-xs transition flex items-center space-x-1.5 whitespace-nowrap"
+            >
+              <span>{{ getFormLabel(form) }}</span>
+            </button>
+          </div>
+
+          <!-- 搜尋列與主力過濾 -->
+          <div class="flex items-center space-x-2.5 flex-1 max-w-md">
+            <div class="relative w-full">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                🔍
+              </span>
+              <input 
+                v-model="searchQuery"
+                ref="searchInput"
+                type="text" 
+                :placeholder="t('search_ph')"
+                class="w-full pl-9 pr-8 py-1.5 bg-slate-900 border border-slate-700/80 rounded-xl text-xs sm:text-sm focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition placeholder-slate-500"
+              />
+              <button 
+                v-if="searchQuery" 
+                @click="searchQuery = ''"
+                class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-white text-xs"
+              >
+                ✕
+              </button>
+            </div>
+
+            <!-- 主力陣容切換按鈕 -->
+            <button 
+              @click="filterFavoriteOnly = !filterFavoriteOnly"
+              :class="filterFavoriteOnly ? 'bg-amber-500/20 text-amber-300 border-amber-500 shadow-glow-gold' : 'bg-slate-800 text-slate-400 border-slate-700'"
+              class="px-3 py-1.5 border rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition hover:border-slate-500 flex-shrink-0"
+              :title="t('favorite_only')"
+            >
+              <span>⭐</span>
+              <span class="hidden sm:inline">{{ favoriteIds.length }}</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
       <!-- 🏷️ 領域分類標籤欄 (Domain Filter Scroll) -->
       <div class="border-t border-slate-800/60 bg-slate-950/40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center space-x-2 overflow-x-auto no-scrollbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center space-x-2 overflow-x-auto no-scrollbar">
           <button
             @click="selectedDomain = 'all'"
             :class="selectedDomain === 'all' ? 'bg-amber-500 text-black font-bold shadow-glow-gold' : 'bg-slate-800/70 text-slate-300 hover:bg-slate-800 border border-slate-700/50'"
-            class="px-3.5 py-1.5 rounded-lg text-xs transition whitespace-nowrap flex items-center space-x-1.5"
+            class="px-3 py-1 rounded-lg text-xs transition whitespace-nowrap flex items-center space-x-1"
           >
-            <span>🌐 全部領域</span>
+            <span>⚡</span>
+            <span>{{ t('all_domains') }}</span>
             <span class="opacity-80 text-[10px] ml-1">({{ totalAgentsCount }})</span>
           </button>
 
@@ -142,10 +239,10 @@
             :key="dom.id"
             @click="selectedDomain = dom.id"
             :class="selectedDomain === dom.id ? 'bg-amber-500 text-black font-bold shadow-glow-gold' : 'bg-slate-800/70 text-slate-300 hover:bg-slate-800 border border-slate-700/50'"
-            class="px-3.5 py-1.5 rounded-lg text-xs transition whitespace-nowrap flex items-center space-x-1.5"
+            class="px-3 py-1 rounded-lg text-xs transition whitespace-nowrap flex items-center space-x-1"
           >
             <span>{{ dom.icon }}</span>
-            <span>{{ dom.name_zh }}</span>
+            <span>{{ getDomainName(dom) }}</span>
             <span class="opacity-80 text-[10px]">({{ dom.count }})</span>
           </button>
         </div>
@@ -158,23 +255,23 @@
       <!-- 過濾狀態資訊列 -->
       <div class="flex items-center justify-between mb-5 text-xs text-slate-400">
         <div class="flex items-center space-x-2">
-          <span>英靈殿列席者：<strong class="text-amber-400 font-bold">{{ filteredAgents.length }}</strong> 位</span>
-          <span v-if="searchQuery" class="bg-amber-500/10 text-amber-300 px-2 py-0.5 rounded border border-amber-500/20">
-            搜尋: "{{ searchQuery }}"
+          <span>{{ t('showing_prefix') }} <b class="text-amber-400 font-mono text-sm">{{ filteredAgents.length }}</b> / {{ totalAgentsCount }} {{ t('heroes_unit') }}</span>
+          <span v-if="selectedDomain !== 'all'" class="px-2 py-0.5 bg-slate-800 rounded text-slate-300 border border-slate-700">
+            {{ selectedDomainName }}
           </span>
-          <span v-if="filterFavoriteOnly" class="bg-amber-500/10 text-amber-300 px-2 py-0.5 rounded border border-amber-500/20">
-            僅主力戰鬥名冊
+          <span v-if="filterFavoriteOnly" class="px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded border border-amber-500/40">
+            ⭐ {{ t('squad_active') }}
           </span>
         </div>
 
-        <!-- 稀有度切換 -->
-        <div class="flex items-center space-x-1.5">
+        <!-- 稀有度品級快速過濾 -->
+        <div class="flex items-center space-x-1 text-xs">
           <button 
             @click="selectedRarity = 'all'"
-            :class="selectedRarity === 'all' ? 'text-white font-bold underline' : 'text-slate-400 hover:text-slate-300'"
+            :class="selectedRarity === 'all' ? 'text-amber-400 font-bold underline' : 'text-slate-400 hover:text-white'"
             class="px-1.5 py-0.5"
           >
-            全部品級
+            {{ t('all_rarity') }}
           </button>
           <span>·</span>
           <button 
@@ -182,7 +279,7 @@
             :class="selectedRarity === 'Legendary' ? 'text-amber-400 font-bold underline' : 'text-slate-400 hover:text-amber-400'"
             class="px-1.5 py-0.5"
           >
-            🟡 傳奇主神
+            {{ t('legendary') }}
           </button>
           <span>·</span>
           <button 
@@ -190,7 +287,7 @@
             :class="selectedRarity === 'Epic' ? 'text-purple-400 font-bold underline' : 'text-slate-400 hover:text-purple-400'"
             class="px-1.5 py-0.5"
           >
-            🟣 史詩專精
+            {{ t('epic') }}
           </button>
         </div>
       </div>
@@ -198,13 +295,13 @@
       <!-- 空白狀態 (Empty State) -->
       <div v-if="filteredAgents.length === 0" class="text-center py-24 glass-panel rounded-2xl border border-slate-800">
         <div class="text-5xl mb-3">⚡</div>
-        <h3 class="text-lg font-bold text-slate-200">殿堂之中暫無此英雄...</h3>
-        <p class="text-sm text-slate-500 mt-1">找不到符合當前條件的英靈，試著清除關鍵字或更換領域標籤吧。</p>
+        <h3 class="text-lg font-bold text-slate-200">{{ t('empty_title') }}</h3>
+        <p class="text-sm text-slate-500 mt-1">{{ t('empty_desc') }}</p>
         <button 
           @click="resetFilters" 
-          class="mt-4 px-4 py-2 bg-amber-500 text-black font-semibold rounded-xl text-xs hover:bg-amber-400 transition"
+          class="mt-4 px-4 py-2 bg-amber-500 text-black font-semibold rounded-xl text-xs hover:bg-amber-400 transition shadow-glow-gold"
         >
-          重設所有過濾條件
+          {{ t('reset_filters') }}
         </button>
       </div>
 
@@ -229,23 +326,27 @@
               @click.stop="toggleFavorite(agent.id)"
               class="text-lg opacity-60 hover:opacity-100 transition transform hover:scale-125"
               :class="isFavorite(agent.id) ? 'text-amber-400 opacity-100' : 'text-slate-500'"
-              :title="isFavorite(agent.id) ? '自陣容移除' : '收入主力名冊'"
+              :title="isFavorite(agent.id) ? t('remove_fav') : t('add_fav')"
             >
               {{ isFavorite(agent.id) ? '★' : '☆' }}
             </button>
           </div>
 
-          <!-- 英雄頭像與名稱 -->
+          <!-- 英雄像素頭像與名稱 -->
           <div>
             <div class="flex items-start space-x-3 mb-2.5">
-              <div class="w-12 h-12 rounded-xl bg-slate-800 border border-slate-700/80 flex items-center justify-center text-2xl shadow-inner flex-shrink-0 group-hover:scale-105 transition">
-                {{ agent.emoji }}
+              <!-- 👾 確定性像素風格大頭像 -->
+              <div 
+                class="w-13 h-13 sm:w-14 sm:h-14 rounded-xl bg-slate-900 border border-slate-700/80 p-1 flex items-center justify-center shadow-inner flex-shrink-0 group-hover:scale-110 group-hover:border-amber-400/80 transition duration-300"
+                v-html="getAvatarSvg(agent)"
+              >
               </div>
+
               <div class="flex-1 min-w-0">
-                <h3 class="text-base font-bold text-slate-100 group-hover:text-amber-300 transition truncate">
-                  {{ agent.name_zh }}
+                <h3 class="text-base font-bold text-slate-100 group-hover:text-amber-300 transition truncate" :title="getHeroName(agent)">
+                  {{ getHeroName(agent) }}
                 </h3>
-                <p class="text-xs text-slate-400 truncate">{{ agent.name }}</p>
+                <p class="text-[11px] text-slate-400 font-mono truncate">{{ agent.id }}</p>
               </div>
             </div>
 
@@ -263,19 +364,19 @@
                 @click="openModal(agent, true)"
                 class="inline-flex items-center space-x-1 text-[11px] text-slate-500 hover:text-slate-300 cursor-pointer italic"
               >
-                <span>＋ 冊封專屬稱號...</span>
+                <span>＋ {{ t('add_nickname') }}</span>
               </span>
             </div>
 
-            <!-- 英雄座右銘 / 簡介 -->
-            <p class="text-xs text-slate-400 leading-relaxed line-clamp-2 mb-3.5">
-              {{ agent.vibe }}
+            <!-- 英雄座右銘 / 箴言 (多語系) -->
+            <p class="text-xs text-slate-400 leading-relaxed line-clamp-2 mb-3.5" :title="getHeroVibe(agent)">
+              {{ getHeroVibe(agent) }}
             </p>
 
             <!-- 核心技能標籤樹 (Skill Chips) -->
             <div class="flex flex-wrap gap-1.5 mb-4">
               <span 
-                v-for="(skill, sIdx) in agent.skills.slice(0, 3)" 
+                v-for="(skill, sIdx) in getHeroSkills(agent).slice(0, 3)" 
                 :key="sIdx"
                 class="px-2 py-0.5 bg-slate-800/80 text-slate-300 text-[10px] rounded-md border border-slate-700/40"
               >
@@ -290,15 +391,15 @@
               @click="openModal(agent, false)"
               class="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-xl border border-slate-700 transition"
             >
-              📜 查閱劇本
+              {{ t('view_script') }}
             </button>
             <button 
               @click="copySummonPrompt(agent)"
               class="px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black text-xs font-bold rounded-xl shadow-glow-gold transition flex items-center space-x-1"
-              title="一鍵複製專家召喚 Prompt"
+              :title="t('summon_tooltip')"
             >
               <span>⚡</span>
-              <span>召喚</span>
+              <span>{{ t('summon_btn') }}</span>
             </button>
           </div>
 
@@ -310,7 +411,7 @@
     <!-- 📜 英雄召喚水晶面板 (Hero Detail Modal) -->
     <div 
       v-if="activeHero" 
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/80 backdrop-blur-md transition"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/85 backdrop-blur-md transition"
       @click.self="activeHero = null"
     >
       <div class="glass-panel w-full max-w-3xl rounded-3xl border border-slate-700 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -318,111 +419,130 @@
         <!-- 彈窗頂部 Header -->
         <div class="p-6 border-b border-slate-800 flex items-start justify-between bg-gradient-to-r from-slate-900 via-slate-900/90 to-cardbg">
           <div class="flex items-start space-x-4">
-            <div class="w-14 h-14 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-3xl shadow-inner flex-shrink-0">
-              {{ activeHero.emoji }}
+            
+            <!-- 彈窗大頭像與形態微調 -->
+            <div class="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-700 p-1 shadow-inner flex items-center justify-center flex-shrink-0" v-html="getAvatarSvg(activeHero)">
             </div>
+
             <div>
-              <div class="flex items-center space-x-2.5">
-                <h2 class="text-xl font-black text-amber-300">{{ activeHero.name_zh }}</h2>
-                <span :class="getRarityBadgeClass(activeHero.rarity)" class="px-2 py-0.5 text-xs font-extrabold rounded-full border">
+              <div class="flex items-center space-x-2 mb-1">
+                <span :class="getRarityBadgeClass(activeHero.rarity)" class="px-2 py-0.5 text-[10px] font-extrabold uppercase rounded-full border">
                   {{ activeHero.rarity }}
                 </span>
+                <span class="text-xs text-slate-400 font-mono">{{ activeHero.domain }}</span>
               </div>
-              <p class="text-xs text-slate-400 mt-0.5">{{ activeHero.name }} · {{ activeHero.file_path }}</p>
+              <h2 class="text-xl font-black text-slate-100 flex items-center space-x-2">
+                <span>{{ getHeroName(activeHero) }}</span>
+                <span v-if="getNickname(activeHero.id)" class="text-sm font-normal text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded-lg border border-amber-500/30">
+                  🏷️ {{ getNickname(activeHero.id) }}
+                </span>
+              </h2>
+              <p class="text-xs text-slate-400 mt-1 italic">{{ getHeroVibe(activeHero) }}</p>
             </div>
+
           </div>
+
           <button 
-            @click="activeHero = null"
-            class="text-slate-400 hover:text-white text-xl p-1 rounded-lg hover:bg-slate-800 transition"
+            @click="activeHero = null" 
+            class="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-slate-800 transition"
           >
             ✕
           </button>
         </div>
 
-        <!-- 彈窗內容卷軸區 -->
+        <!-- 彈窗主體內容 -->
         <div class="p-6 overflow-y-auto space-y-6 flex-1 text-sm text-slate-300">
           
-          <!-- 👑 自訂暱稱編輯卡片 -->
-          <div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div>
-              <div class="text-xs font-bold text-amber-300 flex items-center space-x-1.5">
-                <span>🏷️</span>
-                <span>領主自訂稱號 (Custom Nickname)</span>
-              </div>
-              <p class="text-[11px] text-slate-400 mt-0.5">
-                為同職業專家賦予專屬稱號（例如：「數值狂魔・高橋」），召喚時自動帶入稱號！
-              </p>
-            </div>
-            <div class="flex items-center space-x-2 w-full sm:w-auto">
+          <!-- 冊封自訂稱號輸入區 -->
+          <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
+            <label class="block text-xs font-bold text-amber-400 uppercase tracking-wider">
+              🏷️ {{ t('modal_nickname_title') }}
+            </label>
+            <div class="flex items-center space-x-2">
               <input 
                 v-model="editNicknameInput" 
-                placeholder="輸入專屬暱稱..."
-                class="px-3 py-1.5 bg-slate-900 border border-amber-500/40 rounded-xl text-xs text-amber-200 focus:outline-none focus:border-amber-400 w-full sm:w-48"
+                type="text" 
+                :placeholder="t('modal_nickname_ph')"
+                class="flex-1 px-3 py-1.5 bg-slate-950 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-amber-400 transition"
+                maxlength="20"
+                @keyup.enter="saveNickname(activeHero.id)"
               />
               <button 
                 @click="saveNickname(activeHero.id)"
-                class="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs rounded-xl transition flex-shrink-0"
+                class="px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-black text-xs font-bold rounded-xl transition shadow"
               >
-                儲存
+                {{ t('save_btn') }}
               </button>
+            </div>
+            <p class="text-[11px] text-slate-500">
+              {{ t('nickname_saved_hint') }}
+            </p>
+          </div>
+
+          <!-- 業務職責與痛點解說 (多語系) -->
+          <div class="space-y-2">
+            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              🛡️ {{ t('modal_desc_title') }}
+            </h4>
+            <div class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800/80 leading-relaxed text-slate-300">
+              {{ getHeroDesc(activeHero) }}
             </div>
           </div>
 
-          <!-- 英雄格言與職責 -->
-          <div>
-            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">英靈誓詞與核心職掌</h4>
-            <blockquote class="p-3.5 rounded-xl bg-slate-900/80 border-l-4 border-amber-500 text-slate-200 text-xs italic">
-              "{{ activeHero.vibe }}"
-            </blockquote>
-          </div>
-
-          <!-- 專精技能矩陣 -->
-          <div>
-            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">專精技能與檢核樹</h4>
+          <!-- 核心技能標籤 -->
+          <div class="space-y-2">
+            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              ✨ {{ t('modal_skills_title') }}
+            </h4>
             <div class="flex flex-wrap gap-2">
               <span 
-                v-for="(skill, idx) in activeHero.skills" 
-                :key="idx"
-                class="px-3 py-1 bg-slate-800 text-amber-200 text-xs rounded-lg border border-slate-700/60 font-medium"
+                v-for="(skill, sIdx) in getHeroSkills(activeHero)" 
+                :key="sIdx"
+                class="px-3 py-1 bg-slate-800 text-slate-200 text-xs rounded-lg border border-slate-700"
               >
-                ⚡ {{ skill }}
+                {{ skill }}
               </span>
             </div>
           </div>
 
-          <!-- 完整 Prompt 劇本預覽 -->
-          <div>
-            <div class="flex items-center justify-between mb-2">
-              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">完整專家 System Prompt 劇本</h4>
+          <!-- 原始 System Prompt 劇本 -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                ⚡ {{ t('modal_prompt_title') }}
+              </h4>
               <button 
-                @click="copyText(activeHero.prompt_template, '完整劇本已複製！')"
-                class="text-xs text-amber-400 hover:text-amber-300 underline"
+                @click="copyText(activeHero.prompt_template, t('copied_full_prompt'))"
+                class="text-xs text-amber-400 hover:underline flex items-center space-x-1"
               >
-                複製純劇本
+                <span>📋</span>
+                <span>{{ t('copy_code_btn') }}</span>
               </button>
             </div>
-            <pre class="p-4 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-300 font-mono overflow-x-auto max-h-56 leading-relaxed select-all">{{ activeHero.prompt_template }}</pre>
+            <pre class="p-4 bg-slate-950 rounded-2xl border border-slate-800 text-xs font-mono text-slate-300 overflow-x-auto max-h-60 leading-relaxed whitespace-pre-wrap select-all">{{ activeHero.prompt_template }}</pre>
           </div>
 
         </div>
 
         <!-- 彈窗底部操作按鈕 -->
-        <div class="p-4 sm:p-5 border-t border-slate-800 bg-slate-950 flex flex-wrap items-center justify-between gap-3">
-          <div class="text-xs text-slate-400">
-            檔案位置：<code class="text-slate-300">{{ activeHero.file_path }}</code>
+        <div class="p-4 border-t border-slate-800 bg-slate-950/80 flex items-center justify-between">
+          <div class="text-xs text-slate-500">
+            ID: <span class="font-mono text-slate-400">{{ activeHero.id }}</span>
           </div>
-          <div class="flex items-center space-x-2.5">
+
+          <div class="flex items-center space-x-3">
             <button 
               @click="activeHero = null"
-              class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-xl transition"
+              class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-xl border border-slate-700 transition"
             >
-              關閉
+              {{ t('close_btn') }}
             </button>
             <button 
               @click="copySummonPrompt(activeHero)"
               class="px-5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black text-xs font-bold rounded-xl shadow-glow-gold transition flex items-center space-x-1.5"
             >
-              <span>⚡ 一鍵複製召喚 Prompt</span>
+              <span>⚡</span>
+              <span>{{ t('summon_btn') }}</span>
             </button>
           </div>
         </div>
@@ -430,19 +550,26 @@
       </div>
     </div>
 
-    <!-- ✨ 魔法通知浮動氣泡 (Toast Notification) -->
+    <!-- 🍞 全域 Toast 提示訊息 -->
     <div 
       v-if="toastMessage" 
-      class="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-amber-500 to-amber-600 text-black px-5 py-3 rounded-2xl shadow-glow-gold font-bold text-xs flex items-center space-x-2 animate-bounce"
+      class="fixed bottom-6 right-6 z-50 px-5 py-3 rounded-2xl bg-amber-500 text-black font-bold text-xs shadow-2xl flex items-center space-x-2 animate-bounce transition border border-amber-300"
     >
-      <span>⚡</span>
+      <span>✨</span>
       <span>{{ toastMessage }}</span>
     </div>
 
-    <!-- 頁尾宣告 -->
-    <footer class="glass-panel border-t border-slate-800/80 py-4 mt-auto">
-      <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
-        AgentValhalla · 瓦爾哈拉：AI 英雄英靈殿 · 306+ 跨領域眾神級 AI 英雄全天候待命
+    <!-- 底部版權 Footer -->
+    <footer class="border-t border-slate-800/80 bg-slate-950 py-6 text-center text-xs text-slate-500">
+      <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div>
+          ⚔️ <b>瓦爾哈拉：AI 英雄英靈殿 (AgentValhalla)</b> · 出品人專屬 3A 特工調度神殿
+        </div>
+        <div class="flex items-center space-x-4 text-[11px] text-slate-400">
+          <span>👑 出品人：Baby</span>
+          <span>🖤 總監：瀨戶環奈</span>
+          <span>❤️ 總監：安齋らら</span>
+        </div>
       </div>
     </footer>
 
@@ -451,150 +578,342 @@
   <script>
     const { createApp, ref, computed, onMounted } = Vue;
 
+    // 多語系 UI 文字字典
+    const UI_DICTIONARY = {
+      zh: {
+        title: '瓦爾哈拉：AI 英雄英靈殿',
+        subtitle: '300+ 專家級神格智慧召喚殿堂 · 終極 3A 暗黑電玩特工展台',
+        heroes_count: '尊眾神隨時聽候差遣',
+        search_ph: '搜尋英雄名、自訂稱號、技能關鍵字 (按 / 聚焦)...',
+        form_label: '形態轉換儀：',
+        all_domains: '全部領域',
+        showing_prefix: '當前展示',
+        heroes_unit: '尊英雄',
+        squad_active: '主力名冊',
+        all_rarity: '全部品級',
+        legendary: '🟡 傳奇主神',
+        epic: '🟣 史詩專精',
+        rare: '🔵 稀有菁英',
+        favorite_only: '僅顯示主力戰鬥陣容',
+        add_fav: '收入主力名冊',
+        remove_fav: '自陣容移除',
+        add_nickname: '冊封專屬稱號...',
+        view_script: '📜 查閱劇本',
+        summon_btn: '⚡ 召喚',
+        summon_tooltip: '一鍵複製專家召喚 Prompt',
+        export_btn: '匯出備份',
+        export_tooltip: '將您的自訂稱號與主力陣容匯出為 JSON 備份檔',
+        import_btn: '匯入備份',
+        import_tooltip: '還原先前匯出的備份設定檔',
+        modal_nickname_title: '出品人特權：冊封專屬稱號',
+        modal_nickname_ph: '輸入專屬稱號 (例如：全端戰神、王牌審查官)...',
+        save_btn: '冊封並保存',
+        nickname_saved_hint: '稱號將永久保存在瀏覽器 LocalStorage，支援隨時修改或一鍵備份匯出。',
+        modal_desc_title: '職責領域與架構守衛',
+        modal_skills_title: '精通核心專精',
+        modal_prompt_title: '底層專家提示詞 (System Prompt)',
+        copy_code_btn: '複製全文',
+        copied_full_prompt: '已複製完整 System Prompt！',
+        close_btn: '關閉',
+        empty_title: '殿堂之中暫無此英雄...',
+        empty_desc: '找不到符合當前條件的英靈，試著清除關鍵字或更換領域標籤吧。',
+        reset_filters: '重設所有過濾條件',
+        prompt_copied: '⚡ 英靈【{name}】召喚符文已複製至剪貼簿！可直接貼給 LLM 使用！',
+        backup_exported: '✅ 瓦爾哈拉設定檔已成功匯出下載！',
+        backup_imported: '✅ 設定檔匯入成功！已還原您的戰鬥陣容與專屬稱號！',
+        import_failed: '❌ 匯入失敗，請確認上傳的為正確的 JSON 備份檔。'
+      },
+      en: {
+        title: 'AGENT VALHALLA',
+        subtitle: 'Pantheon of 300+ Divine AI Specialists · 3A Dark Gaming Showcase',
+        heroes_count: 'Spirits at your command',
+        search_ph: 'Search heroes, custom titles, skills (Press / to focus)...',
+        form_label: 'Avatar Form Matrix:',
+        all_domains: 'All Domains',
+        showing_prefix: 'Displaying',
+        heroes_unit: 'Heroes',
+        squad_active: 'Core Squad',
+        all_rarity: 'All Rarities',
+        legendary: '🟡 Legendary God',
+        epic: '🟣 Epic Specialist',
+        rare: '🔵 Rare Elite',
+        favorite_only: 'Core Squad Only',
+        add_fav: 'Add to Core Squad',
+        remove_fav: 'Remove from Squad',
+        add_nickname: 'Grant Title...',
+        view_script: '📜 View Spec',
+        summon_btn: '⚡ Summon',
+        summon_tooltip: 'One-click copy expert summon prompt',
+        export_btn: 'Export Backup',
+        export_tooltip: 'Export your squad and custom titles to JSON',
+        import_btn: 'Import Backup',
+        import_tooltip: 'Restore settings from JSON backup',
+        modal_nickname_title: 'Executive Privilege: Grant Custom Title',
+        modal_nickname_ph: 'Enter title (e.g. Code God, Ace Auditor)...',
+        save_btn: 'Save Title',
+        nickname_saved_hint: 'Saved locally in browser localStorage, persists across sessions.',
+        modal_desc_title: 'Mission & Architectural Scope',
+        modal_skills_title: 'Core Masteries & Skills',
+        modal_prompt_title: 'System Prompt Template',
+        copy_code_btn: 'Copy Full Text',
+        copied_full_prompt: 'Full System Prompt copied!',
+        close_btn: 'Close',
+        empty_title: 'No Hero Found in the Pantheon...',
+        empty_desc: 'Try clearing your search query or selecting another domain filter.',
+        reset_filters: 'Reset All Filters',
+        prompt_copied: '⚡ Hero [{name}] Summon Prompt copied to clipboard!',
+        backup_exported: '✅ Valhalla settings backup exported successfully!',
+        backup_imported: '✅ Settings restored! Squad and titles loaded!',
+        import_failed: '❌ Import failed. Please select a valid Valhalla JSON backup.'
+      },
+      ja: {
+        title: 'ヴァルハラ：AI英雄の英霊殿',
+        subtitle: '300柱を超える超知性エージェント召喚殿堂 · 3AダークRPGショールーム',
+        heroes_count: '柱の英霊が待機中',
+        search_ph: '英雄名、称号、専門スキルで検索 ( / キーでフォーカス)...',
+        form_label: 'アバター形態転換：',
+        all_domains: '全ドメイン',
+        showing_prefix: '表示中',
+        heroes_unit: '柱の英雄',
+        squad_active: '主力編成',
+        all_rarity: '全レアリティ',
+        legendary: '🟡 レジェンダリー主神',
+        epic: '🟣 エピックスペシャリスト',
+        rare: '🔵 レアエリート',
+        favorite_only: '主力パーティのみ',
+        add_fav: '主力パーティに追加',
+        remove_fav: '編成から外す',
+        add_nickname: '称号を授与...',
+        view_script: '📜 詳細スペック',
+        summon_btn: '⚡ 召喚',
+        summon_tooltip: '召喚プロンプトをワンクリックコピー',
+        export_btn: '設定出力',
+        export_tooltip: '称号とパーティ編成をJSONファイルに出力',
+        import_btn: '設定復元',
+        import_tooltip: 'JSONバックアップから設定を復元',
+        modal_nickname_title: '特別権限：英雄に専属の称号を授与',
+        modal_nickname_ph: '称号を入力 (例：不滅の設計者、最強の守護神)...',
+        save_btn: '授与して保存',
+        nickname_saved_hint: 'ブラウザのLocalStorageに永続保存され、バックアップ可能です。',
+        modal_desc_title: '職務範囲とアーキテクチャ防衛',
+        modal_skills_title: '習得マスタリー',
+        modal_prompt_title: 'システムプロンプト (System Prompt)',
+        copy_code_btn: '全文コピー',
+        copied_full_prompt: 'システムプロンプトを全文コピーしました！',
+        close_btn: '閉じる',
+        empty_title: '該当する英雄が見つかりません...',
+        empty_desc: '検索キーワードをクリアするか、別のドメインを選択してください。',
+        reset_filters: '条件をリセット',
+        prompt_copied: '⚡ 英霊【{name}】の召喚プロンプトをクリップボードにコピーしました！',
+        backup_exported: '✅ ヴァルハラ設定のバックアップを出力しました！',
+        backup_imported: '✅ 設定を復元しました！主力編成と称号が読み込まれました！',
+        import_failed: '❌ 復元に失敗しました。正しいJSONファイルを選択してください。'
+      }
+    };
+
     createApp({
       setup() {
-        const agents = ref([]);
-        const domains = ref([]);
-        const totalAgentsCount = ref(0);
+        const catalog = window.MAESTRO_HERO_CATALOG || { agents: [], domains: [] };
+        
+        // 核心資料狀態
+        const agents = ref(catalog.agents || []);
+        const totalAgentsCount = computed(() => agents.value.length);
+        
+        // 語系切換 (zh / en / ja)
+        const currentLang = ref(localStorage.getItem('valhalla_lang') || 'zh');
+        
+        // 形態轉換矩陣 (male / female / cat / dog)
+        const currentAvatarForm = ref(localStorage.getItem('valhalla_avatar_form') || 'male');
+        const avatarForms = ref(window.ValhallaPixelEngine ? window.ValhallaPixelEngine.forms : []);
+
+        // 搜尋與篩選條件
         const searchQuery = ref('');
         const selectedDomain = ref('all');
         const selectedRarity = ref('all');
         const filterFavoriteOnly = ref(false);
         const searchInput = ref(null);
+        const backupFileInput = ref(null);
 
-        // 彈窗狀態
+        // 彈窗與編輯狀態
         const activeHero = ref(null);
         const editNicknameInput = ref('');
         const toastMessage = ref('');
 
-        // LocalStorage 持久化資料
-        const nicknames = ref({});
-        const favoriteIds = ref([]);
+        // LocalStorage 本地持久化資料 (稱號與收藏)
+        const nicknames = ref(JSON.parse(localStorage.getItem('valhalla_nicknames') || '{}'));
+        const favoriteIds = ref(JSON.parse(localStorage.getItem('valhalla_favorites') || '[]'));
 
-        // 載入資料庫
-        onMounted(async () => {
-          loadPersistentStorage();
-
-          if (window.MAESTRO_HERO_CATALOG) {
-            initCatalog(window.MAESTRO_HERO_CATALOG);
-          } else {
-            try {
-              const res = await fetch('agents_catalog.json');
-              const data = await res.json();
-              initCatalog(data);
-            } catch (err) {
-              console.error('無法載入 agents_catalog.json:', err);
-              showToast('⚠️ 請確認 agents_catalog.json 存在');
-            }
-          }
-
-          window.addEventListener('keydown', (e) => {
-            if (e.key === '/' && document.activeElement !== searchInput.value) {
-              e.preventDefault();
-              searchInput.value?.focus();
-            }
+        // 領域清單計算 (含英雄統計)
+        const domains = computed(() => {
+          const counts = {};
+          agents.value.forEach(a => {
+            counts[a.domain] = (counts[a.domain] || 0) + 1;
           });
+          return (catalog.domains || []).map(d => ({
+            ...d,
+            count: counts[d.id] || 0
+          }));
         });
 
-        function initCatalog(data) {
-          agents.value = data.agents || [];
-          domains.value = data.domains || [];
-          totalAgentsCount.value = data.total_agents || agents.value.length;
+        // 國際化文字取得方法
+        function t(key) {
+          const langDict = UI_DICTIONARY[currentLang.value] || UI_DICTIONARY.zh;
+          return langDict[key] || UI_DICTIONARY.zh[key] || key;
         }
 
-        function loadPersistentStorage() {
-          try {
-            const savedNicks = localStorage.getItem('valhalla_hero_nicknames');
-            if (savedNicks) nicknames.value = JSON.parse(savedNicks);
-            const savedFavs = localStorage.getItem('valhalla_hero_favorites');
-            if (savedFavs) favoriteIds.value = JSON.parse(savedFavs);
-          } catch (e) {
-            console.warn('LocalStorage 讀取失敗:', e);
+        // 語系切換
+        function changeLang(lang) {
+          currentLang.value = lang;
+          localStorage.setItem('valhalla_lang', lang);
+        }
+
+        // 形態切換
+        function changeAvatarForm(formId) {
+          currentAvatarForm.value = formId;
+          localStorage.setItem('valhalla_avatar_form', formId);
+        }
+
+        function getFormLabel(form) {
+          if (currentLang.value === 'en') return form.label_en;
+          if (currentLang.value === 'ja') return form.label_ja;
+          return form.label_zh;
+        }
+
+        // 英雄多語系資訊提取
+        function getHeroName(agent) {
+          if (!agent) return '';
+          if (agent.i18n && agent.i18n[currentLang.value]) {
+            return agent.i18n[currentLang.value].name;
           }
+          return agent.name_zh || agent.name;
         }
 
+        function getHeroVibe(agent) {
+          if (!agent) return '';
+          if (agent.i18n && agent.i18n[currentLang.value]) {
+            return agent.i18n[currentLang.value].vibe;
+          }
+          return agent.vibe || '';
+        }
+
+        function getHeroDesc(agent) {
+          if (!agent) return '';
+          if (agent.i18n && agent.i18n[currentLang.value]) {
+            return agent.i18n[currentLang.value].desc;
+          }
+          return agent.vibe || '';
+        }
+
+        function getHeroSkills(agent) {
+          if (!agent) return [];
+          if (agent.i18n && agent.i18n[currentLang.value] && agent.i18n[currentLang.value].skills) {
+            return agent.i18n[currentLang.value].skills;
+          }
+          return agent.skills || [];
+        }
+
+        function getDomainName(dom) {
+          if (!dom) return '';
+          if (currentLang.value === 'en') return dom.name_en || dom.name_zh;
+          if (currentLang.value === 'ja') return dom.name_ja || dom.name_zh;
+          return dom.name_zh;
+        }
+
+        // 確定性像素頭像生成
+        function getAvatarSvg(agent, overrideForm) {
+          if (!window.ValhallaPixelEngine) return agent.emoji;
+          const form = overrideForm || currentAvatarForm.value;
+          return window.ValhallaPixelEngine.render(agent.id, form, agent.domain);
+        }
+
+        // 篩選核心邏輯
         const filteredAgents = computed(() => {
-          return agents.value.filter(a => {
-            if (selectedDomain.value !== 'all' && a.domain !== selectedDomain.value) {
-              return false;
-            }
+          let list = agents.value;
 
-            if (selectedRarity.value !== 'all' && a.rarity !== selectedRarity.value) {
-              return false;
-            }
+          if (selectedDomain.value !== 'all') {
+            list = list.filter(a => a.domain === selectedDomain.value);
+          }
 
-            if (filterFavoriteOnly.value && !favoriteIds.value.includes(a.id)) {
-              return false;
-            }
+          if (selectedRarity.value !== 'all') {
+            list = list.filter(a => a.rarity === selectedRarity.value);
+          }
 
-            if (searchQuery.value.trim()) {
-              const q = searchQuery.value.toLowerCase().trim();
-              const nick = (nicknames.value[a.id] || '').toLowerCase();
-              const matchName = a.name.toLowerCase().includes(q);
-              const matchZh = a.name_zh.toLowerCase().includes(q);
-              const matchVibe = (a.vibe || '').toLowerCase().includes(q);
-              const matchSkills = (a.skills || []).some(s => s.toLowerCase().includes(q));
-              const matchNick = nick.includes(q);
+          if (filterFavoriteOnly.value) {
+            list = list.filter(a => favoriteIds.value.includes(a.id));
+          }
 
-              if (!matchName && !matchZh && !matchVibe && !matchSkills && !matchNick) {
-                return false;
-              }
-            }
+          if (searchQuery.value.trim()) {
+            const q = searchQuery.value.trim().toLowerCase();
+            list = list.filter(a => {
+              const customNick = (nicknames.value[a.id] || '').toLowerCase();
+              const nameZh = getHeroName(a).toLowerCase();
+              const enName = (a.name || '').toLowerCase();
+              const aid = a.id.toLowerCase();
+              const vibe = getHeroVibe(a).toLowerCase();
+              const skills = getHeroSkills(a).join(' ').toLowerCase();
 
-            return true;
-          });
+              return (
+                customNick.includes(q) ||
+                nameZh.includes(q) ||
+                enName.includes(q) ||
+                aid.includes(q) ||
+                vibe.includes(q) ||
+                skills.includes(q)
+              );
+            });
+          }
+
+          return list;
         });
 
-        function getNickname(id) {
-          return nicknames.value[id] || '';
+        const selectedDomainName = computed(() => {
+          const dom = domains.value.find(d => d.id === selectedDomain.value);
+          return dom ? getDomainName(dom) : t('all_domains');
+        });
+
+        // 稱號管理
+        function getNickname(agentId) {
+          return nicknames.value[agentId] || '';
         }
 
-        function saveNickname(id) {
+        function saveNickname(agentId) {
           const val = editNicknameInput.value.trim();
           if (val) {
-            nicknames.value[id] = val;
+            nicknames.value[agentId] = val;
           } else {
-            delete nicknames.value[id];
+            delete nicknames.value[agentId];
           }
-          localStorage.setItem('valhalla_hero_nicknames', JSON.stringify(nicknames.value));
-          showToast(`⚡ 已成功冊封稱號：「${val || '已清除'}」！`);
+          localStorage.setItem('valhalla_nicknames', JSON.stringify(nicknames.value));
+          showToast(`✨ 稱號已保存！`);
         }
 
-        function isFavorite(id) {
-          return favoriteIds.value.includes(id);
+        // 收藏主力管理
+        function isFavorite(agentId) {
+          return favoriteIds.value.includes(agentId);
         }
 
-        function toggleFavorite(id) {
-          const idx = favoriteIds.value.indexOf(id);
+        function toggleFavorite(agentId) {
+          const idx = favoriteIds.value.indexOf(agentId);
           if (idx > -1) {
             favoriteIds.value.splice(idx, 1);
-            showToast('已自主力陣容中移出');
           } else {
-            favoriteIds.value.push(id);
-            showToast('⭐ 已收入瓦爾哈拉常駐主力陣容！');
+            favoriteIds.value.push(agentId);
           }
-          localStorage.setItem('valhalla_hero_favorites', JSON.stringify(favoriteIds.value));
+          localStorage.setItem('valhalla_favorites', JSON.stringify(favoriteIds.value));
         }
 
-        function openModal(agent, focusEdit = false) {
+        // 彈窗開啟
+        function openModal(agent, focusNickname = false) {
           activeHero.value = agent;
           editNicknameInput.value = nicknames.value[agent.id] || '';
         }
 
+        // 一鍵複製召喚 Prompt
         function copySummonPrompt(agent) {
-          const nick = nicknames.value[agent.id];
-          const nickPrefix = nick ? `【特派稱號：${nick}】` : '';
-          
-          const summonText = 
-`# 瓦爾哈拉英靈召喚令：${nickPrefix}${agent.name_zh} (${agent.name})
-你現在載入下列垂直領域專家的完整心智模型與專業原則，請以本專家的身分、語氣與檢核標準接管當前對話：
-
-${agent.prompt_template}
-
----
-【出品人特別指示】：請確認上述身分設定已生效，並以本專家身分向領主 Baby 覆命，準備接受任務調遣！`;
-
-          copyText(summonText, `⚡ 已成功複製【${nick || agent.name_zh}】的英靈召喚令！`);
+          const heroName = getHeroName(agent);
+          const nick = getNickname(agent.id) ? `【${getNickname(agent.id)}】` : '';
+          const summonText = `[召喚英靈] ${heroName} ${nick} (${agent.id})\n\n${agent.prompt_template}`;
+          copyText(summonText, t('prompt_copied').replace('{name}', heroName));
         }
 
         function copyText(text, successMsg) {
@@ -610,7 +929,7 @@ ${agent.prompt_template}
           toastMessage.value = msg;
           setTimeout(() => {
             toastMessage.value = '';
-          }, 3000);
+          }, 3200);
         }
 
         function resetFilters() {
@@ -618,6 +937,76 @@ ${agent.prompt_template}
           selectedDomain.value = 'all';
           selectedRarity.value = 'all';
           filterFavoriteOnly.value = false;
+        }
+
+        // 匯出備份 JSON
+        function exportBackup() {
+          const backupData = {
+            app: 'AgentValhalla',
+            version: '2.0',
+            exported_at: new Date().toISOString(),
+            lang: currentLang.value,
+            avatarForm: currentAvatarForm.value,
+            favorites: favoriteIds.value,
+            nicknames: nicknames.value
+          };
+          
+          const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+          a.href = url;
+          a.download = `Valhalla_Settings_Backup_${dateStr}.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+          showToast(t('backup_exported'));
+        }
+
+        // 觸發匯入檔案選取
+        function triggerImportFile() {
+          if (backupFileInput.value) {
+            backupFileInput.value.click();
+          }
+        }
+
+        // 處理匯入備份
+        function handleImportFile(event) {
+          const file = event.target.files && event.target.files[0];
+          if (!file) return;
+
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            try {
+              const data = JSON.parse(e.target.result);
+              if (data.app !== 'AgentValhalla' && !data.nicknames && !data.favorites) {
+                showToast(t('import_failed'));
+                return;
+              }
+
+              if (data.lang) {
+                changeLang(data.lang);
+              }
+              if (data.avatarForm) {
+                changeAvatarForm(data.avatarForm);
+              }
+              if (Array.isArray(data.favorites)) {
+                favoriteIds.value = data.favorites;
+                localStorage.setItem('valhalla_favorites', JSON.stringify(data.favorites));
+              }
+              if (data.nicknames && typeof data.nicknames === 'object') {
+                nicknames.value = Object.assign({}, nicknames.value, data.nicknames);
+                localStorage.setItem('valhalla_nicknames', JSON.stringify(nicknames.value));
+              }
+
+              showToast(t('backup_imported'));
+            } catch (err) {
+              console.error('匯入解析失敗:', err);
+              showToast(t('import_failed'));
+            }
+            // 清空 input 讓下次同檔名也能觸發
+            event.target.value = '';
+          };
+          reader.readAsText(file);
         }
 
         function getRarityBadgeClass(rarity) {
@@ -641,20 +1030,48 @@ ${agent.prompt_template}
           return 'border-slate-800 hover:border-sky-500/60';
         }
 
+        // 鍵盤快捷鍵 '/' 聚焦搜尋
+        onMounted(() => {
+          window.addEventListener('keydown', (e) => {
+            if (e.key === '/' && document.activeElement !== searchInput.value && !activeHero.value) {
+              e.preventDefault();
+              if (searchInput.value) searchInput.value.focus();
+            }
+            if (e.key === 'Escape' && activeHero.value) {
+              activeHero.value = null;
+            }
+          });
+        });
+
         return {
           agents,
           domains,
           totalAgentsCount,
+          currentLang,
+          currentAvatarForm,
+          avatarForms,
           searchQuery,
           selectedDomain,
           selectedRarity,
           filterFavoriteOnly,
           searchInput,
+          backupFileInput,
           filteredAgents,
+          selectedDomainName,
           activeHero,
           editNicknameInput,
           toastMessage,
           favoriteIds,
+          t,
+          changeLang,
+          changeAvatarForm,
+          getFormLabel,
+          getHeroName,
+          getHeroVibe,
+          getHeroDesc,
+          getHeroSkills,
+          getDomainName,
+          getAvatarSvg,
           getNickname,
           saveNickname,
           isFavorite,
@@ -663,6 +1080,9 @@ ${agent.prompt_template}
           copySummonPrompt,
           copyText,
           resetFilters,
+          exportBackup,
+          triggerImportFile,
+          handleImportFile,
           getRarityBadgeClass,
           getCardBorderClass
         };
@@ -671,4 +1091,3 @@ ${agent.prompt_template}
   </script>
 </body>
 </html>
-
