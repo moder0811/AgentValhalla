@@ -3,7 +3,7 @@
 > **專案代號**：AgentValhalla (AI 英雄英靈殿 · 3A 電玩風格開源展台)  
 > **發布版本**：v2.9 Pure Mobile & RPG Edition (Cache Buster: `v=20261030_v15`)  
 > **線上即時展台**：[https://moder0811.github.io/AgentValhalla/](https://moder0811.github.io/AgentValhalla/)  
-> **專案指揮官 / 總製作人**：Baby (Moder Chen)  
+> **專案指揮官 / 出品人**：Baby (Moder Chen)  
 > **系統架構師**：瀨戶環奈 (Seto Kanna)  
 > **體驗設計總監**：安齋らら (Rara Anzai)  
 > **歸檔時間**：2026-10-30 傍晚  
