@@ -43,9 +43,11 @@
   <!-- Local data script -->
   <script src="agents_catalog.js?v=20261031_v16"></script>
   <!-- Pixel Avatar Engine -->
-  <script src="pixel_avatar.js?v=20261031_v17"></script>
+  <script src="pixel_avatar.js?v=20261031_v18"></script>
   <!-- 0 KB Procedural Web Audio & RPG Engine -->
-  <script src="rpg_engine.js?v=20261031_v17"></script>
+  <script src="rpg_engine.js?v=20261031_v18"></script>
+  <!-- 👑 現代 64x64 高解析次像素藝術與動態呼吸紙娃娃引擎 (2016-2026 經典殿堂角色) -->
+  <script src="modern_avatar.js?v=20261031_v18"></script>
   <style>
     /* Custom scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -2774,18 +2776,58 @@
         }
 
         // 🎮 JRPG 成長與特工微雕紙娃娃狀態變數
+        // 🎮 JRPG 成長與現代 64x64 高解析紙娃娃狀態變數 (2016-2026 經典殿堂角色)
         const customAvatars = ref(JSON.parse(localStorage.getItem('valhalla_custom_avatars') || '{}'));
         const studioHero = ref(null);
+        const modernPresets = computed(() => (window.ModernPixelEngine && window.ModernPixelEngine.presets) || []);
+        const breathingFrame = ref(0);
+        const isBreathingActive = ref(true);
+
         const studioOptions = ref({
+          modernMode: true,
+          modernPresetId: 'saga', // 預設：復活邪神極致肉感天花板
           gender: 'female',
-          faceIndex: 5, // 嫵媚淚痣 (ひかる款)
-          hairIndex: 1, // 大波浪長捲髮
+          faceIndex: 5,
+          hairIndex: 1,
           hairColorIndex: 0,
           skinIndex: 0,
           bustSize: 'H', // 🔥 H CUP
           sexyCostume: 'bunny',
           armorTier: 30
         });
+
+        // 4 幀次像素呼吸循環計時器 (每 350ms 微動，賦予角色真實生命力)
+        let breathingTimer = null;
+        function startBreathing() {
+          if (breathingTimer) clearInterval(breathingTimer);
+          breathingTimer = setInterval(() => {
+            if (isBreathingActive.value) {
+              breathingFrame.value = (breathingFrame.value + 1) % 4;
+            }
+          }, 350);
+        }
+        startBreathing();
+
+        function toggleBreathingAnimation() {
+          isBreathingActive.value = !isBreathingActive.value;
+          if (window.ValhallaAudio) window.ValhallaAudio.playEquipSound();
+        }
+
+        function applyModernPreset(preset) {
+          if (!preset) return;
+          studioOptions.value = {
+            ...studioOptions.value,
+            modernMode: true,
+            modernPresetId: preset.id,
+            skin: preset.skin,
+            hair: preset.hair,
+            hairStyle: preset.hairStyle,
+            bustSize: preset.bustSize,
+            outfit: preset.outfit,
+            accessory: preset.accessory
+          };
+          if (window.ValhallaAudio) window.ValhallaAudio.playEquipSound();
+        }
         const showStudioModal = ref(false);
         const showEmergencyModal = ref(false);
         const showCodexModal = ref(false);
@@ -3063,14 +3105,17 @@
           return dom.name_zh;
         }
 
-        // 確定性像素頭像生成 (自訂紙娃娃優先，向下相容 16x16)
+        // 確定性像素頭像生成 (64x64 現代高解析優先 ➔ 32x32 換裝 ➔ 16x16 原版)
         function getAvatarSvg(agent, overrideForm) {
           if (!agent) return '';
-          if (!window.ValhallaPixelEngine) return agent.emoji || '👾';
           const custom = customAvatars.value && customAvatars.value[agent.id];
-          if (custom && window.ValhallaPixelEngine.render32) {
+          if (custom && custom.modernMode && window.ModernPixelEngine) {
+            return window.ModernPixelEngine.renderSvg(custom, 0);
+          }
+          if (custom && window.ValhallaPixelEngine && window.ValhallaPixelEngine.render32) {
             return window.ValhallaPixelEngine.render32(agent.id, custom);
           }
+          if (!window.ValhallaPixelEngine) return agent.emoji || '👾';
           const form = overrideForm || currentAvatarForm.value;
           return window.ValhallaPixelEngine.render(agent.id, form, agent.domain);
         }
@@ -3521,10 +3566,16 @@
           toggleSound,
           levelInfo,
           commanderTitle,
-          // 紙娃娃工坊操作函式
+          // 紙娃娃工坊操作函式 (支援 64x64 現代高解析與次像素呼吸)
           previewStudioSvg: computed(() => {
-            if (!studioHero.value || !window.ValhallaPixelEngine || !window.ValhallaPixelEngine.render32) return '';
-            return window.ValhallaPixelEngine.render32(studioHero.value.id, studioOptions.value);
+            if (!studioHero.value) return '';
+            if (studioOptions.value.modernMode && window.ModernPixelEngine) {
+              return window.ModernPixelEngine.renderSvg(studioOptions.value, breathingFrame.value);
+            }
+            if (window.ValhallaPixelEngine && window.ValhallaPixelEngine.render32) {
+              return window.ValhallaPixelEngine.render32(studioHero.value.id, studioOptions.value);
+            }
+            return '';
           }),
           openPaperDollStudio: function(hero) {
             if (!hero) return;
@@ -3656,7 +3707,12 @@
           pendingEmergencyCount,
           teamSynergy,
           commanderAchievements,
-          addExp
+          addExp,
+          modernPresets,
+          breathingFrame,
+          isBreathingActive,
+          toggleBreathingAnimation,
+          applyModernPreset
         };
       }
     }).mount('#app');
