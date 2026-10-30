@@ -41,7 +41,7 @@
   <!-- Vue 3 CDN -->
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <!-- Local data script -->
-  <script src="agents_catalog.js?v=20261030_v5"></script>
+  <script src="agents_catalog.js?v=20261030_v6"></script>
   <!-- Pixel Avatar Engine -->
   <script src="pixel_avatar.js"></script>
   <style>
@@ -234,8 +234,8 @@
           </div>
         </div>
 
-        <!-- 右側控制群：主題切換 ＋ 語系切換(含)右側按鈕全數向右靠齊 (ml-auto justify-end) -->
-        <div class="flex items-center space-x-2 sm:space-x-3 ml-auto justify-end flex-wrap gap-y-1">
+        <!-- 右側控制群：僅保留主題風格切換 ＋ ⚙️ 統一系統設定按鈕 (其餘收斂至設定彈窗) -->
+        <div class="flex items-center space-x-2 sm:space-x-2.5 ml-auto justify-end flex-shrink-0">
           
           <!-- 🌴 主題風格切換器 (Theme Switcher: Valhalla vs GTA 6) -->
           <div class="flex items-center bg-slate-900 border border-slate-700/80 rounded-xl p-0.5 sm:p-1 space-x-0.5 text-xs shadow-inner flex-shrink-0">
@@ -263,145 +263,77 @@
             </button>
           </div>
 
-          <!-- 🌐 語系切換器 (i18n Switcher) 及右側按鈕群 (全部往右靠齊) -->
-          <div class="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0">
-            <div class="flex items-center bg-slate-900 border border-slate-700/80 rounded-xl p-0.5 sm:p-1 space-x-0.5 text-xs shadow-inner">
-              <button 
-                @click="changeLang('zh')"
-                :class="currentLang === 'zh' ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
-                class="px-2 py-1 rounded-lg transition text-[11px] sm:text-xs"
-                title="繁體中文"
-              >
-                繁中
-              </button>
-              <button 
-                @click="changeLang('en')"
-                :class="currentLang === 'en' ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
-                class="px-2 py-1 rounded-lg transition text-[11px] sm:text-xs"
-                title="English"
-              >
-                EN
-              </button>
-              <button 
-                @click="changeLang('ja')"
-                :class="currentLang === 'ja' ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
-                class="px-2 py-1 rounded-lg transition text-[11px] sm:text-xs"
-                title="日本語"
-              >
-                日
-              </button>
-            </div>
+          <!-- ⚙️ 統一設定按鈕 (收斂頭像、語系、資料備份與指南) -->
+          <button 
+            @click="showSettingsModal = true"
+            class="px-2.5 sm:px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-amber-300 border border-slate-700/80 hover:border-amber-400/60 rounded-xl text-xs flex items-center space-x-1.5 transition shadow-inner flex-shrink-0"
+            :title="t('settings_title')"
+          >
+            <span class="text-sm">⚙️</span>
+            <span class="font-semibold">{{ t('settings_btn') }}</span>
+          </button>
 
-            <!-- 💾 備份管理 (Backup & Restore) ＋ ❓ 殿堂導覽手冊 -->
-            <div class="flex items-center space-x-1">
-              <button 
-                @click="exportBackup"
-                class="p-1.5 sm:px-2.5 sm:py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs flex items-center space-x-1 transition shadow-sm"
-                :title="t('export_tooltip')"
-              >
-                <span>📤</span>
-                <span class="hidden md:inline">{{ t('export_btn') }}</span>
-              </button>
-
-              <button 
-                @click="triggerImportFile"
-                class="p-1.5 sm:px-2.5 sm:py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs flex items-center space-x-1 transition shadow-sm"
-                :title="t('import_tooltip')"
-              >
-                <span>📥</span>
-                <span class="hidden md:inline">{{ t('import_btn') }}</span>
-              </button>
-
-              <!-- ❓ PS5 新手引導導覽手冊 -->
-              <button 
-                @click="openOnboarding"
-                class="p-1.5 sm:px-2.5 sm:py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 rounded-xl text-xs flex items-center space-x-1 transition shadow-sm"
-                :title="t('onboarding_btn_tooltip')"
-              >
-                <span>❓</span>
-                <span class="hidden lg:inline">{{ t('onboarding_btn') }}</span>
-              </button>
-
-              <input 
-                type="file" 
-                ref="backupFileInput" 
-                accept=".json" 
-                @change="handleImportFile" 
-                class="hidden"
-              />
-            </div>
-          </div>
+          <!-- 隱藏的檔案上傳 input -->
+          <input 
+            type="file" 
+            ref="backupFileInput" 
+            accept=".json" 
+            @change="handleImportFile" 
+            class="hidden"
+          />
 
         </div>
 
       </div>
 
-      <!-- 🎮 第二層：形態轉換儀 (Avatar Form Matrix) ＋ 搜尋與排序列 -->
+      <!-- 🔍 第二層：高效率搜尋列 ＋ 熱門榜與主力名冊 (頭像轉換收斂至設定) -->
       <div class="border-t border-slate-800/80 bg-slate-950/70 px-3 sm:px-6 lg:px-8 py-2">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
           
-          <!-- 形態切換矩陣 (手機端自適應橫向滑動) -->
-          <div class="flex items-center space-x-1.5 overflow-x-auto no-scrollbar py-0.5">
-            <span class="text-xs font-semibold text-slate-400 flex items-center space-x-1 flex-shrink-0 mr-1">
-              <span>👾</span>
-              <span class="hidden sm:inline">{{ t('form_label') }}</span>
+          <!-- 搜尋框 (寬度自適應延伸，排版呼吸感最佳) -->
+          <div class="relative flex-1">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs">
+              🔍
             </span>
-
-            <button
-              v-for="form in avatarForms"
-              :key="form.id"
-              @click="changeAvatarForm(form.id)"
-              :class="currentAvatarForm === form.id ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-black font-extrabold shadow-glow-gold' : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 border border-slate-700/60'"
-              class="px-2.5 sm:px-3 py-1 rounded-xl text-xs transition flex items-center space-x-1 whitespace-nowrap flex-shrink-0"
+            <input 
+              v-model="searchQuery"
+              ref="searchInput"
+              type="text" 
+              :placeholder="t('search_ph')"
+              class="w-full pl-8 pr-8 py-1.5 bg-slate-900 border border-slate-700/80 rounded-xl text-xs focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition placeholder-slate-500"
+            />
+            <button 
+              v-if="searchQuery" 
+              @click="searchQuery = ''"
+              class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-white text-xs"
             >
-              <span>{{ getFormLabel(form) }}</span>
+              ✕
             </button>
           </div>
 
-          <!-- 搜尋列 ＋ 排行榜快捷鍵 ＋ 主力過濾 -->
-          <div class="flex items-center space-x-2 flex-1 md:max-w-md w-full">
-            
-            <!-- 搜尋框 -->
-            <div class="relative w-full">
-              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs">
-                🔍
-              </span>
-              <input 
-                v-model="searchQuery"
-                ref="searchInput"
-                type="text" 
-                :placeholder="t('search_ph')"
-                class="w-full pl-8 pr-8 py-1.5 bg-slate-900 border border-slate-700/80 rounded-xl text-xs focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition placeholder-slate-500"
-              />
-              <button 
-                v-if="searchQuery" 
-                @click="searchQuery = ''"
-                class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-white text-xs"
-              >
-                ✕
-              </button>
-            </div>
-
+          <!-- 🏆 最強前十名切換按鈕 ＋ ⭐ 主力陣容切換按鈕 -->
+          <div class="flex items-center space-x-2 flex-shrink-0">
             <!-- 🏆 最強前十名切換按鈕 -->
             <button 
               @click="toggleTop10Mode"
               :class="isTop10Mode ? 'bg-amber-500 text-black font-extrabold shadow-glow-gold border-amber-300 animate-pulse' : 'bg-slate-800 text-amber-300/80 border-slate-700 hover:border-amber-500/60'"
-              class="px-2.5 py-1.5 border rounded-xl text-xs flex items-center space-x-1 transition flex-shrink-0"
+              class="px-3 py-1.5 border rounded-xl text-xs flex items-center space-x-1.5 transition"
               :title="t('top10_tooltip')"
             >
               <span>🏆</span>
-              <span class="hidden sm:inline font-bold">TOP 10</span>
+              <span class="font-bold">TOP 10</span>
             </button>
 
             <!-- ⭐ 主力陣容切換按鈕 -->
             <button 
               @click="filterFavoriteOnly = !filterFavoriteOnly"
               :class="filterFavoriteOnly ? 'bg-amber-500/20 text-amber-300 border-amber-400 shadow-glow-gold' : 'bg-slate-800 text-slate-400 border-slate-700 hover:border-slate-500'"
-              class="px-2.5 py-1.5 border rounded-xl text-xs font-semibold flex items-center space-x-1 transition flex-shrink-0"
+              class="px-3 py-1.5 border rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition"
               :title="t('favorite_only')"
             >
               <span>⭐</span>
-              <span>{{ favoriteIds.length }}</span>
+              <span class="hidden sm:inline">{{ t('squad_active') }}</span>
+              <span class="font-mono text-amber-400 font-bold ml-0.5">({{ favoriteIds.length }})</span>
             </button>
           </div>
 
@@ -747,6 +679,163 @@
       </div>
 
     </main>
+
+    <!-- ⚙️ 統一系統設定面板 (Unified Settings Modal) -->
+    <div 
+      v-if="showSettingsModal" 
+      class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/85 backdrop-blur-md transition"
+      @click.self="showSettingsModal = false"
+    >
+      <div 
+        :class="currentTheme === 'gta6' ? 'border-pink-500/40 shadow-[0_0_35px_rgba(255,42,133,0.35)]' : 'border-slate-700 shadow-2xl'"
+        class="bg-slate-900 border rounded-2xl w-full max-w-lg p-5 sm:p-6 relative max-h-[90vh] flex flex-col overflow-hidden text-slate-200"
+      >
+        <!-- 頂部標題與關閉按鈕 -->
+        <div class="flex items-center justify-between pb-3.5 border-b border-slate-800">
+          <div class="flex items-center space-x-2">
+            <span class="text-xl">⚙️</span>
+            <div>
+              <h3 class="text-base font-bold text-slate-100">
+                {{ t('settings_title') }}
+              </h3>
+              <p class="text-[11px] text-slate-400">
+                {{ t('settings_subtitle') }}
+              </p>
+            </div>
+          </div>
+          <button 
+            @click="showSettingsModal = false" 
+            class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- 內容滾動區 -->
+        <div class="flex-1 overflow-y-auto py-4 space-y-5 no-scrollbar">
+          
+          <!-- 1. 🌐 顯示語言設定 -->
+          <div class="space-y-2">
+            <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center space-x-1.5">
+              <span>🌐</span>
+              <span>{{ t('section_lang') }}</span>
+            </h4>
+            <div class="grid grid-cols-3 gap-2">
+              <button 
+                @click="changeLang('zh')"
+                :class="currentLang === 'zh' ? 'bg-amber-500 text-black font-bold shadow-glow-gold' : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 border border-slate-700/60'"
+                class="py-2 px-3 rounded-xl text-xs transition flex items-center justify-center space-x-1.5"
+              >
+                <span>🇹🇼</span>
+                <span>繁體中文</span>
+              </button>
+              <button 
+                @click="changeLang('en')"
+                :class="currentLang === 'en' ? 'bg-amber-500 text-black font-bold shadow-glow-gold' : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 border border-slate-700/60'"
+                class="py-2 px-3 rounded-xl text-xs transition flex items-center justify-center space-x-1.5"
+              >
+                <span>🇺🇸</span>
+                <span>English</span>
+              </button>
+              <button 
+                @click="changeLang('ja')"
+                :class="currentLang === 'ja' ? 'bg-amber-500 text-black font-bold shadow-glow-gold' : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 border border-slate-700/60'"
+                class="py-2 px-3 rounded-xl text-xs transition flex items-center justify-center space-x-1.5"
+              >
+                <span>🇯🇵</span>
+                <span>日本語</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. 👾 英雄頭像風格切換 (Avatar Form Matrix) -->
+          <div class="space-y-2">
+            <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center space-x-1.5">
+              <span>👾</span>
+              <span>{{ t('section_avatar') }}</span>
+            </h4>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <button
+                v-for="form in avatarForms"
+                :key="form.id"
+                @click="changeAvatarForm(form.id)"
+                :class="currentAvatarForm === form.id ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-black font-extrabold shadow-glow-gold border-amber-300' : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 border border-slate-700/60'"
+                class="py-2 px-2.5 rounded-xl text-xs transition flex items-center justify-center space-x-1 border"
+              >
+                <span>{{ getFormLabel(form) }}</span>
+              </button>
+            </div>
+            <p class="text-[11px] text-slate-500">
+              16x16 確定性像素風格頭像，支援英靈男、女、貓咪軍團與柴犬神將。
+            </p>
+          </div>
+
+          <!-- 3. 💾 資料備份與還原 -->
+          <div class="space-y-2">
+            <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center space-x-1.5">
+              <span>💾</span>
+              <span>{{ t('section_backup') }}</span>
+            </h4>
+            <div class="p-3 bg-slate-950/60 rounded-xl border border-slate-800/80 space-y-2.5">
+              <div class="text-[11px] text-slate-400 flex items-center justify-between">
+                <span>⭐ 主力名冊：<b class="text-amber-300 font-mono">{{ favoriteIds.length }}</b> 位</span>
+                <span>🏷️ 自訂稱號：<b class="text-amber-300 font-mono">{{ nicknameCount }}</b> 個</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <button 
+                  @click="exportBackup"
+                  class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition font-semibold"
+                >
+                  <span>📤</span>
+                  <span>{{ t('export_btn') }}</span>
+                </button>
+                <button 
+                  @click="triggerImportFile"
+                  class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition font-semibold"
+                >
+                  <span>📥</span>
+                  <span>{{ t('import_btn') }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. 📖 新手快速上手指南 (PS5 3A 風格) -->
+          <div class="space-y-2">
+            <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center space-x-1.5">
+              <span>📖</span>
+              <span>{{ t('section_guide') }}</span>
+            </h4>
+            <button 
+              @click="showSettingsModal = false; openOnboarding();"
+              class="w-full py-2.5 bg-gradient-to-r from-amber-500/15 via-amber-500/25 to-yellow-500/15 hover:from-amber-500/25 hover:to-yellow-500/25 text-amber-300 border border-amber-500/40 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition"
+            >
+              <span>❓</span>
+              <span>{{ t('open_guide_btn') }}</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- 底部確定按鈕 -->
+        <div class="pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
+          <button 
+            @click="showSettingsModal = false; showDisclaimerModal = true;"
+            class="text-slate-500 hover:text-slate-300 underline text-[11px]"
+          >
+            ⚖️ 免責聲明
+          </button>
+          <button 
+            @click="showSettingsModal = false"
+            :class="currentTheme === 'gta6' ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white' : 'bg-amber-500 text-black font-bold shadow-glow-gold'"
+            class="px-5 py-1.5 rounded-xl text-xs font-bold transition hover:opacity-95"
+          >
+            {{ t('close_btn') }}
+          </button>
+        </div>
+
+      </div>
+    </div>
 
     <!-- 🎮 PS5 遊戲風格：新手快速上手手冊 (3-Step Onboarding Modal) -->
     <div 
@@ -1348,7 +1437,15 @@
         prompt_copied: '⚡ 特工【{name}】召喚提示詞已複製至剪貼簿！隨時出戰！',
         backup_exported: '✅ 瓦爾哈拉設定檔已成功匯出下載！',
         backup_imported: '✅ 設定檔匯入成功！已還原您的戰鬥陣容與專屬稱號！',
-                quick_scenarios_label: '場景急救箱：',
+                        settings_btn: '設定',
+        settings_title: '殿堂系統設定',
+        settings_subtitle: '自訂頭像外觀、語系、資料備份與使用手冊',
+        section_lang: '顯示語言 (Language)',
+        section_avatar: '英雄頭像風格 (Avatar Form Matrix)',
+        section_backup: '本地資料與備份 (Data & Backup)',
+        section_guide: '新手快速上手指南 (Quick Start Guide)',
+        open_guide_btn: '開啟新手上手指南 (PS5 3A 風格)',
+        quick_scenarios_label: '場景急救箱：',
         when_to_summon_label: '適用場景：',
         click_to_filter_scenario: '點擊依此情境快速篩選',
         modal_scenarios_title: '🎯 適用場景與召喚時機',
@@ -1459,7 +1556,15 @@
         prompt_copied: '⚡ Hero [{name}] Summon Prompt copied! Summon count +1!',
         backup_exported: '✅ Valhalla settings backup exported successfully!',
         backup_imported: '✅ Settings restored! Squad and titles loaded!',
-                quick_scenarios_label: '場景急救箱：',
+                        settings_btn: '設定',
+        settings_title: '殿堂系統設定',
+        settings_subtitle: '自訂頭像外觀、語系、資料備份與使用手冊',
+        section_lang: '顯示語言 (Language)',
+        section_avatar: '英雄頭像風格 (Avatar Form Matrix)',
+        section_backup: '本地資料與備份 (Data & Backup)',
+        section_guide: '新手快速上手指南 (Quick Start Guide)',
+        open_guide_btn: '開啟新手上手指南 (PS5 3A 風格)',
+        quick_scenarios_label: '場景急救箱：',
         when_to_summon_label: '適用場景：',
         click_to_filter_scenario: '點擊依此情境快速篩選',
         modal_scenarios_title: '🎯 適用場景與召喚時機',
@@ -1570,7 +1675,15 @@
         prompt_copied: '⚡ 英霊【{name}】の召喚プロンプトをコピーしました！召喚数 +1！',
         backup_exported: '✅ ヴァルハラ設定のバックアップを出力しました！',
         backup_imported: '✅ 設定を復元しました！主力編成と称号が読み込まれました！',
-                quick_scenarios_label: '場景急救箱：',
+                        settings_btn: '設定',
+        settings_title: '殿堂系統設定',
+        settings_subtitle: '自訂頭像外觀、語系、資料備份與使用手冊',
+        section_lang: '顯示語言 (Language)',
+        section_avatar: '英雄頭像風格 (Avatar Form Matrix)',
+        section_backup: '本地資料與備份 (Data & Backup)',
+        section_guide: '新手快速上手指南 (Quick Start Guide)',
+        open_guide_btn: '開啟新手上手指南 (PS5 3A 風格)',
+        quick_scenarios_label: '場景急救箱：',
         when_to_summon_label: '適用場景：',
         click_to_filter_scenario: '點擊依此情境快速篩選',
         modal_scenarios_title: '🎯 適用場景與召喚時機',
@@ -1694,6 +1807,7 @@
         }
 
         // 彈窗狀態
+        const showSettingsModal = ref(false);
         const activeHero = ref(null);
         const editNicknameInput = ref('');
         const toastMessage = ref('');
@@ -1777,6 +1891,7 @@
 
         // 本地持久化資料 (稱號、收藏與召喚計數器)
         const nicknames = ref(JSON.parse(localStorage.getItem('valhalla_nicknames') || '{}'));
+        const nicknameCount = computed(() => Object.keys(nicknames.value || {}).length);
         const favoriteIds = ref(JSON.parse(localStorage.getItem('valhalla_favorites') || '[]'));
         const summonCounts = ref(JSON.parse(localStorage.getItem('valhalla_summons') || '{}'));
 
@@ -2249,6 +2364,9 @@
           agents,
           domains,
           totalAgentsCount,
+          showSettingsModal,
+          nicknames,
+          nicknameCount,
           activeScenario,
           activeScenarioCustom,
           scenarioFilters,
