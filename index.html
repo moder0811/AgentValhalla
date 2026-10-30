@@ -41,7 +41,7 @@
   <!-- Vue 3 CDN -->
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <!-- Local data script -->
-  <script src="agents_catalog.js?v=20261030_v7"></script>
+  <script src="agents_catalog.js?v=20261030_v8"></script>
   <!-- Pixel Avatar Engine -->
   <script src="pixel_avatar.js"></script>
   <style>
@@ -214,7 +214,7 @@
           </div>
         </div>
 
-        <!-- 數據統計看板 (總瀏覽人數 ＋ 總召喚次數) -->
+        <!-- 數據統計看板 (總瀏覽人數 ＋ 總召喚次數 ＋ 當前展示特工 - 風格高度統一) -->
         <div class="flex items-center space-x-2 sm:space-x-3 text-xs bg-slate-900/90 border border-slate-700/80 rounded-xl px-2.5 sm:px-3 py-1 shadow-inner">
           <div class="flex items-center space-x-1" :title="t('stats_visitors_hint')">
             <span>👁️</span>
@@ -227,45 +227,28 @@
             <span class="text-slate-400 hidden sm:inline">{{ t('stats_summons') }}:</span>
             <span class="text-amber-400 font-mono font-extrabold animate-pulse">{{ totalSummonsFormatted }}</span>
           </div>
+          <span class="text-slate-600">|</span>
+          <div class="flex items-center space-x-1 text-slate-300" title="當前符合條件之展示特工數量">
+            <span>⚔️</span>
+            <span class="text-slate-400 hidden sm:inline">{{ t('showing_prefix') }}:</span>
+            <span class="font-mono font-bold" :class="filteredAgents.length === totalAgentsCount ? 'text-amber-300' : 'text-cyan-400'">
+              {{ filteredAgents.length }} / {{ totalAgentsCount }}
+            </span>
+            <span class="text-slate-400 hidden md:inline text-[11px]">{{ t('heroes_unit') }}</span>
+          </div>
         </div>
 
-        <!-- 右側控制群：僅保留主題風格切換 ＋ ⚙️ 統一系統設定按鈕 (其餘收斂至設定彈窗) -->
-        <div class="flex items-center space-x-2 sm:space-x-2.5 ml-auto justify-end flex-shrink-0">
+        <!-- 右側控制群：僅保留 ⚙️ 統一系統設定按鈕 (主題切換亦收斂至設定彈窗) -->
+        <div class="flex items-center space-x-2 ml-auto justify-end flex-shrink-0">
           
-          <!-- 🌴 主題風格切換器 (Theme Switcher: Valhalla vs GTA 6) -->
-          <div class="flex items-center bg-slate-900 border border-slate-700/80 rounded-xl p-0.5 sm:p-1 space-x-0.5 text-xs shadow-inner flex-shrink-0">
-            <button 
-              @click="setTheme('valhalla')"
-              :class="currentTheme === 'valhalla' 
-                ? 'bg-amber-500 text-black font-bold shadow-glow-gold' 
-                : 'text-slate-400 hover:text-white'"
-              class="px-2 py-1 rounded-lg transition text-[11px] sm:text-xs flex items-center space-x-1"
-              :title="t('theme_valhalla_hint')"
-            >
-              <span>🌌</span>
-              <span class="hidden sm:inline">{{ t('theme_valhalla') }}</span>
-            </button>
-            <button 
-              @click="setTheme('gta6')"
-              :class="currentTheme === 'gta6' 
-                ? 'bg-gradient-to-r from-pink-500 via-rose-500 to-orange-500 text-white font-extrabold shadow-[0_0_15px_rgba(255,42,133,0.7)] animate-pulse' 
-                : 'text-slate-400 hover:text-pink-300'"
-              class="px-2 py-1 rounded-lg transition text-[11px] sm:text-xs flex items-center space-x-1"
-              :title="t('theme_gta6_hint')"
-            >
-              <span>🌴</span>
-              <span class="font-bold">{{ t('theme_gta6') }}</span>
-            </button>
-          </div>
-
-          <!-- ⚙️ 統一設定按鈕 (收斂頭像、語系、資料備份與指南) -->
+          <!-- ⚙️ 統一系統設定按鈕 -->
           <button 
             @click="showSettingsModal = true"
-            class="px-2.5 sm:px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-amber-300 border border-slate-700/80 hover:border-amber-400/60 rounded-xl text-xs flex items-center space-x-1.5 transition shadow-inner flex-shrink-0"
+            class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-amber-300 border border-slate-700/80 hover:border-amber-400/60 rounded-xl text-xs flex items-center space-x-1.5 transition shadow-inner flex-shrink-0"
             :title="t('settings_title')"
           >
             <span class="text-sm">⚙️</span>
-            <span class="font-semibold">{{ t('settings_btn') }}</span>
+            <span class="font-bold">{{ t('settings_btn') }}</span>
           </button>
 
           <!-- 隱藏的檔案上傳 input -->
@@ -281,12 +264,12 @@
 
       </div>
 
-      <!-- 🔍 第二層：高效率搜尋列 ＋ 熱門榜與主力名冊 (頭像轉換收斂至設定) -->
+      <!-- 🔍 第二層：高效率搜尋列 ＋ [⚡ 推薦] ＋ [🌪️ 篩選▾] ＋ 熱門榜與主力名冊 -->
       <div class="border-t border-slate-800/80 bg-slate-950/70 px-3 sm:px-6 lg:px-8 py-2">
-        <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-2.5 sm:gap-3 flex-wrap sm:flex-nowrap">
           
-          <!-- 搜尋框 (寬度自適應延伸，排版呼吸感最佳) -->
-          <div class="relative flex-1">
+          <!-- 搜尋框 (寬度自適應延伸) -->
+          <div class="relative flex-1 min-w-[180px]">
             <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs">
               🔍
             </span>
@@ -306,24 +289,48 @@
             </button>
           </div>
 
-          <!-- 🏆 最強前十名切換按鈕 ＋ ⭐ 主力陣容切換按鈕 -->
-          <div class="flex items-center space-x-2 flex-shrink-0">
+          <!-- 控制操作按鈕群：推薦 ＋ 單一篩選按鈕 (點擊開彈窗) ＋ TOP 10 ＋ 主力陣容 -->
+          <div class="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0">
+            
+            <!-- ⚡ 推薦按鈕 -->
+            <button 
+              @click="setSort('default')"
+              :class="currentSort === 'default' && selectedRarity === 'all' && !isTop10Mode ? 'bg-amber-500 text-black font-extrabold shadow-glow-gold' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700/80'"
+              class="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs flex items-center space-x-1 transition"
+              title="預設推薦排序"
+            >
+              <span>⚡</span>
+              <span class="font-bold">{{ t('sort_default') }}</span>
+            </button>
+
+            <!-- 🌪️ 篩選按鈕 (點擊彈出排序與品級篩選視窗) -->
+            <button 
+              @click="showFilterModal = true"
+              :class="currentSort !== 'default' || selectedRarity !== 'all' ? 'bg-cyan-500/20 text-cyan-300 border-cyan-400 font-bold shadow-[0_0_12px_rgba(6,182,212,0.4)]' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700/80'"
+              class="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs flex items-center space-x-1 transition border"
+              :title="t('filter_modal_title')"
+            >
+              <span>🌪️</span>
+              <span class="font-bold">{{ currentFilterLabel }}</span>
+              <span class="text-[10px] opacity-70">▾</span>
+            </button>
+
             <!-- 🏆 最強前十名切換按鈕 -->
             <button 
               @click="toggleTop10Mode"
               :class="isTop10Mode ? 'bg-amber-500 text-black font-extrabold shadow-glow-gold border-amber-300 animate-pulse' : 'bg-slate-800 text-amber-300/80 border-slate-700 hover:border-amber-500/60'"
-              class="px-3 py-1.5 border rounded-xl text-xs flex items-center space-x-1.5 transition"
+              class="px-2.5 sm:px-3 py-1.5 border rounded-xl text-xs flex items-center space-x-1 transition flex-shrink-0"
               :title="t('top10_tooltip')"
             >
               <span>🏆</span>
-              <span class="font-bold">TOP 10</span>
+              <span class="hidden sm:inline font-bold">TOP 10</span>
             </button>
 
             <!-- ⭐ 主力陣容切換按鈕 -->
             <button 
               @click="filterFavoriteOnly = !filterFavoriteOnly"
               :class="filterFavoriteOnly ? 'bg-amber-500/20 text-amber-300 border-amber-400 shadow-glow-gold' : 'bg-slate-800 text-slate-400 border-slate-700 hover:border-slate-500'"
-              class="px-3 py-1.5 border rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition"
+              class="px-2.5 sm:px-3 py-1.5 border rounded-xl text-xs font-semibold flex items-center space-x-1 transition flex-shrink-0"
               :title="t('favorite_only')"
             >
               <span>⭐</span>
@@ -407,102 +414,7 @@
         </div>
       </div>
 
-      <!-- 📌 凍結固定列 (Sticky Frozen Bar)：當前展示 272 / 272 位特工 ＋ 排序按鈕 ＋ 品級篩選 (滾動時不隨頁面位移) -->
-      <div class="border-t border-slate-800/80 bg-slate-950/95 backdrop-blur-md px-3 sm:px-6 lg:px-8 py-2 shadow-md">
-        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
-          
-          <!-- 統計與標籤狀態 -->
-          <div class="flex items-center space-x-2 flex-wrap">
-            <span>{{ t('showing_prefix') }} <b class="text-amber-400 font-mono text-sm">{{ filteredAgents.length }}</b> / {{ totalAgentsCount }} {{ t('heroes_unit') }}</span>
-            
-            <span v-if="isTop10Mode" class="px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded border border-amber-500/50 font-bold flex items-center space-x-1">
-              <span>🏆</span>
-              <span>{{ t('top10_active') }}</span>
-            </span>
 
-            <span v-if="selectedDomain !== 'all'" class="px-2 py-0.5 bg-slate-800 rounded text-slate-300 border border-slate-700">
-              {{ selectedDomainName }}
-            </span>
-
-            <span v-if="filterFavoriteOnly" class="px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded border border-amber-500/40">
-              ⭐ {{ t('squad_active') }}
-            </span>
-
-            <!-- 自訂點選卡片場景標籤過濾徽章 -->
-            <span v-if="activeScenarioCustom" class="px-2 py-0.5 bg-rose-500/20 text-rose-300 rounded border border-rose-500/40 flex items-center space-x-1">
-              <span>🎯 {{ activeScenarioCustom }}</span>
-              <button @click="activeScenarioCustom = ''" class="hover:text-white ml-1 font-bold text-xs" title="清除情境篩選">×</button>
-            </span>
-          </div>
-
-          <!-- 排序與品級篩選 (常駐頂部隨時操作) -->
-          <div class="flex items-center space-x-1.5 flex-wrap gap-y-1">
-            
-            <!-- 排序膠囊按鈕群 -->
-            <div class="flex items-center bg-slate-900 border border-slate-700/80 rounded-xl p-0.5 space-x-1 text-xs">
-              <button 
-                @click="setSort('default')"
-                :class="currentSort === 'default' && !isTop10Mode ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
-                class="px-2 py-1 rounded-lg transition"
-              >
-                ⚡ {{ t('sort_default') }}
-              </button>
-
-              <button 
-                @click="setSort('summons')"
-                :class="currentSort === 'summons' && !isTop10Mode ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
-                class="px-2 py-1 rounded-lg transition"
-              >
-                🔥 {{ t('sort_summons_btn') }}
-              </button>
-
-              <button 
-                @click="setSort('rarity')"
-                :class="currentSort === 'rarity' && !isTop10Mode ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
-                class="px-2 py-1 rounded-lg transition"
-              >
-                👑 {{ t('sort_rarity_btn') }}
-              </button>
-
-              <button 
-                @click="setSort('name')"
-                :class="currentSort === 'name' && !isTop10Mode ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
-                class="px-2 py-1 rounded-lg transition"
-              >
-                🔤 {{ t('sort_name_btn') }}
-              </button>
-            </div>
-
-            <!-- 稀有度按鈕 -->
-            <div class="hidden md:flex items-center space-x-1 text-xs pl-1">
-              <button 
-                @click="selectedRarity = 'all'"
-                :class="selectedRarity === 'all' ? 'text-amber-400 font-bold underline' : 'text-slate-400 hover:text-white'"
-                class="px-1.5 py-0.5"
-              >
-                {{ t('all_rarity') }}
-              </button>
-              <span>·</span>
-              <button 
-                @click="selectedRarity = 'Legendary'"
-                :class="selectedRarity === 'Legendary' ? 'text-amber-400 font-bold underline' : 'text-slate-400 hover:text-amber-400'"
-                class="px-1.5 py-0.5"
-              >
-                {{ t('legendary') }}
-              </button>
-              <span>·</span>
-              <button 
-                @click="selectedRarity = 'Epic'"
-                :class="selectedRarity === 'Epic' ? 'text-purple-400 font-bold underline' : 'text-slate-400 hover:text-purple-400'"
-                class="px-1.5 py-0.5"
-              >
-                {{ t('epic') }}
-              </button>
-            </div>
-
-          </div>
-        </div>
-      </div>
     </header>
 
     <!-- 🎴 英雄展台主體 (Hero Cards Grid) -->
@@ -675,6 +587,146 @@
 
     </main>
 
+    <!-- 🌪️ 排序與品級篩檢視窗 (Filter & Sort Modal) -->
+    <div 
+      v-if="showFilterModal" 
+      class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/85 backdrop-blur-md transition"
+      @click.self="showFilterModal = false"
+    >
+      <div 
+        :class="currentTheme === 'gta6' ? 'border-pink-500/40 shadow-[0_0_35px_rgba(255,42,133,0.35)]' : 'border-slate-700 shadow-2xl'"
+        class="bg-slate-900 border rounded-2xl w-full max-w-md p-5 sm:p-6 relative text-slate-200"
+      >
+        <!-- 頂部標題與關閉按鈕 -->
+        <div class="flex items-center justify-between pb-3.5 border-b border-slate-800 mb-4">
+          <div class="flex items-center space-x-2">
+            <span class="text-xl">🌪️</span>
+            <div>
+              <h3 class="text-base font-bold text-slate-100">
+                {{ t('filter_modal_title') }}
+              </h3>
+              <p class="text-[11px] text-slate-400">
+                {{ t('filter_modal_subtitle') }}
+              </p>
+            </div>
+          </div>
+          <button 
+            @click="showFilterModal = false" 
+            class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- 內容區 -->
+        <div class="space-y-4">
+          
+          <!-- 1. 排序方式 -->
+          <div class="space-y-2">
+            <label class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center space-x-1.5">
+              <span>📊</span>
+              <span>{{ t('sort_label') }}</span>
+            </label>
+            <div class="grid grid-cols-2 gap-2">
+              <button 
+                @click="setSort('default')"
+                :class="currentSort === 'default' && !isTop10Mode ? 'bg-amber-500 text-black font-bold shadow-glow-gold' : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 border border-slate-700/60'"
+                class="py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center space-x-1.5"
+              >
+                <span>⚡</span>
+                <span>{{ t('sort_default') }}</span>
+              </button>
+              <button 
+                @click="setSort('summons')"
+                :class="currentSort === 'summons' && !isTop10Mode ? 'bg-amber-500 text-black font-bold shadow-glow-gold' : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 border border-slate-700/60'"
+                class="py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center space-x-1.5"
+              >
+                <span>🔥</span>
+                <span>{{ t('sort_summons_btn') }}</span>
+              </button>
+              <button 
+                @click="setSort('rarity')"
+                :class="currentSort === 'rarity' && !isTop10Mode ? 'bg-amber-500 text-black font-bold shadow-glow-gold' : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 border border-slate-700/60'"
+                class="py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center space-x-1.5"
+              >
+                <span>👑</span>
+                <span>{{ t('sort_rarity_btn') }}</span>
+              </button>
+              <button 
+                @click="setSort('name')"
+                :class="currentSort === 'name' && !isTop10Mode ? 'bg-amber-500 text-black font-bold shadow-glow-gold' : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 border border-slate-700/60'"
+                class="py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center space-x-1.5"
+              >
+                <span>🔤</span>
+                <span>{{ t('sort_name_btn') }}</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. 品級篩選 (Rarity Filter) -->
+          <div class="space-y-2">
+            <label class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center space-x-1.5">
+              <span>💎</span>
+              <span>{{ t('all_rarity') }}</span>
+            </label>
+            <div class="grid grid-cols-2 gap-2">
+              <button 
+                @click="selectedRarity = 'all'"
+                :class="selectedRarity === 'all' ? 'bg-amber-500 text-black font-bold shadow-glow-gold' : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 border border-slate-700/60'"
+                class="py-2 px-3 rounded-xl text-xs transition flex items-center justify-center space-x-1"
+              >
+                <span>🌐</span>
+                <span>{{ t('all_rarity') }}</span>
+              </button>
+              <button 
+                @click="selectedRarity = 'Legendary'"
+                :class="selectedRarity === 'Legendary' ? 'bg-amber-500 text-black font-bold shadow-glow-gold' : 'bg-slate-800/80 text-amber-300/80 hover:bg-slate-800 border border-slate-700/60'"
+                class="py-2 px-3 rounded-xl text-xs transition flex items-center justify-center space-x-1"
+              >
+                <span>🟡</span>
+                <span>{{ t('legendary') }}</span>
+              </button>
+              <button 
+                @click="selectedRarity = 'Epic'"
+                :class="selectedRarity === 'Epic' ? 'bg-purple-500 text-white font-bold shadow-glow-purple' : 'bg-slate-800/80 text-purple-300/80 hover:bg-slate-800 border border-slate-700/60'"
+                class="py-2 px-3 rounded-xl text-xs transition flex items-center justify-center space-x-1"
+              >
+                <span>🟣</span>
+                <span>{{ t('epic') }}</span>
+              </button>
+              <button 
+                @click="selectedRarity = 'Rare'"
+                :class="selectedRarity === 'Rare' ? 'bg-blue-500 text-white font-bold shadow-glow-cyan' : 'bg-slate-800/80 text-blue-300/80 hover:bg-slate-800 border border-slate-700/60'"
+                class="py-2 px-3 rounded-xl text-xs transition flex items-center justify-center space-x-1"
+              >
+                <span>🔵</span>
+                <span>{{ t('rare') }}</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 底部重設與完成按鈕 -->
+        <div class="pt-4 mt-5 border-t border-slate-800 flex items-center justify-between">
+          <button 
+            @click="setSort('default'); selectedRarity = 'all';"
+            class="text-slate-400 hover:text-white underline text-xs"
+          >
+            {{ t('reset_filters') }}
+          </button>
+          <button 
+            @click="showFilterModal = false"
+            :class="currentTheme === 'gta6' ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white' : 'bg-amber-500 text-black font-bold shadow-glow-gold'"
+            class="px-5 py-1.5 rounded-xl text-xs font-bold transition hover:opacity-95"
+          >
+            {{ t('apply_filter_btn') }}
+          </button>
+        </div>
+
+      </div>
+    </div>
+
     <!-- ⚙️ 統一系統設定面板 (Unified Settings Modal) -->
     <div 
       v-if="showSettingsModal" 
@@ -709,6 +761,39 @@
         <!-- 內容滾動區 -->
         <div class="flex-1 overflow-y-auto py-4 space-y-5 no-scrollbar">
           
+          <!-- 0. 🎨 殿堂風格主題切換 -->
+          <div class="space-y-2">
+            <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center space-x-1.5">
+              <span>🎨</span>
+              <span>{{ t('section_theme') }}</span>
+            </h4>
+            <div class="grid grid-cols-2 gap-2">
+              <button 
+                @click="setTheme('valhalla')"
+                :class="currentTheme === 'valhalla' 
+                  ? 'bg-amber-500 text-black font-extrabold shadow-glow-gold border-amber-300' 
+                  : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 border border-slate-700/60'"
+                class="py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center space-x-2 border"
+              >
+                <span>🌌</span>
+                <span class="font-bold">{{ t('theme_valhalla') }}</span>
+              </button>
+              <button 
+                @click="setTheme('gta6')"
+                :class="currentTheme === 'gta6' 
+                  ? 'bg-gradient-to-r from-pink-500 via-rose-500 to-orange-500 text-white font-extrabold shadow-[0_0_15px_rgba(255,42,133,0.7)] border-pink-400' 
+                  : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 border border-slate-700/60'"
+                class="py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center space-x-2 border"
+              >
+                <span>🌴</span>
+                <span class="font-bold">{{ t('theme_gta6') }}</span>
+              </button>
+            </div>
+            <p class="text-[11px] text-slate-500">
+              可隨時切換 3A 暗黑英靈殿純金風格與 GTA 6 邁阿密夕陽霓虹粉紫風格。
+            </p>
+          </div>
+
           <!-- 1. 🌐 顯示語言設定 -->
           <div class="space-y-2">
             <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center space-x-1.5">
@@ -1432,7 +1517,12 @@
         prompt_copied: '⚡ 特工【{name}】召喚提示詞已複製至剪貼簿！隨時出戰！',
         backup_exported: '✅ 瓦爾哈拉設定檔已成功匯出下載！',
         backup_imported: '✅ 設定檔匯入成功！已還原您的戰鬥陣容與專屬稱號！',
-                        settings_btn: '設定',
+        filter_btn: '篩選',
+        filter_modal_title: '排序與品級篩選',
+        filter_modal_subtitle: '自訂特工排序方式與稀有度等級',
+        apply_filter_btn: '套用篩選',
+        section_theme: '殿堂風格主題 (Theme Style)',
+        settings_btn: '設定',
         settings_title: '殿堂系統設定',
         settings_subtitle: '自訂頭像外觀、語系、資料備份與使用手冊',
         section_lang: '顯示語言 (Language)',
@@ -1551,18 +1641,23 @@
         prompt_copied: '⚡ Hero [{name}] Summon Prompt copied! Summon count +1!',
         backup_exported: '✅ Valhalla settings backup exported successfully!',
         backup_imported: '✅ Settings restored! Squad and titles loaded!',
-                        settings_btn: '設定',
-        settings_title: '殿堂系統設定',
-        settings_subtitle: '自訂頭像外觀、語系、資料備份與使用手冊',
-        section_lang: '顯示語言 (Language)',
-        section_avatar: '英雄頭像風格 (Avatar Form Matrix)',
-        section_backup: '本地資料與備份 (Data & Backup)',
-        section_guide: '新手快速上手指南 (Quick Start Guide)',
-        open_guide_btn: '開啟新手上手指南 (PS5 3A 風格)',
-        quick_scenarios_label: '場景急救箱：',
-        when_to_summon_label: '適用場景：',
-        click_to_filter_scenario: '點擊依此情境快速篩選',
-        modal_scenarios_title: '🎯 適用場景與召喚時機',
+        filter_btn: 'Filter',
+        filter_modal_title: 'Sort & Rarity Filter',
+        filter_modal_subtitle: 'Customize agent sorting order and rarity tiers',
+        apply_filter_btn: 'Apply Filters',
+        section_theme: 'Showcase Theme Style',
+        settings_btn: 'Settings',
+        settings_title: 'System Settings',
+        settings_subtitle: 'Customize theme, avatar forms, language & data backup',
+        section_lang: 'Display Language',
+        section_avatar: 'Avatar Form Matrix',
+        section_backup: 'Local Data & Backup',
+        section_guide: 'Quick Start Guide',
+        open_guide_btn: 'Open Quick Start Guide (PS5 Style)',
+        quick_scenarios_label: 'Scenario Quick-Filters:',
+        when_to_summon_label: 'Best When You Need:',
+        click_to_filter_scenario: 'Click to filter by this scenario',
+        modal_scenarios_title: '🎯 Key Use Cases & When to Summon',
         import_failed: '❌ Import failed. Please select a valid Valhalla JSON backup.'
       },
       ja: {
@@ -1670,18 +1765,23 @@
         prompt_copied: '⚡ 英霊【{name}】の召喚プロンプトをコピーしました！召喚数 +1！',
         backup_exported: '✅ ヴァルハラ設定のバックアップを出力しました！',
         backup_imported: '✅ 設定を復元しました！主力編成と称号が読み込まれました！',
-                        settings_btn: '設定',
-        settings_title: '殿堂系統設定',
-        settings_subtitle: '自訂頭像外觀、語系、資料備份與使用手冊',
-        section_lang: '顯示語言 (Language)',
-        section_avatar: '英雄頭像風格 (Avatar Form Matrix)',
-        section_backup: '本地資料與備份 (Data & Backup)',
-        section_guide: '新手快速上手指南 (Quick Start Guide)',
-        open_guide_btn: '開啟新手上手指南 (PS5 3A 風格)',
-        quick_scenarios_label: '場景急救箱：',
-        when_to_summon_label: '適用場景：',
-        click_to_filter_scenario: '點擊依此情境快速篩選',
-        modal_scenarios_title: '🎯 適用場景與召喚時機',
+        filter_btn: '絞り込み',
+        filter_modal_title: '並び替えとレアリティ絞り込み',
+        filter_modal_subtitle: '並び替え順とレアリティランクをカスタマイズ',
+        apply_filter_btn: '適用する',
+        section_theme: 'テーマスタイル (Theme Style)',
+        settings_btn: '設定',
+        settings_title: 'システム設定',
+        settings_subtitle: 'テーマ、アバター外観、言語、データバックアップのカスタマイズ',
+        section_lang: '表示言語 (Language)',
+        section_avatar: 'アバターフォーム (Avatar Form Matrix)',
+        section_backup: 'ローカルデータとバックアップ',
+        section_guide: 'クイックスタートガイド',
+        open_guide_btn: 'スタートガイドを開く (PS5スタイル)',
+        quick_scenarios_label: 'シナリオ救急箱：',
+        when_to_summon_label: '適用シナリオ：',
+        click_to_filter_scenario: 'クリックしてこのシナリオで絞り込み',
+        modal_scenarios_title: '🎯 適用シナリオと召喚のタイミング',
         import_failed: '❌ 復元に失敗しました。正しいJSONファイルを選択してください。'
       }
     };
@@ -1803,6 +1903,20 @@
 
         // 彈窗狀態
         const showSettingsModal = ref(false);
+        const showFilterModal = ref(false);
+
+        const currentFilterLabel = computed(() => {
+          const parts = [];
+          if (currentSort.value === 'summons') parts.push(t('sort_summons_btn'));
+          else if (currentSort.value === 'rarity') parts.push(t('sort_rarity_btn'));
+          else if (currentSort.value === 'name') parts.push(t('sort_name_btn'));
+
+          if (selectedRarity.value === 'Legendary') parts.push(t('legendary'));
+          else if (selectedRarity.value === 'Epic') parts.push(t('epic'));
+          else if (selectedRarity.value === 'Rare') parts.push(t('rare'));
+
+          return parts.length > 0 ? parts.join(' · ') : t('filter_btn');
+        });
         const activeHero = ref(null);
         const editNicknameInput = ref('');
         const toastMessage = ref('');
@@ -2360,6 +2474,8 @@
           domains,
           totalAgentsCount,
           showSettingsModal,
+          showFilterModal,
+          currentFilterLabel,
           nicknames,
           nicknameCount,
           activeScenario,
