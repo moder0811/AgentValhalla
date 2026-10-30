@@ -259,30 +259,75 @@
         </div>
       </div>
 
-      <!-- 🏷️ 領域分類標籤欄 (支援完整自適應無阻礙左右流暢滑動) -->
-      <div class="border-t border-slate-800/60 bg-slate-950/40 relative">
-        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2 flex items-center space-x-1.5 sm:space-x-2 overflow-x-auto no-scrollbar scroll-smooth snap-x">
-          <button
-            @click="selectedDomain = 'all'"
-            :class="selectedDomain === 'all' ? 'bg-amber-500 text-black font-bold shadow-glow-gold' : 'bg-slate-800/70 text-slate-300 hover:bg-slate-800 border border-slate-700/50'"
-            class="px-3 py-1 rounded-lg text-xs transition whitespace-nowrap flex items-center space-x-1 flex-shrink-0 snap-start"
-          >
-            <span>⚡</span>
-            <span>{{ t('all_domains') }}</span>
-            <span class="opacity-80 text-[10px] ml-0.5">({{ totalAgentsCount }})</span>
-          </button>
+      <!-- 🏷️ 領域分類標籤欄 (業界旗艦級：左右按鈕導航 + 展開/收合矩陣 + 滑鼠滾輪橫移) -->
+      <div class="border-t border-slate-800/60 bg-slate-950/70 relative">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2">
+          
+          <div class="flex items-center space-x-1.5 sm:space-x-2">
+            
+            <!-- ◀ 左滑導航按鈕 (收合模式時顯示) -->
+            <button
+              v-if="!isDomainExpanded"
+              @click="scrollDomainLeft"
+              class="w-7 h-7 rounded-lg bg-slate-900 border border-slate-700 hover:border-amber-400 text-slate-300 hover:text-amber-300 flex items-center justify-center text-xs flex-shrink-0 transition shadow-sm"
+              title="向左滑動"
+            >
+              ◀
+            </button>
 
-          <button
-            v-for="dom in domains"
-            :key="dom.id"
-            @click="selectedDomain = dom.id"
-            :class="selectedDomain === dom.id ? 'bg-amber-500 text-black font-bold shadow-glow-gold' : 'bg-slate-800/70 text-slate-300 hover:bg-slate-800 border border-slate-700/50'"
-            class="px-2.5 sm:px-3 py-1 rounded-lg text-xs transition whitespace-nowrap flex items-center space-x-1 flex-shrink-0 snap-start"
-          >
-            <span>{{ dom.icon }}</span>
-            <span>{{ getDomainName(dom) }}</span>
-            <span class="opacity-80 text-[10px] ml-0.5">({{ dom.count }})</span>
-          </button>
+            <!-- 標籤容器 (收合時為平滑橫移，展開時為多行 Flex-Wrap 完整陳列) -->
+            <div 
+              ref="domainScrollContainer"
+              @wheel="onDomainWheel"
+              :class="isDomainExpanded 
+                ? 'flex flex-wrap gap-1.5 py-1' 
+                : 'flex items-center space-x-1.5 sm:space-x-2 overflow-x-auto no-scrollbar scroll-smooth snap-x flex-1 py-0.5'"
+            >
+              <button
+                @click="selectedDomain = 'all'"
+                :class="selectedDomain === 'all' ? 'bg-amber-500 text-black font-bold shadow-glow-gold' : 'bg-slate-800/70 text-slate-300 hover:bg-slate-800 border border-slate-700/50'"
+                class="px-3 py-1 rounded-lg text-xs transition whitespace-nowrap flex items-center space-x-1 flex-shrink-0 snap-start"
+              >
+                <span>⚡</span>
+                <span>{{ t('all_domains') }}</span>
+                <span class="opacity-80 text-[10px] ml-0.5">({{ totalAgentsCount }})</span>
+              </button>
+
+              <button
+                v-for="dom in domains"
+                :key="dom.id"
+                @click="selectedDomain = dom.id"
+                :class="selectedDomain === dom.id ? 'bg-amber-500 text-black font-bold shadow-glow-gold' : 'bg-slate-800/70 text-slate-300 hover:bg-slate-800 border border-slate-700/50'"
+                class="px-2.5 sm:px-3 py-1 rounded-lg text-xs transition whitespace-nowrap flex items-center space-x-1 flex-shrink-0 snap-start"
+              >
+                <span>{{ dom.icon }}</span>
+                <span>{{ getDomainName(dom) }}</span>
+                <span class="opacity-80 text-[10px] ml-0.5">({{ dom.count }})</span>
+              </button>
+            </div>
+
+            <!-- ▶ 右滑導航按鈕 (收合模式時顯示) -->
+            <button
+              v-if="!isDomainExpanded"
+              @click="scrollDomainRight"
+              class="w-7 h-7 rounded-lg bg-slate-900 border border-slate-700 hover:border-amber-400 text-slate-300 hover:text-amber-300 flex items-center justify-center text-xs flex-shrink-0 transition shadow-sm"
+              title="向右滑動"
+            >
+              ▶
+            </button>
+
+            <!-- ⊞ 展開 / ⊟ 收合 切換按鈕 (業界成熟解法：徹底解決多頁籤遮蔽問題) -->
+            <button
+              @click="isDomainExpanded = !isDomainExpanded"
+              class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 hover:border-amber-400 text-slate-300 hover:text-amber-300 text-xs flex items-center space-x-1 flex-shrink-0 transition shadow-sm"
+              :title="isDomainExpanded ? '收合為單行滑動' : '展開全部領域清單'"
+            >
+              <span>{{ isDomainExpanded ? '⊟' : '⊞' }}</span>
+              <span class="font-semibold">{{ isDomainExpanded ? t('collapse_domains') : t('expand_domains') }}</span>
+            </button>
+
+          </div>
+
         </div>
       </div>
     </header>
@@ -739,6 +784,8 @@
         squad_active: '主力名冊',
         top10_active: '最強英靈榜',
         top10_tooltip: '切換至召喚熱門最強英靈前十名',
+        expand_domains: '展開 (19)',
+        collapse_domains: '收合',
         sort_label: '排序',
         sort_default: '預設推薦',
         sort_summons: '召喚次數 (由高到低)',
@@ -793,6 +840,8 @@
         squad_active: 'Core Squad',
         top10_active: 'Top 10 Hall of Fame',
         top10_tooltip: 'View the Top 10 most summoned heroes',
+        expand_domains: 'Expand (19)',
+        collapse_domains: 'Collapse',
         sort_label: 'Sort',
         sort_default: 'Recommended',
         sort_summons: 'Most Summoned',
@@ -847,6 +896,8 @@
         squad_active: '主力編成',
         top10_active: '最強英雄殿堂 TOP 10',
         top10_tooltip: '召喚数上位10柱の英雄を表示',
+        expand_domains: '全展開 (19)',
+        collapse_domains: '折りたたむ',
         sort_label: '並び替え',
         sort_default: 'おすすめ順',
         sort_summons: '召喚回数順',
@@ -911,6 +962,31 @@
         const filterFavoriteOnly = ref(false);
         const searchInput = ref(null);
         const backupFileInput = ref(null);
+        
+        // 領域導航控制 (業界標準：展開/收合 + 滾輪橫移 + 左右按鈕)
+        const isDomainExpanded = ref(false);
+        const domainScrollContainer = ref(null);
+
+        function scrollDomainLeft() {
+          if (domainScrollContainer.value) {
+            domainScrollContainer.value.scrollBy({ left: -280, behavior: 'smooth' });
+          }
+        }
+
+        function scrollDomainRight() {
+          if (domainScrollContainer.value) {
+            domainScrollContainer.value.scrollBy({ left: 280, behavior: 'smooth' });
+          }
+        }
+
+        function onDomainWheel(e) {
+          if (!isDomainExpanded.value && domainScrollContainer.value) {
+            if (e.deltaY !== 0) {
+              e.preventDefault();
+              domainScrollContainer.value.scrollLeft += e.deltaY;
+            }
+          }
+        }
 
         // 彈窗狀態
         const activeHero = ref(null);
@@ -1332,6 +1408,11 @@
           selectedRarity,
           currentSort,
           isTop10Mode,
+          isDomainExpanded,
+          domainScrollContainer,
+          scrollDomainLeft,
+          scrollDomainRight,
+          onDomainWheel,
           filterFavoriteOnly,
           searchInput,
           backupFileInput,
