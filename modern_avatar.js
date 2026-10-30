@@ -159,7 +159,10 @@
     const hairKey = opts.hair || 'raven';
     const h = PALETTES.hair[hairKey] || PALETTES.hair.raven;
 
-    const presetId = opts.presetId || 'saga';
+    // [舊代碼備查] 2026-10-31 原僅讀取 opts.presetId
+    // const presetId = opts.presetId || 'saga';
+    // 【2026-10-31 升級】相容 modernPresetId 與 preset 多重欄位
+    const presetId = opts.modernPresetId || opts.presetId || opts.preset || 'saga';
 
     // ------------------------------------------------------------------------
     // 圖層 0: 背後神聖光環 / 賽博光斑 (Layer 0: Halo / Background Glow)
@@ -500,3 +503,4 @@
   window.ModernPixelEngine = ModernPixelEngine;
 
 })(typeof window !== 'undefined' ? window : this);
+

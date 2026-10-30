@@ -43,11 +43,11 @@
   <!-- Local data script -->
   <script src="agents_catalog.js?v=20261031_v16"></script>
   <!-- Pixel Avatar Engine -->
-  <script src="pixel_avatar.js?v=20261031_v18"></script>
+  <script src="pixel_avatar.js?v=20261031_v19"></script>
   <!-- 0 KB Procedural Web Audio & RPG Engine -->
-  <script src="rpg_engine.js?v=20261031_v18"></script>
+  <script src="rpg_engine.js?v=20261031_v19"></script>
   <!-- 👑 現代 64x64 高解析次像素藝術與動態呼吸紙娃娃引擎 (2016-2026 經典殿堂角色) -->
-  <script src="modern_avatar.js?v=20261031_v18"></script>
+  <script src="modern_avatar.js?v=20261031_v19"></script>
   <style>
     /* Custom scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -506,6 +506,7 @@
             <div class="flex items-start space-x-3 mb-2.5">
               <!-- 👾 確定性像素風格大頭像 (手機端 44px 精巧微縮，桌機 56px 大器) -->
               <div 
+                :key="'card_avatar_' + agent.id + '_' + avatarVersion"
                 class="w-11 h-11 sm:w-14 sm:h-14 rounded-xl bg-slate-900 border border-slate-700/80 p-0.5 sm:p-1 flex items-center justify-center shadow-inner flex-shrink-0 group-hover:scale-110 group-hover:border-amber-400/80 transition duration-300"
                 v-html="getAvatarSvg(agent)"
               >
@@ -1202,7 +1203,7 @@
           <div class="flex items-start space-x-3 sm:space-x-4">
             
             <!-- 彈窗大頭像 (手機端 48px 精巧，桌機 64px) -->
-            <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-slate-900 border border-slate-700 p-1 shadow-inner flex items-center justify-center flex-shrink-0" v-html="getAvatarSvg(activeHero)">
+            <div :key="'hero_modal_avatar_' + (activeHero ? activeHero.id : '') + '_' + avatarVersion" class="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-slate-900 border border-slate-700 p-1 shadow-inner flex items-center justify-center flex-shrink-0" v-html="getAvatarSvg(activeHero)">
             </div>
 
             <div class="flex-1 min-w-0">
@@ -1498,12 +1499,12 @@
             <span class="text-2xl">🎨</span>
             <div>
               <h3 class="text-base font-bold text-slate-100 flex items-center space-x-2">
-                <span>32x32 復古紙娃娃換裝工坊</span>
+                <span>🎨 特工像素紙娃娃換裝工坊</span>
                 <span class="text-xs text-amber-400 font-mono bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
                   {{ studioHero.name }}
                 </span>
               </h3>
-              <p class="text-xs text-slate-400">JRPG 經典像素微雕 · A~H CUP 胸圍微調 · 頂級性感福利聖裝</p>
+              <p class="text-xs text-slate-400">👑 64x64 HD-2D 十年神作立繪 · 🎨 32x32 REA 自由換裝 (A~H CUP) · ✨ 次像素呼吸律動</p>
             </div>
           </div>
           <button 
@@ -1551,10 +1552,74 @@
                 <span>重設</span>
               </button>
             </div>
+
+            <!-- 次像素微動呼吸切換 -->
+            <button 
+              @click="toggleBreathingAnimation"
+              :class="isBreathingActive ? 'bg-pink-950/40 text-pink-300 border-pink-500/60 shadow-[0_0_10px_rgba(236,72,153,0.2)]' : 'bg-slate-900 text-slate-500 border-slate-800'"
+              class="w-full py-1.5 px-2 rounded-xl border text-[11px] font-bold transition flex items-center justify-center space-x-1.5"
+            >
+              <span>{{ isBreathingActive ? '✨ 呼吸動態：律動中' : '⏸️ 呼吸動態：已暫停' }}</span>
+            </button>
+            <div class="text-[10px] text-slate-500 font-mono text-center">
+              當前模式：{{ studioOptions.modernMode ? '👑 64x64 HD 現代立繪' : '🎨 32x32 REA 紙娃娃' }}
+            </div>
           </div>
 
           <!-- 右側選項矩陣 -->
           <div class="flex-1 space-y-4">
+            <!-- 模式切換 Tabs -->
+            <div class="grid grid-cols-2 gap-2 border-b border-slate-800 pb-3">
+              <button 
+                @click="studioActiveTab = 'modern'; studioOptions.modernMode = true; if (window.ValhallaAudio) window.ValhallaAudio.playEquipSound();"
+                :class="studioActiveTab === 'modern' ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white font-extrabold border-pink-400 shadow-[0_0_15px_rgba(236,72,153,0.35)]' : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'"
+                class="py-2 px-3 rounded-xl border text-xs transition flex items-center justify-center space-x-1.5"
+              >
+                <span>👑</span>
+                <span>64x64 殿堂性感名作</span>
+              </button>
+              <button 
+                @click="studioActiveTab = 'classic'; studioOptions.modernMode = false; if (window.ValhallaAudio) window.ValhallaAudio.playEquipSound();"
+                :class="studioActiveTab === 'classic' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-black font-extrabold border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.35)]' : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'"
+                class="py-2 px-3 rounded-xl border text-xs transition flex items-center justify-center space-x-1.5"
+              >
+                <span>🎨</span>
+                <span>32x32 REA 自由換裝</span>
+              </button>
+            </div>
+
+            <!-- TAB 1: 64x64 殿堂級現代極致性感預設 (2016-2026 黃金十年名作代表) -->
+            <div v-if="studioActiveTab === 'modern'" class="space-y-3">
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-pink-300 font-bold flex items-center space-x-1">
+                  <span>✨</span>
+                  <span>十年獨立遊戲神作代表（點擊即時裝備）</span>
+                </span>
+                <span class="text-[10px] text-slate-400 font-mono">64x64 HD-2D 次像素抗鋸齒</span>
+              </div>
+              <div class="grid grid-cols-1 gap-2.5 max-h-[50vh] overflow-y-auto pr-1">
+                <div 
+                  v-for="p in modernPresets" 
+                  :key="p.id"
+                  @click="applyModernPreset(p)"
+                  :class="studioOptions.modernMode && (studioOptions.modernPresetId === p.id || studioOptions.presetId === p.id) ? 'bg-gradient-to-r from-purple-950/60 via-pink-950/30 to-slate-900 border-pink-500 shadow-[0_0_15px_rgba(236,72,153,0.3)] ring-1 ring-pink-400' : 'bg-slate-950/80 border-slate-800 hover:border-purple-500/50'"
+                  class="p-3 rounded-2xl border cursor-pointer transition flex items-start space-x-3 group"
+                >
+                  <div class="w-14 h-14 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition overflow-hidden p-0.5" v-html="ModernPixelEngine ? ModernPixelEngine.renderSvg(p, 0) : ''"></div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between">
+                      <div class="text-xs font-black text-slate-100 group-hover:text-pink-300 transition">{{ p.name }}</div>
+                      <span class="text-[10px] text-pink-400 bg-pink-500/10 px-2 py-0.5 rounded-full border border-pink-500/20 font-bold">{{ p.bustSize }} CUP</span>
+                    </div>
+                    <div class="text-[11px] text-amber-400/90 font-mono mt-0.5">{{ p.subName }}</div>
+                    <p class="text-[10px] text-slate-400 mt-1 leading-relaxed">{{ p.desc }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 2: 32x32 REA 自由換裝捏臉 -->
+            <div v-else class="space-y-4">
             <!-- 1. 形態性別 -->
             <div class="space-y-1.5">
               <label class="text-xs font-bold text-slate-300 flex items-center space-x-1.5">
@@ -1709,6 +1774,7 @@
                 </button>
               </div>
             </div>
+            </div>
           </div>
         </div>
 
@@ -1852,7 +1918,7 @@
               @click="confirmDispatch(dispatchingMission, hero)"
               class="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-amber-400 text-left transition flex items-center space-x-2"
             >
-              <div class="w-8 h-8 rounded-lg bg-slate-950 p-0.5 flex-shrink-0" v-html="getAvatarSvg(hero)"></div>
+              <div :key="'roster_avatar_' + hero.id + '_' + avatarVersion" class="w-8 h-8 rounded-lg bg-slate-950 p-0.5 flex-shrink-0" v-html="getAvatarSvg(hero)"></div>
               <div class="min-w-0 flex-1">
                 <div class="text-xs font-bold text-slate-200 truncate">{{ hero.name }}</div>
                 <div class="text-[10px] text-slate-400 truncate">{{ hero.domain }}</div>
@@ -2782,6 +2848,9 @@
         const modernPresets = computed(() => (window.ModernPixelEngine && window.ModernPixelEngine.presets) || []);
         const breathingFrame = ref(0);
         const isBreathingActive = ref(true);
+        // 🌟 核心防禦：大頭貼即時換裝響應版本號與工坊 Tab
+        const avatarVersion = ref(0);
+        const studioActiveTab = ref('modern');
 
         const studioOptions = ref({
           modernMode: true,
@@ -2815,10 +2884,12 @@
 
         function applyModernPreset(preset) {
           if (!preset) return;
+          studioActiveTab.value = 'modern';
           studioOptions.value = {
             ...studioOptions.value,
             modernMode: true,
             modernPresetId: preset.id,
+            presetId: preset.id,
             skin: preset.skin,
             hair: preset.hair,
             hairStyle: preset.hairStyle,
@@ -3108,6 +3179,7 @@
         // 確定性像素頭像生成 (64x64 現代高解析優先 ➔ 32x32 換裝 ➔ 16x16 原版)
         function getAvatarSvg(agent, overrideForm) {
           if (!agent) return '';
+          const _ver = avatarVersion.value; // 強制綁定 Vue 虛擬 DOM 響應性依賴
           const custom = customAvatars.value && customAvatars.value[agent.id];
           if (custom && custom.modernMode && window.ModernPixelEngine) {
             return window.ModernPixelEngine.renderSvg(custom, 0);
@@ -3569,8 +3641,9 @@
           // 紙娃娃工坊操作函式 (支援 64x64 現代高解析與次像素呼吸)
           previewStudioSvg: computed(() => {
             if (!studioHero.value) return '';
+            const _ver = avatarVersion.value;
             if (studioOptions.value.modernMode && window.ModernPixelEngine) {
-              return window.ModernPixelEngine.renderSvg(studioOptions.value, breathingFrame.value);
+              return window.ModernPixelEngine.renderSvg(studioOptions.value, isBreathingActive.value ? breathingFrame.value : 0);
             }
             if (window.ValhallaPixelEngine && window.ValhallaPixelEngine.render32) {
               return window.ValhallaPixelEngine.render32(studioHero.value.id, studioOptions.value);
@@ -3584,14 +3657,24 @@
             const effLvl = Math.max(levelInfo.value.level, (window.ValhallaProgression ? window.ValhallaProgression.getHeroData(hero.id).level : 1));
             if (existing) {
               studioOptions.value = { ...existing };
+              studioActiveTab.value = existing.modernMode ? 'modern' : 'classic';
             } else {
+              studioActiveTab.value = 'modern';
               studioOptions.value = {
+                modernMode: true,
+                modernPresetId: 'saga',
+                presetId: 'saga',
+                skin: 'porcelain',
+                hair: 'crimson',
+                hairStyle: 'long',
+                bustSize: 'H',
+                outfit: 'saga',
+                accessory: 'silks',
                 gender: 'female',
                 faceIndex: 5,
                 hairIndex: 1,
                 hairColorIndex: 0,
                 skinIndex: 0,
-                bustSize: 'H',
                 sexyCostume: effLvl >= 30 ? 'bunny' : 'none',
                 armorTier: effLvl
               };
@@ -3608,9 +3691,14 @@
             try {
               localStorage.setItem('valhalla_custom_avatars', JSON.stringify(customAvatars.value));
             } catch (e) {}
+            // 🌟 核心防禦：版本號遞增 ＋ 強制重塑物件指針，促使 Vue 3 虛擬 DOM 100% 重繪頭像
+            avatarVersion.value++;
+            if (activeHero.value && studioHero.value && activeHero.value.id === studioHero.value.id) {
+              activeHero.value = { ...activeHero.value };
+            }
             if (window.ValhallaAudio) window.ValhallaAudio.playEquipSound();
             showStudioModal.value = false;
-            showToast('✨ 特工【' + studioHero.value.name + '】32x32 換裝設定已儲存！');
+            showToast('✨ 特工【' + studioHero.value.name + '】全新大頭貼造形已生效！');
           },
           resetStudioOptions: function() {
             if (!studioHero.value) return;
@@ -3620,6 +3708,10 @@
             try {
               localStorage.setItem('valhalla_custom_avatars', JSON.stringify(customAvatars.value));
             } catch (e) {}
+            avatarVersion.value++;
+            if (activeHero.value && studioHero.value && activeHero.value.id === studioHero.value.id) {
+              activeHero.value = { ...activeHero.value };
+            }
             showStudioModal.value = false;
             showToast('🔄 已還原特工原廠造型');
           },
@@ -3638,6 +3730,7 @@
             if (window.ValhallaAudio) window.ValhallaAudio.playEquipSound();
           },
           onStudioOptionChange: function() {
+            studioOptions.value.modernMode = false;
             if (window.ValhallaAudio) window.ValhallaAudio.playEquipSound();
           },
           getHeroLevel: function(agentId) {
@@ -3712,7 +3805,9 @@
           breathingFrame,
           isBreathingActive,
           toggleBreathingAnimation,
-          applyModernPreset
+          applyModernPreset,
+          avatarVersion,
+          studioActiveTab
         };
       }
     }).mount('#app');

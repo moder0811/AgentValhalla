@@ -197,18 +197,24 @@
    *   - weapon: 0~5
    *   - halo: 0~3
    */
-  function create32PixelAvatarSvg(opts) {
-    opts = opts || {};
-    var gender = opts.gender || 'female';
+  // [舊代碼備查] 2026-10-31 原函式僅支援單參數 opts，且未相容 studioOptions 欄位名 (bustSize, skinIndex 等)
+  // function create32PixelAvatarSvg(opts) { ... }
+  // 【2026-10-31 升級】支援雙參數 (seedOrOpts, maybeOpts) 與全欄位別名相容，確保大頭貼即時換裝生效
+  function create32PixelAvatarSvg(seedOrOpts, maybeOpts) {
+    var raw = (maybeOpts && typeof maybeOpts === 'object') ? maybeOpts : ((seedOrOpts && typeof seedOrOpts === 'object') ? seedOrOpts : {});
+    var gender = raw.gender || 'female';
     var isFemale = gender === 'female' || gender === 'cat';
-    var bust = opts.bust || 'D'; // 'A', 'B', 'D', 'F', 'H'
-    var skinObj = SKIN_PALETTE[opts.skin !== undefined ? opts.skin : 0] || SKIN_PALETTE[0];
-    var hairColorObj = HAIR_COLORS[opts.hairColor !== undefined ? opts.hairColor : 2] || HAIR_COLORS[2];
-    var hairStyle = opts.hair !== undefined ? opts.hair : 1;
-    var faceStyle = opts.face !== undefined ? opts.face : 5; // 預設 5 (性感淚痣)
-    var armorTier = opts.armorTier || 1;
-    var sexyCostume = opts.sexyCostume || 'bunny';
-    var halo = opts.halo || 0;
+    var bust = raw.bust || raw.bustSize || 'D'; // 支援 A, B, D, F, H CUP
+    var skinIdx = raw.skinIndex !== undefined ? raw.skinIndex : (raw.skin !== undefined ? raw.skin : 0);
+    var hairColorIdx = raw.hairColorIndex !== undefined ? raw.hairColorIndex : (raw.hairColor !== undefined ? raw.hairColor : 2);
+    var hairStyle = raw.hairIndex !== undefined ? raw.hairIndex : (raw.hair !== undefined ? raw.hair : 1);
+    var faceStyle = raw.faceIndex !== undefined ? raw.faceIndex : (raw.face !== undefined ? raw.face : 5);
+    var armorTier = raw.armorTier || 1;
+    var sexyCostume = raw.sexyCostume || 'none';
+    var halo = raw.halo || 0;
+
+    var skinObj = SKIN_PALETTE[skinIdx] || SKIN_PALETTE[0];
+    var hairColorObj = HAIR_COLORS[hairColorIdx] || HAIR_COLORS[2];
 
     // 建立 32x32 畫布
     var g = [];
@@ -350,7 +356,10 @@
 
     // --- Layer 5: 裝備與性感福利戰袍 (Armor & Sexy Outfits) ---
     var gold = '#f59e0b';
-    if (armorTier === 30) {
+    // [舊代碼備查] 2026-10-31 原條件嚴格限制 if (armorTier === 30) 導致選中福利套裝未能即時著裝
+    // if (armorTier === 30) {
+    // 【2026-10-31 升級】只要選取福利套裝或等級達標即可穿戴
+    if ((sexyCostume && sexyCostume !== 'none') || armorTier === 30) {
       // 🌟 Lv.30 頂級性感福利套裝！
       if (sexyCostume === 'bunny') {
         // 🐰 經典兔女郎戰袍 (漆皮連身馬甲 + 兔耳 + 領結)
