@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>瓦爾哈拉：AI 英雄英靈殿 · AgentValhalla</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tailwind Configuration for Cyber-Fantasy Dark Palette -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            obsidian: '#070A12',
+            tavern: '#0D1322',
+            cardbg: '#121A2D',
+            gold: {
+              400: '#FBBF24',
+              500: '#F59E0B',
+              600: '#D97706',
+            },
+            arcane: {
+              400: '#818CF8',
+              500: '#6366F1',
+              600: '#4F46E5',
+            }
+          },
+          boxShadow: {
+            'glow-gold': '0 0 25px -5px rgba(245, 158, 11, 0.4)',
+            'glow-cyan': '0 0 25px -5px rgba(56, 189, 248, 0.4)',
+            'glow-purple': '0 0 25px -5px rgba(168, 85, 247, 0.4)',
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Vue 3 CDN -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <!-- Local data script (bypasses browser CORS for file:// protocol) -->
+  <script src="agents_catalog.js"></script>
+  <style>
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #070A12; }
+    ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+    
+    .glass-panel {
+      background: rgba(18, 26, 45, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    
+    .card-hover-fx {
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .card-hover-fx:hover {
+      transform: translateY(-4px);
+    }
+  </style>
+</head>
+<body class="bg-obsidian text-slate-100 min-h-screen selection:bg-amber-500 selection:text-black font-sans">
+  <div id="app" class="flex flex-col min-h-screen">
+
+    <!-- 🏰 頂層導航列與英靈殿招牌 (Valhalla Header) -->
+    <header class="glass-panel sticky top-0 z-40 border-b border-slate-800/80 shadow-2xl">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+        
+        <!-- 招牌 Title & Badges -->
+        <div class="flex items-center space-x-3.5">
+          <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-yellow-600 flex items-center justify-center text-2xl shadow-glow-gold flex-shrink-0 animate-pulse">
+            ⚡
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h1 class="text-xl sm:text-2xl font-black tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-100 to-yellow-500">
+                AGENT-VALHALLA
+              </h1>
+              <span class="px-2 py-0.5 text-xs font-semibold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded-full">
+                英靈殿 v1.0
+              </span>
+            </div>
+            <p class="text-xs text-slate-400 hidden sm:block">
+              瓦爾哈拉：AI 英雄英靈殿 · 21 大領域 · {{ totalAgentsCount }} 位眾神級專家隨時聽候差遣
+            </p>
+          </div>
+        </div>
+
+        <!-- 搜尋列與快速統計 -->
+        <div class="flex items-center space-x-3 flex-1 max-w-md">
+          <div class="relative w-full">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+              🔍
+            </span>
+            <input 
+              v-model="searchQuery"
+              ref="searchInput"
+              type="text" 
+              placeholder="搜尋專家、自訂稱號、技能關鍵字 (按 / 聚焦)..."
+              class="w-full pl-9 pr-8 py-2 bg-slate-900/90 border border-slate-700/70 rounded-xl text-sm focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition placeholder-slate-500"
+            />
+            <button 
+              v-if="searchQuery" 
+              @click="searchQuery = ''"
+              class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-white"
+            >
+              ✕
+            </button>
+          </div>
+
+          <!-- 收藏夾切換按鈕 -->
+          <button 
+            @click="filterFavoriteOnly = !filterFavoriteOnly"
+            :class="filterFavoriteOnly ? 'bg-amber-500/20 text-amber-300 border-amber-500' : 'bg-slate-800 text-slate-400 border-slate-700'"
+            class="px-3 py-2 border rounded-xl text-xs font-medium flex items-center space-x-1.5 transition hover:border-slate-500 flex-shrink-0"
+            title="僅顯示主力戰鬥陣容"
+          >
+            <span>⭐</span>
+            <span class="hidden md:inline">{{ favoriteIds.length }}</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- 🏷️ 領域分類標籤欄 (Domain Filter Scroll) -->
+      <div class="border-t border-slate-800/60 bg-slate-950/40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center space-x-2 overflow-x-auto no-scrollbar">
+          <button
+            @click="selectedDomain = 'all'"
+            :class="selectedDomain === 'all' ? 'bg-amber-500 text-black font-bold shadow-glow-gold' : 'bg-slate-800/70 text-slate-300 hover:bg-slate-800 border border-slate-700/50'"
+            class="px-3.5 py-1.5 rounded-lg text-xs transition whitespace-nowrap flex items-center space-x-1.5"
+          >
+            <span>🌐 全部領域</span>
+            <span class="opacity-80 text-[10px] ml-1">({{ totalAgentsCount }})</span>
+          </button>
+
+          <button
+            v-for="dom in domains"
+            :key="dom.id"
+            @click="selectedDomain = dom.id"
+            :class="selectedDomain === dom.id ? 'bg-amber-500 text-black font-bold shadow-glow-gold' : 'bg-slate-800/70 text-slate-300 hover:bg-slate-800 border border-slate-700/50'"
+            class="px-3.5 py-1.5 rounded-lg text-xs transition whitespace-nowrap flex items-center space-x-1.5"
+          >
+            <span>{{ dom.icon }}</span>
+            <span>{{ dom.name_zh }}</span>
+            <span class="opacity-80 text-[10px]">({{ dom.count }})</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- 🎴 英雄展台主體 (Hero Cards Grid) -->
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+      
+      <!-- 過濾狀態資訊列 -->
+      <div class="flex items-center justify-between mb-5 text-xs text-slate-400">
+        <div class="flex items-center space-x-2">
+          <span>英靈殿列席者：<strong class="text-amber-400 font-bold">{{ filteredAgents.length }}</strong> 位</span>
+          <span v-if="searchQuery" class="bg-amber-500/10 text-amber-300 px-2 py-0.5 rounded border border-amber-500/20">
+            搜尋: "{{ searchQuery }}"
+          </span>
+          <span v-if="filterFavoriteOnly" class="bg-amber-500/10 text-amber-300 px-2 py-0.5 rounded border border-amber-500/20">
+            僅主力戰鬥名冊
+          </span>
+        </div>
+
+        <!-- 稀有度切換 -->
+        <div class="flex items-center space-x-1.5">
+          <button 
+            @click="selectedRarity = 'all'"
+            :class="selectedRarity === 'all' ? 'text-white font-bold underline' : 'text-slate-400 hover:text-slate-300'"
+            class="px-1.5 py-0.5"
+          >
+            全部品級
+          </button>
+          <span>·</span>
+          <button 
+            @click="selectedRarity = 'Legendary'"
+            :class="selectedRarity === 'Legendary' ? 'text-amber-400 font-bold underline' : 'text-slate-400 hover:text-amber-400'"
+            class="px-1.5 py-0.5"
+          >
+            🟡 傳奇主神
+          </button>
+          <span>·</span>
+          <button 
+            @click="selectedRarity = 'Epic'"
+            :class="selectedRarity === 'Epic' ? 'text-purple-400 font-bold underline' : 'text-slate-400 hover:text-purple-400'"
+            class="px-1.5 py-0.5"
+          >
+            🟣 史詩專精
+          </button>
+        </div>
+      </div>
+
+      <!-- 空白狀態 (Empty State) -->
+      <div v-if="filteredAgents.length === 0" class="text-center py-24 glass-panel rounded-2xl border border-slate-800">
+        <div class="text-5xl mb-3">⚡</div>
+        <h3 class="text-lg font-bold text-slate-200">殿堂之中暫無此英雄...</h3>
+        <p class="text-sm text-slate-500 mt-1">找不到符合當前條件的英靈，試著清除關鍵字或更換領域標籤吧。</p>
+        <button 
+          @click="resetFilters" 
+          class="mt-4 px-4 py-2 bg-amber-500 text-black font-semibold rounded-xl text-xs hover:bg-amber-400 transition"
+        >
+          重設所有過濾條件
+        </button>
+      </div>
+
+      <!-- 英雄卡牌網格 -->
+      <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        <div 
+          v-for="agent in filteredAgents" 
+          :key="agent.id"
+          class="glass-panel card-hover-fx rounded-2xl p-5 border flex flex-col justify-between relative group overflow-hidden"
+          :class="getCardBorderClass(agent)"
+        >
+          <!-- 頂部品級標籤與收藏星號 -->
+          <div class="flex items-center justify-between mb-3.5">
+            <span 
+              :class="getRarityBadgeClass(agent.rarity)"
+              class="px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider rounded-full border shadow-sm"
+            >
+              {{ agent.rarity }}
+            </span>
+
+            <button 
+              @click.stop="toggleFavorite(agent.id)"
+              class="text-lg opacity-60 hover:opacity-100 transition transform hover:scale-125"
+              :class="isFavorite(agent.id) ? 'text-amber-400 opacity-100' : 'text-slate-500'"
+              :title="isFavorite(agent.id) ? '自陣容移除' : '收入主力名冊'"
+            >
+              {{ isFavorite(agent.id) ? '★' : '☆' }}
+            </button>
+          </div>
+
+          <!-- 英雄頭像與名稱 -->
+          <div>
+            <div class="flex items-start space-x-3 mb-2.5">
+              <div class="w-12 h-12 rounded-xl bg-slate-800 border border-slate-700/80 flex items-center justify-center text-2xl shadow-inner flex-shrink-0 group-hover:scale-105 transition">
+                {{ agent.emoji }}
+              </div>
+              <div class="flex-1 min-w-0">
+                <h3 class="text-base font-bold text-slate-100 group-hover:text-amber-300 transition truncate">
+                  {{ agent.name_zh }}
+                </h3>
+                <p class="text-xs text-slate-400 truncate">{{ agent.name }}</p>
+              </div>
+            </div>
+
+            <!-- 出品人自訂稱號 (Custom Nickname Badge) -->
+            <div class="mb-3">
+              <span 
+                v-if="getNickname(agent.id)" 
+                class="inline-flex items-center space-x-1 px-2.5 py-0.5 bg-amber-500/15 text-amber-300 border border-amber-500/40 rounded-lg text-xs font-semibold"
+              >
+                <span>🏷️</span>
+                <span>{{ getNickname(agent.id) }}</span>
+              </span>
+              <span 
+                v-else
+                @click="openModal(agent, true)"
+                class="inline-flex items-center space-x-1 text-[11px] text-slate-500 hover:text-slate-300 cursor-pointer italic"
+              >
+                <span>＋ 冊封專屬稱號...</span>
+              </span>
+            </div>
+
+            <!-- 英雄座右銘 / 簡介 -->
+            <p class="text-xs text-slate-400 leading-relaxed line-clamp-2 mb-3.5">
+              {{ agent.vibe }}
+            </p>
+
+            <!-- 核心技能標籤樹 (Skill Chips) -->
+            <div class="flex flex-wrap gap-1.5 mb-4">
+              <span 
+                v-for="(skill, sIdx) in agent.skills.slice(0, 3)" 
+                :key="sIdx"
+                class="px-2 py-0.5 bg-slate-800/80 text-slate-300 text-[10px] rounded-md border border-slate-700/40"
+              >
+                {{ skill }}
+              </span>
+            </div>
+          </div>
+
+          <!-- 卡牌底部操作按鈕組 -->
+          <div class="pt-3 border-t border-slate-800/80 flex items-center space-x-2">
+            <button 
+              @click="openModal(agent, false)"
+              class="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-xl border border-slate-700 transition"
+            >
+              📜 查閱劇本
+            </button>
+            <button 
+              @click="copySummonPrompt(agent)"
+              class="px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black text-xs font-bold rounded-xl shadow-glow-gold transition flex items-center space-x-1"
+              title="一鍵複製專家召喚 Prompt"
+            >
+              <span>⚡</span>
+              <span>召喚</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+
+    <!-- 📜 英雄召喚水晶面板 (Hero Detail Modal) -->
+    <div 
+      v-if="activeHero" 
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/80 backdrop-blur-md transition"
+      @click.self="activeHero = null"
+    >
+      <div class="glass-panel w-full max-w-3xl rounded-3xl border border-slate-700 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        
+        <!-- 彈窗頂部 Header -->
+        <div class="p-6 border-b border-slate-800 flex items-start justify-between bg-gradient-to-r from-slate-900 via-slate-900/90 to-cardbg">
+          <div class="flex items-start space-x-4">
+            <div class="w-14 h-14 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-3xl shadow-inner flex-shrink-0">
+              {{ activeHero.emoji }}
+            </div>
+            <div>
+              <div class="flex items-center space-x-2.5">
+                <h2 class="text-xl font-black text-amber-300">{{ activeHero.name_zh }}</h2>
+                <span :class="getRarityBadgeClass(activeHero.rarity)" class="px-2 py-0.5 text-xs font-extrabold rounded-full border">
+                  {{ activeHero.rarity }}
+                </span>
+              </div>
+              <p class="text-xs text-slate-400 mt-0.5">{{ activeHero.name }} · {{ activeHero.file_path }}</p>
+            </div>
+          </div>
+          <button 
+            @click="activeHero = null"
+            class="text-slate-400 hover:text-white text-xl p-1 rounded-lg hover:bg-slate-800 transition"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- 彈窗內容卷軸區 -->
+        <div class="p-6 overflow-y-auto space-y-6 flex-1 text-sm text-slate-300">
+          
+          <!-- 👑 自訂暱稱編輯卡片 -->
+          <div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <div class="text-xs font-bold text-amber-300 flex items-center space-x-1.5">
+                <span>🏷️</span>
+                <span>領主自訂稱號 (Custom Nickname)</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-0.5">
+                為同職業專家賦予專屬稱號（例如：「數值狂魔・高橋」），召喚時自動帶入稱號！
+              </p>
+            </div>
+            <div class="flex items-center space-x-2 w-full sm:w-auto">
+              <input 
+                v-model="editNicknameInput" 
+                placeholder="輸入專屬暱稱..."
+                class="px-3 py-1.5 bg-slate-900 border border-amber-500/40 rounded-xl text-xs text-amber-200 focus:outline-none focus:border-amber-400 w-full sm:w-48"
+              />
+              <button 
+                @click="saveNickname(activeHero.id)"
+                class="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs rounded-xl transition flex-shrink-0"
+              >
+                儲存
+              </button>
+            </div>
+          </div>
+
+          <!-- 英雄格言與職責 -->
+          <div>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">英靈誓詞與核心職掌</h4>
+            <blockquote class="p-3.5 rounded-xl bg-slate-900/80 border-l-4 border-amber-500 text-slate-200 text-xs italic">
+              "{{ activeHero.vibe }}"
+            </blockquote>
+          </div>
+
+          <!-- 專精技能矩陣 -->
+          <div>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">專精技能與檢核樹</h4>
+            <div class="flex flex-wrap gap-2">
+              <span 
+                v-for="(skill, idx) in activeHero.skills" 
+                :key="idx"
+                class="px-3 py-1 bg-slate-800 text-amber-200 text-xs rounded-lg border border-slate-700/60 font-medium"
+              >
+                ⚡ {{ skill }}
+              </span>
+            </div>
+          </div>
+
+          <!-- 完整 Prompt 劇本預覽 -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">完整專家 System Prompt 劇本</h4>
+              <button 
+                @click="copyText(activeHero.prompt_template, '完整劇本已複製！')"
+                class="text-xs text-amber-400 hover:text-amber-300 underline"
+              >
+                複製純劇本
+              </button>
+            </div>
+            <pre class="p-4 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-300 font-mono overflow-x-auto max-h-56 leading-relaxed select-all">{{ activeHero.prompt_template }}</pre>
+          </div>
+
+        </div>
+
+        <!-- 彈窗底部操作按鈕 -->
+        <div class="p-4 sm:p-5 border-t border-slate-800 bg-slate-950 flex flex-wrap items-center justify-between gap-3">
+          <div class="text-xs text-slate-400">
+            檔案位置：<code class="text-slate-300">{{ activeHero.file_path }}</code>
+          </div>
+          <div class="flex items-center space-x-2.5">
+            <button 
+              @click="activeHero = null"
+              class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-xl transition"
+            >
+              關閉
+            </button>
+            <button 
+              @click="copySummonPrompt(activeHero)"
+              class="px-5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black text-xs font-bold rounded-xl shadow-glow-gold transition flex items-center space-x-1.5"
+            >
+              <span>⚡ 一鍵複製召喚 Prompt</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ✨ 魔法通知浮動氣泡 (Toast Notification) -->
+    <div 
+      v-if="toastMessage" 
+      class="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-amber-500 to-amber-600 text-black px-5 py-3 rounded-2xl shadow-glow-gold font-bold text-xs flex items-center space-x-2 animate-bounce"
+    >
+      <span>⚡</span>
+      <span>{{ toastMessage }}</span>
+    </div>
+
+    <!-- 頁尾宣告 -->
+    <footer class="glass-panel border-t border-slate-800/80 py-4 mt-auto">
+      <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
+        AgentValhalla · 瓦爾哈拉：AI 英雄英靈殿 · 306+ 跨領域眾神級 AI 英雄全天候待命
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    const { createApp, ref, computed, onMounted } = Vue;
+
+    createApp({
+      setup() {
+        const agents = ref([]);
+        const domains = ref([]);
+        const totalAgentsCount = ref(0);
+        const searchQuery = ref('');
+        const selectedDomain = ref('all');
+        const selectedRarity = ref('all');
+        const filterFavoriteOnly = ref(false);
+        const searchInput = ref(null);
+
+        // 彈窗狀態
+        const activeHero = ref(null);
+        const editNicknameInput = ref('');
+        const toastMessage = ref('');
+
+        // LocalStorage 持久化資料
+        const nicknames = ref({});
+        const favoriteIds = ref([]);
+
+        // 載入資料庫
+        onMounted(async () => {
+          loadPersistentStorage();
+
+          if (window.MAESTRO_HERO_CATALOG) {
+            initCatalog(window.MAESTRO_HERO_CATALOG);
+          } else {
+            try {
+              const res = await fetch('agents_catalog.json');
+              const data = await res.json();
+              initCatalog(data);
+            } catch (err) {
+              console.error('無法載入 agents_catalog.json:', err);
+              showToast('⚠️ 請確認 agents_catalog.json 存在');
+            }
+          }
+
+          window.addEventListener('keydown', (e) => {
+            if (e.key === '/' && document.activeElement !== searchInput.value) {
+              e.preventDefault();
+              searchInput.value?.focus();
+            }
+          });
+        });
+
+        function initCatalog(data) {
+          agents.value = data.agents || [];
+          domains.value = data.domains || [];
+          totalAgentsCount.value = data.total_agents || agents.value.length;
+        }
+
+        function loadPersistentStorage() {
+          try {
+            const savedNicks = localStorage.getItem('valhalla_hero_nicknames');
+            if (savedNicks) nicknames.value = JSON.parse(savedNicks);
+            const savedFavs = localStorage.getItem('valhalla_hero_favorites');
+            if (savedFavs) favoriteIds.value = JSON.parse(savedFavs);
+          } catch (e) {
+            console.warn('LocalStorage 讀取失敗:', e);
+          }
+        }
+
+        const filteredAgents = computed(() => {
+          return agents.value.filter(a => {
+            if (selectedDomain.value !== 'all' && a.domain !== selectedDomain.value) {
+              return false;
+            }
+
+            if (selectedRarity.value !== 'all' && a.rarity !== selectedRarity.value) {
+              return false;
+            }
+
+            if (filterFavoriteOnly.value && !favoriteIds.value.includes(a.id)) {
+              return false;
+            }
+
+            if (searchQuery.value.trim()) {
+              const q = searchQuery.value.toLowerCase().trim();
+              const nick = (nicknames.value[a.id] || '').toLowerCase();
+              const matchName = a.name.toLowerCase().includes(q);
+              const matchZh = a.name_zh.toLowerCase().includes(q);
+              const matchVibe = (a.vibe || '').toLowerCase().includes(q);
+              const matchSkills = (a.skills || []).some(s => s.toLowerCase().includes(q));
+              const matchNick = nick.includes(q);
+
+              if (!matchName && !matchZh && !matchVibe && !matchSkills && !matchNick) {
+                return false;
+              }
+            }
+
+            return true;
+          });
+        });
+
+        function getNickname(id) {
+          return nicknames.value[id] || '';
+        }
+
+        function saveNickname(id) {
+          const val = editNicknameInput.value.trim();
+          if (val) {
+            nicknames.value[id] = val;
+          } else {
+            delete nicknames.value[id];
+          }
+          localStorage.setItem('valhalla_hero_nicknames', JSON.stringify(nicknames.value));
+          showToast(`⚡ 已成功冊封稱號：「${val || '已清除'}」！`);
+        }
+
+        function isFavorite(id) {
+          return favoriteIds.value.includes(id);
+        }
+
+        function toggleFavorite(id) {
+          const idx = favoriteIds.value.indexOf(id);
+          if (idx > -1) {
+            favoriteIds.value.splice(idx, 1);
+            showToast('已自主力陣容中移出');
+          } else {
+            favoriteIds.value.push(id);
+            showToast('⭐ 已收入瓦爾哈拉常駐主力陣容！');
+          }
+          localStorage.setItem('valhalla_hero_favorites', JSON.stringify(favoriteIds.value));
+        }
+
+        function openModal(agent, focusEdit = false) {
+          activeHero.value = agent;
+          editNicknameInput.value = nicknames.value[agent.id] || '';
+        }
+
+        function copySummonPrompt(agent) {
+          const nick = nicknames.value[agent.id];
+          const nickPrefix = nick ? `【特派稱號：${nick}】` : '';
+          
+          const summonText = 
+`# 瓦爾哈拉英靈召喚令：${nickPrefix}${agent.name_zh} (${agent.name})
+你現在載入下列垂直領域專家的完整心智模型與專業原則，請以本專家的身分、語氣與檢核標準接管當前對話：
+
+${agent.prompt_template}
+
+---
+【出品人特別指示】：請確認上述身分設定已生效，並以本專家身分向領主 Baby 覆命，準備接受任務調遣！`;
+
+          copyText(summonText, `⚡ 已成功複製【${nick || agent.name_zh}】的英靈召喚令！`);
+        }
+
+        function copyText(text, successMsg) {
+          navigator.clipboard.writeText(text).then(() => {
+            showToast(successMsg);
+          }).catch(err => {
+            console.error('複製失敗:', err);
+            showToast('複製失敗，請手動選取');
+          });
+        }
+
+        function showToast(msg) {
+          toastMessage.value = msg;
+          setTimeout(() => {
+            toastMessage.value = '';
+          }, 3000);
+        }
+
+        function resetFilters() {
+          searchQuery.value = '';
+          selectedDomain.value = 'all';
+          selectedRarity.value = 'all';
+          filterFavoriteOnly.value = false;
+        }
+
+        function getRarityBadgeClass(rarity) {
+          if (rarity === 'Legendary') {
+            return 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-glow-gold';
+          } else if (rarity === 'Epic') {
+            return 'bg-purple-500/20 text-purple-300 border-purple-500/50 shadow-glow-purple';
+          }
+          return 'bg-blue-500/20 text-blue-300 border-blue-500/50 shadow-glow-cyan';
+        }
+
+        function getCardBorderClass(agent) {
+          if (nicknames.value[agent.id]) {
+            return 'border-amber-500/60 shadow-glow-gold';
+          }
+          if (agent.rarity === 'Legendary') {
+            return 'border-amber-500/30 hover:border-amber-500/80';
+          } else if (agent.rarity === 'Epic') {
+            return 'border-purple-500/30 hover:border-purple-500/80';
+          }
+          return 'border-slate-800 hover:border-sky-500/60';
+        }
+
+        return {
+          agents,
+          domains,
+          totalAgentsCount,
+          searchQuery,
+          selectedDomain,
+          selectedRarity,
+          filterFavoriteOnly,
+          searchInput,
+          filteredAgents,
+          activeHero,
+          editNicknameInput,
+          toastMessage,
+          favoriteIds,
+          getNickname,
+          saveNickname,
+          isFavorite,
+          toggleFavorite,
+          openModal,
+          copySummonPrompt,
+          copyText,
+          resetFilters,
+          getRarityBadgeClass,
+          getCardBorderClass
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>

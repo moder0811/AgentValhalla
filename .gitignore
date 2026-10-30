@@ -1,0 +1,17 @@
+# OS files
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# Temporary & Cache
+*.tmp
+*.bak
+*.log
+.cache/
+__pycache__/
+*.pyc
+
+# IDE
+.vs/
+*.user
