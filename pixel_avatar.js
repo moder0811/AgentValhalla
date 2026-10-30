@@ -5,8 +5,8 @@
  * 功能意圖：
  *   為 306 尊英靈根據其 ID 產生確定性（Deterministic）唯一特徵，
  *   支援四種形態：
- *   1. ⚔️ 'male'   : 雄性戰神 / 帥氣硬派冒險者
- *   2. 🛡️ 'female' : 雌性女武神 / 優雅魔法使
+ *   1. ⚔️ 'male'   : 英靈 (男) / 帥氣硬派冒險者
+ *   2. 🛡️ 'female' : 英靈 (女) / 優雅女武神魔法使
  *   3. 🐱 'cat'    : 貓咪軍團 / 萌系貓耳魔導士
  *   4. 🐶 'dog'    : 柴犬神將 / 忠勇聖騎士
  *
@@ -293,11 +293,12 @@
   window.ValhallaPixelEngine = {
     render: createPixelAvatarSvg,
     forms: [
-      { id: 'male', label_zh: '⚔️ 雄性英靈', label_en: '⚔️ Male Hero', label_ja: '⚔️ 勇者（男）' },
-      { id: 'female', label_zh: '🛡️ 雌性女武神', label_en: '🛡️ Valkyrie', label_ja: '🛡️ 戦乙女（女）' },
+      { id: 'male', label_zh: '⚔️ 英靈 (男)', label_en: '⚔️ Hero (Male)', label_ja: '⚔️ 勇者（男）' },
+      { id: 'female', label_zh: '🛡️ 英靈 (女)', label_en: '🛡️ Hero (Female)', label_ja: '🛡️ 勇者（女）' },
       { id: 'cat', label_zh: '🐱 貓咪軍團', label_en: '🐱 Cat Legion', label_ja: '🐱 猫魔導士' },
       { id: 'dog', label_zh: '🐶 柴犬神將', label_en: '🐶 Shiba Paladin', label_ja: '🐶 柴犬聖騎士' }
     ]
   };
 
 })(window);
+
