@@ -41,11 +41,11 @@
   <!-- Vue 3 CDN -->
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <!-- Local data script -->
-  <script src="agents_catalog.js?v=20261030_v13"></script>
+  <script src="agents_catalog.js?v=20261030_v14"></script>
   <!-- Pixel Avatar Engine -->
   <script src="pixel_avatar.js"></script>
   <!-- 0 KB Procedural Web Audio & RPG Engine -->
-  <script src="rpg_engine.js?v=20261030_v13"></script>
+  <script src="rpg_engine.js?v=20261030_v14"></script>
   <style>
     /* Custom scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -502,23 +502,23 @@
           <!-- 英雄像素頭像與名稱 -->
           <div>
             <div class="flex items-start space-x-3 mb-2.5">
-              <!-- 👾 確定性像素風格大頭像 -->
+              <!-- 👾 確定性像素風格大頭像 (手機端 44px 精巧微縮，桌機 56px 大器) -->
               <div 
-                class="w-13 h-13 sm:w-14 sm:h-14 rounded-xl bg-slate-900 border border-slate-700/80 p-1 flex items-center justify-center shadow-inner flex-shrink-0 group-hover:scale-110 group-hover:border-amber-400/80 transition duration-300"
+                class="w-11 h-11 sm:w-14 sm:h-14 rounded-xl bg-slate-900 border border-slate-700/80 p-0.5 sm:p-1 flex items-center justify-center shadow-inner flex-shrink-0 group-hover:scale-110 group-hover:border-amber-400/80 transition duration-300"
                 v-html="getAvatarSvg(agent)"
               >
               </div>
 
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
-                  <h3 class="text-base font-bold text-slate-100 group-hover:text-amber-300 transition truncate" :title="getHeroName(agent)">
+                  <h3 class="text-[15px] sm:text-base font-bold text-slate-100 group-hover:text-amber-300 transition truncate" :title="getHeroName(agent)">
                     {{ getHeroName(agent) }}
                   </h3>
                 </div>
                 
                 <div class="flex items-center space-x-2 mt-0.5">
-                  <p class="text-[11px] text-slate-400 font-mono truncate">{{ agent.id }}</p>
-                  <span class="text-[10px] text-amber-400/90 font-mono flex items-center space-x-0.5 bg-amber-500/10 px-1.5 py-0.2 rounded border border-amber-500/20">
+                  <p class="text-xs sm:text-[11px] text-slate-400 font-mono truncate">{{ agent.id }}</p>
+                  <span class="text-[11px] sm:text-[10px] text-amber-400/90 font-mono flex items-center space-x-0.5 bg-amber-500/10 px-1.5 py-0.2 rounded border border-amber-500/20">
                     <span>⚡</span>
                     <span>{{ getSummonCount(agent.id) }}</span>
                   </span>
@@ -544,17 +544,17 @@
               </span>
             </div>
 
-            <!-- 英雄座右銘 / 箴言 (多語系) -->
-            <p class="text-xs text-slate-400 leading-relaxed line-clamp-2 mb-3.5" :title="getHeroVibe(agent)">
+            <!-- 英雄座右銘 / 箴言 (手機端 13px 明亮易讀) -->
+            <p class="text-[13px] sm:text-xs text-slate-300 sm:text-slate-400 leading-relaxed line-clamp-2 mb-3.5" :title="getHeroVibe(agent)">
               {{ getHeroVibe(agent) }}
             </p>
 
-            <!-- 核心技能標籤樹 (Skill Chips) -->
+            <!-- 核心技能標籤樹 (手機端 11.5px 飽滿好讀) -->
             <div class="flex flex-wrap gap-1.5 mb-3">
               <span 
                 v-for="(skill, sIdx) in getHeroSkills(agent).slice(0, 3)" 
                 :key="sIdx"
-                class="px-2 py-0.5 bg-slate-800/80 text-slate-300 text-[10px] rounded-md border border-slate-700/40"
+                class="px-2.5 sm:px-2 py-0.5 bg-slate-800/80 text-slate-200 sm:text-slate-300 text-[11.5px] sm:text-[10px] rounded-md border border-slate-700/60 font-medium"
               >
                 {{ skill }}
               </span>
@@ -1199,17 +1199,17 @@
         <div class="p-4 sm:p-6 border-b border-slate-800 flex items-start justify-between bg-gradient-to-r from-slate-900 via-slate-900/90 to-cardbg">
           <div class="flex items-start space-x-3 sm:space-x-4">
             
-            <!-- 彈窗大頭像 -->
-            <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-slate-900 border border-slate-700 p-1 shadow-inner flex items-center justify-center flex-shrink-0" v-html="getAvatarSvg(activeHero)">
+            <!-- 彈窗大頭像 (手機端 48px 精巧，桌機 64px) -->
+            <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-slate-900 border border-slate-700 p-1 shadow-inner flex items-center justify-center flex-shrink-0" v-html="getAvatarSvg(activeHero)">
             </div>
 
-            <div>
+            <div class="flex-1 min-w-0">
               <div class="flex items-center space-x-2 mb-1 flex-wrap">
-                <span :class="getRarityBadgeClass(activeHero.rarity)" class="px-2 py-0.5 text-[10px] font-extrabold uppercase rounded-full border">
+                <span :class="getRarityBadgeClass(activeHero.rarity)" class="px-2 py-0.5 text-[11px] sm:text-[10px] font-extrabold uppercase rounded-full border">
                   {{ activeHero.rarity }}
                 </span>
                 <span class="text-xs text-slate-400 font-mono">{{ activeHero.domain }}</span>
-                <span class="text-[10px] text-amber-400 font-mono bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                <span class="text-[11px] sm:text-[10px] text-amber-400 font-mono bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
                   ⚡ {{ getSummonCount(activeHero.id) }} 次召喚
                 </span>
               </div>
@@ -1219,7 +1219,7 @@
                   🏷️ {{ getNickname(activeHero.id) }}
                 </span>
               </h2>
-              <p class="text-xs text-slate-400 mt-1 italic">{{ getHeroVibe(activeHero) }}</p>
+              <p class="text-[13px] sm:text-xs text-slate-300 sm:text-slate-400 mt-1 italic">{{ getHeroVibe(activeHero) }}</p>
             </div>
 
           </div>
@@ -1266,7 +1266,7 @@
             <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">
               🛡️ {{ t('modal_desc_title') }}
             </h4>
-            <div class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800/80 leading-relaxed text-slate-300 text-xs sm:text-sm">
+            <div class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800/80 leading-relaxed text-slate-200 text-sm">
               {{ getHeroDesc(activeHero) }}
             </div>
           </div>
