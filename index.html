@@ -48,7 +48,7 @@
   <script src="rpg_engine.js?v=20261031_v22"></script>
   <!-- 👑 現代 64x64 高解析次像素藝術與動態呼吸紙娃娃引擎 (2016-2026 經典殿堂角色) -->
   <script src="modern_avatar.js?v=20261031_v22"></script>
-  <script src="lpc_compositor.js?v=20261031_lpc2"></script>
+  <script src="lpc_compositor.js?v=20261031_lpc3"></script>
   <style>
     /* Custom scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -1603,42 +1603,49 @@
             </div>
           </div>
 
-          <!-- 右側：雙軌男女獨立手繪圖層選單矩陣 ＋ 神兵武器裝備槽 -->
+          <!-- 右側：三大職業形態 (女武神 / 魅影刺客 / 男勇者) 獨立手繪圖層選單矩陣 -->
           <div class="flex-1 space-y-4 max-h-[56vh] overflow-y-auto pr-1">
             
-            <!-- 1. 性別與身軀體態 (Body & Shape) -->
+            <!-- 1. 三大職業形態選擇 (Class Archetypes) -->
             <div>
               <label class="text-xs font-black text-amber-400 flex items-center space-x-1.5 mb-2">
-                <span>👤</span>
-                <span>第 1 層：身軀與身材體態 (Body & Shape Layer)</span>
+                <span>👑</span>
+                <span>核心職業形態 (Class Archetype)</span>
               </label>
-              <!-- 性別大切換 -->
-              <div class="grid grid-cols-2 gap-2 mb-2">
+              <div class="grid grid-cols-3 gap-2 mb-2">
                 <button 
-                  @click="studioLpcOptions.gender = 'female'; if (studioLpcOptions.bodyType === 'male') studioLpcOptions.bodyType = 'female'; onLpcOptionChange()"
-                  :class="studioLpcOptions.gender === 'female' ? 'bg-pink-500/25 border-pink-500 text-pink-200 shadow-sm' : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'"
-                  class="py-2 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center space-x-1.5"
+                  @click="setStudioClass('valkyrie')"
+                  :class="studioLpcOptions.roleClass === 'valkyrie' ? 'bg-gradient-to-r from-pink-600/30 to-purple-600/30 border-pink-500 text-pink-200 shadow-sm font-black ring-1 ring-pink-500/50' : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700 font-bold'"
+                  class="py-2 px-2 rounded-xl border text-xs transition flex items-center justify-center space-x-1"
                 >
                   <span>🛡️</span>
-                  <span>女武神陣營 (女性白皙臉蛋與曼妙身形)</span>
+                  <span>女武神 (光明神聖)</span>
                 </button>
                 <button 
-                  @click="studioLpcOptions.gender = 'male'; if (studioLpcOptions.bodyType === 'female' || studioLpcOptions.bodyType === 'teen') studioLpcOptions.bodyType = 'male'; onLpcOptionChange()"
-                  :class="studioLpcOptions.gender === 'male' ? 'bg-blue-500/25 border-blue-500 text-blue-200 shadow-sm' : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'"
-                  class="py-2 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center space-x-1.5"
+                  @click="setStudioClass('rogue')"
+                  :class="studioLpcOptions.roleClass === 'rogue' ? 'bg-gradient-to-r from-red-600/30 to-purple-900/40 border-red-500 text-red-200 shadow-sm font-black ring-1 ring-red-500/50' : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700 font-bold'"
+                  class="py-2 px-2 rounded-xl border text-xs transition flex items-center justify-center space-x-1"
+                >
+                  <span>🗡️</span>
+                  <span>魅影刺客 (暗夜致命)</span>
+                </button>
+                <button 
+                  @click="setStudioClass('warrior')"
+                  :class="studioLpcOptions.roleClass === 'warrior' ? 'bg-gradient-to-r from-blue-600/30 to-cyan-600/30 border-blue-500 text-blue-200 shadow-sm font-black ring-1 ring-blue-500/50' : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700 font-bold'"
+                  class="py-2 px-2 rounded-xl border text-xs transition flex items-center justify-center space-x-1"
                 >
                   <span>⚔️</span>
-                  <span>男勇者陣營 (健壯戰士五官與硬派身軀)</span>
+                  <span>男勇者 (硬派重裝)</span>
                 </button>
               </div>
 
-              <!-- 身材細選：女生選成熟/嬌小/健美；男生選標準/猛男 -->
+              <!-- 身材細選 -->
               <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 <button 
                   v-for="b in (studioLpcOptions.gender === 'female' ? (LpcCompositor ? LpcCompositor.femaleBodies : []) : (LpcCompositor ? LpcCompositor.maleBodies : []))"
                   :key="b.id"
                   @click="studioLpcOptions.bodyType = b.id; onLpcOptionChange()"
-                  :class="studioLpcOptions.bodyType === b.id ? (studioLpcOptions.gender === 'female' ? 'bg-pink-500/20 border-pink-500 text-pink-200' : 'bg-blue-500/20 border-blue-500 text-blue-200') : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'"
+                  :class="studioLpcOptions.bodyType === b.id ? (studioLpcOptions.roleClass === 'rogue' ? 'bg-red-500/20 border-red-500 text-red-200' : (studioLpcOptions.gender === 'female' ? 'bg-pink-500/20 border-pink-500 text-pink-200' : 'bg-blue-500/20 border-blue-500 text-blue-200')) : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'"
                   class="py-1.5 px-2.5 rounded-xl border text-xs font-bold transition text-left truncate"
                 >
                   {{ b.label }}
@@ -1646,18 +1653,18 @@
               </div>
             </div>
 
-            <!-- 2. 服飾與鎧甲 (Costumes & Armor) - 男女徹底分軌！ -->
+            <!-- 2. 服飾與鎧甲 (Costumes & Armor) - 女武神 / 刺客 / 勇者 專屬！ -->
             <div>
-              <label class="text-xs font-black text-pink-400 flex items-center space-x-1.5 mb-2">
-                <span>👙</span>
-                <span>第 2 層：{{ studioLpcOptions.gender === 'female' ? '手繪性感胸衣與鎧甲 (Bodice & Armor)' : '男性硬派戰裝與鎧甲 (Male Gear & Armor)' }}</span>
+              <label class="text-xs font-black flex items-center space-x-1.5 mb-2" :class="studioLpcOptions.roleClass === 'rogue' ? 'text-red-400' : (studioLpcOptions.gender === 'female' ? 'text-pink-400' : 'text-blue-400')">
+                <span>{{ studioLpcOptions.roleClass === 'rogue' ? '🥷' : (studioLpcOptions.gender === 'female' ? '👙' : '🛡️') }}</span>
+                <span>第 2 層：{{ studioLpcOptions.roleClass === 'rogue' ? '刺客貼身夜行衣 (Assassin Stealth Garb)' : (studioLpcOptions.gender === 'female' ? '手繪性感胸衣與鎧甲 (Bodice & Armor)' : '男性硬派戰裝與鎧甲 (Male Gear & Armor)') }}</span>
               </label>
               <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 <button 
-                  v-for="outfit in (studioLpcOptions.gender === 'female' ? (LpcCompositor ? LpcCompositor.femaleOutfits : []) : (LpcCompositor ? LpcCompositor.maleOutfits : []))"
+                  v-for="outfit in (studioLpcOptions.roleClass === 'rogue' ? (LpcCompositor ? LpcCompositor.rogueOutfits : []) : (studioLpcOptions.gender === 'female' ? (LpcCompositor ? LpcCompositor.femaleOutfits : []) : (LpcCompositor ? LpcCompositor.maleOutfits : [])))"
                   :key="outfit.id"
                   @click="studioLpcOptions.outfit = outfit.id; onLpcOptionChange()"
-                  :class="studioLpcOptions.outfit === outfit.id ? 'bg-pink-500/25 border-pink-500 text-pink-200 shadow-sm' : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'"
+                  :class="studioLpcOptions.outfit === outfit.id ? (studioLpcOptions.roleClass === 'rogue' ? 'bg-red-500/25 border-red-500 text-red-200 shadow-sm' : (studioLpcOptions.gender === 'female' ? 'bg-pink-500/25 border-pink-500 text-pink-200 shadow-sm' : 'bg-blue-500/25 border-blue-500 text-blue-200 shadow-sm')) : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'"
                   class="py-1.5 px-2.5 rounded-xl border text-xs font-bold transition text-left truncate"
                 >
                   {{ outfit.label }}
@@ -1665,22 +1672,42 @@
               </div>
             </div>
 
-            <!-- 3. 專屬手繪髮型 (Hair Style) - 男女分軌！ -->
-            <div>
-              <label class="text-xs font-black text-purple-400 flex items-center space-x-1.5 mb-2">
-                <span>💇‍♂️</span>
-                <span>第 3 層：{{ studioLpcOptions.gender === 'female' ? '女性手繪飄逸髮型 (Hair Style)' : '男性硬漢短髮與刺蝟頭 (Male Hair Style)' }}</span>
-              </label>
-              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                <button 
-                  v-for="h in (studioLpcOptions.gender === 'female' ? (LpcCompositor ? LpcCompositor.femaleHairs : []) : (LpcCompositor ? LpcCompositor.maleHairs : []))"
-                  :key="h.id"
-                  @click="studioLpcOptions.hairStyle = h.id; onLpcOptionChange()"
-                  :class="studioLpcOptions.hairStyle === h.id ? 'bg-purple-500/25 border-purple-500 text-purple-200 shadow-sm' : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'"
-                  class="py-1.5 px-2 rounded-xl border text-xs font-bold transition text-left truncate"
-                >
-                  {{ h.label }}
-                </button>
+            <!-- 3. 🗡️ 魅影刺客專屬面部配件 (Mask & Hood) -->
+            <div v-if="studioLpcOptions.roleClass === 'rogue'" class="p-3 bg-red-950/20 border border-red-500/30 rounded-2xl space-y-3">
+              <div>
+                <label class="text-xs font-black text-red-300 flex items-center space-x-1.5 mb-2">
+                  <span>😷</span>
+                  <span>刺客冷酷半臉面罩 (Assassin Mask)</span>
+                </label>
+                <div class="grid grid-cols-2 gap-2">
+                  <button 
+                    v-for="m in (LpcCompositor ? LpcCompositor.rogueMasks : [])"
+                    :key="m.id"
+                    @click="studioLpcOptions.mask = m.id; onLpcOptionChange()"
+                    :class="(studioLpcOptions.mask || 'none') === m.id ? 'bg-red-600/30 border-red-500 text-red-200 shadow-sm' : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700'"
+                    class="py-1.5 px-2.5 rounded-xl border text-xs font-bold transition text-left truncate"
+                  >
+                    {{ m.label }}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label class="text-xs font-black text-purple-300 flex items-center space-x-1.5 mb-2">
+                  <span>🥷</span>
+                  <span>幽冥暗殺兜帽 (Shadow Hood)</span>
+                </label>
+                <div class="grid grid-cols-2 gap-2">
+                  <button 
+                    v-for="h in (LpcCompositor ? LpcCompositor.rogueHoods : [])"
+                    :key="h.id"
+                    @click="studioLpcOptions.hood = h.id; onLpcOptionChange()"
+                    :class="(studioLpcOptions.hood || 'none') === h.id ? 'bg-purple-600/30 border-purple-500 text-purple-200 shadow-sm' : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700'"
+                    class="py-1.5 px-2.5 rounded-xl border text-xs font-bold transition text-left truncate"
+                  >
+                    {{ h.label }}
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -1688,7 +1715,7 @@
             <div v-if="studioLpcOptions.gender === 'male'">
               <label class="text-xs font-black text-amber-400 flex items-center space-x-1.5 mb-2">
                 <span>🧔</span>
-                <span>第 4 層：男人的靈魂 · 威嚴戰鬥鬍鬚 (Beards)</span>
+                <span>男人的靈魂 · 威嚴戰鬥鬍鬚 (Beards)</span>
               </label>
               <div class="grid grid-cols-2 gap-2">
                 <button 
@@ -1703,11 +1730,30 @@
               </div>
             </div>
 
-            <!-- 5. 髮色光學染色 (Hair Color Tint) -->
+            <!-- 5. 專屬手繪髮型 (Hair Style) -->
+            <div>
+              <label class="text-xs font-black text-purple-400 flex items-center space-x-1.5 mb-2">
+                <span>💇‍♀️</span>
+                <span>第 3 層：手繪飄逸髮型 (Hair Style)</span>
+              </label>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <button 
+                  v-for="h in (studioLpcOptions.gender === 'female' ? (LpcCompositor ? LpcCompositor.femaleHairs : []) : (LpcCompositor ? LpcCompositor.maleHairs : []))"
+                  :key="h.id"
+                  @click="studioLpcOptions.hairStyle = h.id; onLpcOptionChange()"
+                  :class="studioLpcOptions.hairStyle === h.id ? 'bg-purple-500/25 border-purple-500 text-purple-200 shadow-sm' : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'"
+                  class="py-1.5 px-2 rounded-xl border text-xs font-bold transition text-left truncate"
+                >
+                  {{ h.label }}
+                </button>
+              </div>
+            </div>
+
+            <!-- 6. 髮色光學染色 (Hair Color Tint) -->
             <div>
               <label class="text-xs font-black text-cyan-400 flex items-center space-x-1.5 mb-2">
                 <span>🎨</span>
-                <span>{{ studioLpcOptions.gender === 'male' ? '第 5 層' : '第 4 層' }}：髮色光學染色 (Hair Color Tint)</span>
+                <span>第 4 層：髮色光學染色 (Hair Color Tint)</span>
               </label>
               <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <button 
@@ -1722,13 +1768,13 @@
               </div>
             </div>
 
-            <!-- 6. 靈魂五官瞳色 (Eye Color) -->
+            <!-- 7. 靈魂五官瞳色 (Eye Color) -->
             <div>
               <label class="text-xs font-black text-emerald-400 flex items-center space-x-1.5 mb-2">
                 <span>👁️</span>
-                <span>{{ studioLpcOptions.gender === 'male' ? '第 6 層' : '第 5 層' }}：五官眼神與瞳色 (Eye Color)</span>
+                <span>第 5 層：五官眼神與殺氣瞳色 (Eye Color)</span>
               </label>
-              <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 <button 
                   v-for="e in (LpcCompositor ? LpcCompositor.eyeColors : [])"
                   :key="e.id"
@@ -1741,18 +1787,18 @@
               </div>
             </div>
 
-            <!-- 7. 🌟 神兵武器裝備槽 (Weapons - 特工升級/轉職外掛槽位！) -->
+            <!-- 8. 🌟 神兵武器裝備槽 (Weapons - 特工升級/轉職外掛槽位！) -->
             <div class="p-3 bg-gradient-to-r from-amber-950/20 via-purple-950/20 to-slate-950 rounded-2xl border border-amber-500/30">
               <label class="text-xs font-black text-amber-300 flex items-center justify-between mb-2">
                 <span class="flex items-center space-x-1.5">
                   <span>⚔️</span>
-                  <span>神兵裝備槽 (Weapon Slot · 支援升級無縫外掛)</span>
+                  <span>神兵裝備槽 (Weapon Slot · 淬毒短匕 / 能量光刃)</span>
                 </span>
-                <span class="text-[10px] text-amber-400 font-mono bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                  Lv.30+ 神話特武
+                <span class="text-[10px] text-amber-400 font-mono bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 font-bold">
+                  {{ studioLpcOptions.roleClass === 'rogue' ? '🗡️ 刺客專屬淬毒短匕' : '⚡ 神話特武' }}
                 </span>
               </label>
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <button 
                   v-for="w in (LpcCompositor ? LpcCompositor.weapons : [])"
                   :key="w.id"
@@ -2857,15 +2903,63 @@
 
         // 👗 LPC 手繪真機合成器響應式狀態
         const studioLpcOptions = ref({
+          roleClass: 'valkyrie', // 'valkyrie' | 'rogue' | 'warrior'
           gender: 'female',
+          bodyType: 'female',
+          outfit: 'bodice_black',
           bodiceColor: 'black',
           hairStyle: 'bangslong',
           hairColor: 'blonde',
           eyeColor: 'purple',
+          mask: 'none',
+          hood: 'none',
+          beard: 'none',
+          weapon: 'none',
           enableBlush: true,
           framing: 'portrait',
           frame: 0
         });
+
+        function setStudioClass(cls) {
+          studioLpcOptions.value.roleClass = cls;
+          if (cls === 'rogue') {
+            studioLpcOptions.value.gender = 'female';
+            studioLpcOptions.value.bodyType = 'teen';
+            studioLpcOptions.value.outfit = 'bodice_leather';
+            studioLpcOptions.value.hairStyle = 'pigtails';
+            studioLpcOptions.value.hairColor = 'raven';
+            studioLpcOptions.value.eyeColor = 'red';
+            studioLpcOptions.value.mask = 'assassin_mask';
+            studioLpcOptions.value.hood = 'none';
+            studioLpcOptions.value.weapon = 'dagger';
+            studioLpcOptions.value.enableBlush = false;
+          } else if (cls === 'valkyrie') {
+            studioLpcOptions.value.gender = 'female';
+            studioLpcOptions.value.bodyType = 'female';
+            studioLpcOptions.value.outfit = 'bodice_black';
+            studioLpcOptions.value.hairStyle = 'bangslong';
+            studioLpcOptions.value.hairColor = 'blonde';
+            studioLpcOptions.value.eyeColor = 'purple';
+            studioLpcOptions.value.mask = 'none';
+            studioLpcOptions.value.hood = 'none';
+            studioLpcOptions.value.weapon = 'none';
+            studioLpcOptions.value.enableBlush = true;
+          } else if (cls === 'warrior') {
+            studioLpcOptions.value.gender = 'male';
+            studioLpcOptions.value.bodyType = 'male';
+            studioLpcOptions.value.outfit = 'armor_plate';
+            studioLpcOptions.value.hairStyle = 'spiked';
+            studioLpcOptions.value.hairColor = 'blonde';
+            studioLpcOptions.value.eyeColor = 'blue';
+            studioLpcOptions.value.mask = 'none';
+            studioLpcOptions.value.hood = 'none';
+            studioLpcOptions.value.beard = 'none';
+            studioLpcOptions.value.weapon = 'sword_glow_blue';
+            studioLpcOptions.value.enableBlush = false;
+          }
+          updateStudioPreview();
+          if (window.ValhallaAudio) window.ValhallaAudio.playEquipSound();
+        }
         const studioLpcPreviewUrl = ref('');
 
         async function updateStudioPreview() {
@@ -3877,6 +3971,7 @@
 
           LpcCompositor: (typeof window !== 'undefined' ? window.LpcCompositor : null),
           studioLpcOptions,
+          setStudioClass,
           studioLpcPreviewUrl,
           updateStudioPreview,
           onLpcOptionChange,
