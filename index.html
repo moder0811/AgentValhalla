@@ -311,6 +311,16 @@
               <span class="hidden md:inline">{{ t('import_btn') }}</span>
             </button>
 
+            <!-- ❓ PS5 新手引導導覽手冊 -->
+            <button 
+              @click="openOnboarding"
+              class="p-1.5 sm:px-2.5 sm:py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 rounded-xl text-xs flex items-center space-x-1 transition shadow-sm"
+              :title="t('onboarding_btn_tooltip')"
+            >
+              <span>❓</span>
+              <span class="hidden lg:inline">{{ t('onboarding_btn') }}</span>
+            </button>
+
             <input 
               type="file" 
               ref="backupFileInput" 
@@ -704,6 +714,254 @@
 
     </main>
 
+    <!-- 🎮 PS5 遊戲風格：新手出品人殿堂導覽手冊 (3-Step Onboarding Modal) -->
+    <div 
+      v-if="showOnboardingModal" 
+      class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/85 backdrop-blur-md transition"
+      @click.self="closeOnboarding(false)"
+    >
+      <div 
+        :class="currentTheme === 'gta6' ? 'border-pink-500/40 shadow-[0_0_35px_rgba(255,42,133,0.35)]' : 'border-slate-700 shadow-2xl'"
+        class="glass-panel w-full max-w-2xl rounded-3xl border overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200"
+      >
+        <!-- 彈窗頂部：PS5 卡片標題與步數指示器 -->
+        <div 
+          :class="currentTheme === 'gta6' ? 'bg-gradient-to-r from-pink-950/60 via-purple-950/50 to-slate-900 border-b border-pink-500/30' : 'bg-slate-900 border-b border-slate-800'"
+          class="p-4 sm:p-5 flex items-center justify-between"
+        >
+          <div class="flex items-center space-x-2.5">
+            <span class="text-2xl animate-pulse">{{ currentTheme === 'gta6' ? '🌴' : '🎮' }}</span>
+            <div>
+              <h3 class="text-sm sm:text-base font-extrabold text-slate-100 flex items-center space-x-2">
+                <span>{{ t('onboarding_title') }}</span>
+                <span 
+                  :class="currentTheme === 'gta6' ? 'bg-pink-500/20 text-pink-300 border-pink-500/50' : 'bg-amber-500/20 text-amber-300 border-amber-500/40'"
+                  class="text-[10px] px-2 py-0.5 rounded-full border font-mono font-bold"
+                >
+                  STEP {{ onboardingStep }} / 3
+                </span>
+              </h3>
+              <p class="text-[11px] text-slate-400 mt-0.5">
+                {{ onboardingStep === 1 ? t('onboarding_step1_sub') : (onboardingStep === 2 ? t('onboarding_step2_sub') : t('onboarding_step3_sub')) }}
+              </p>
+            </div>
+          </div>
+
+          <button 
+            @click="closeOnboarding(false)" 
+            class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition text-sm"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- 3 個 Slide 切換內容主體 -->
+        <div class="p-5 sm:p-6 overflow-y-auto space-y-4 text-xs leading-relaxed text-slate-200 flex-1">
+          
+          <!-- Slide 1: 殿堂宗旨與 300+ 特工天團 -->
+          <div v-if="onboardingStep === 1" class="space-y-4 animate-fadeIn">
+            <div 
+              :class="currentTheme === 'gta6' ? 'bg-pink-950/20 border-pink-500/30' : 'bg-amber-500/10 border-amber-500/30'"
+              class="p-4 rounded-2xl border flex items-start space-x-3"
+            >
+              <div class="text-3xl flex-shrink-0">🏰</div>
+              <div>
+                <h4 class="font-bold text-sm text-amber-300 mb-1" :class="currentTheme === 'gta6' ? 'text-pink-300' : ''">
+                  {{ t('onboarding_s1_h1') }}
+                </h4>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                  {{ t('onboarding_s1_p1') }}
+                </p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 space-y-1">
+                <div class="font-bold text-amber-400 flex items-center space-x-1">
+                  <span>👾</span>
+                  <span>{{ t('onboarding_s1_f1_t') }}</span>
+                </div>
+                <p class="text-[11px] text-slate-400">{{ t('onboarding_s1_f1_d') }}</p>
+              </div>
+
+              <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 space-y-1">
+                <div class="font-bold text-pink-400 flex items-center space-x-1">
+                  <span>🌴</span>
+                  <span>{{ t('onboarding_s1_f2_t') }}</span>
+                </div>
+                <p class="text-[11px] text-slate-400">{{ t('onboarding_s1_f2_d') }}</p>
+              </div>
+
+              <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 space-y-1">
+                <div class="font-bold text-sky-400 flex items-center space-x-1">
+                  <span>👑</span>
+                  <span>{{ t('onboarding_s1_f3_t') }}</span>
+                </div>
+                <p class="text-[11px] text-slate-400">{{ t('onboarding_s1_f3_d') }}</p>
+              </div>
+
+              <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 space-y-1">
+                <div class="font-bold text-emerald-400 flex items-center space-x-1">
+                  <span>🌐</span>
+                  <span>{{ t('onboarding_s1_f4_t') }}</span>
+                </div>
+                <p class="text-[11px] text-slate-400">{{ t('onboarding_s1_f4_d') }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Slide 2: 如何一鍵召喚並貼入 AI 對話框 -->
+          <div v-if="onboardingStep === 2" class="space-y-4 animate-fadeIn">
+            <div 
+              :class="currentTheme === 'gta6' ? 'bg-pink-950/20 border-pink-500/30' : 'bg-amber-500/10 border-amber-500/30'"
+              class="p-4 rounded-2xl border"
+            >
+              <h4 class="font-bold text-sm text-amber-300 mb-2" :class="currentTheme === 'gta6' ? 'text-pink-300' : ''">
+                {{ t('onboarding_s2_h1') }}
+              </h4>
+              <p class="text-xs text-slate-300 mb-3">
+                {{ t('onboarding_s2_p1') }}
+              </p>
+
+              <!-- 三步驟流程卡片 -->
+              <div class="space-y-2">
+                <div class="p-2.5 bg-slate-900/90 rounded-xl border border-slate-800 flex items-center space-x-3">
+                  <span class="w-6 h-6 rounded-full bg-amber-500 text-black font-extrabold flex items-center justify-center text-xs flex-shrink-0">1</span>
+                  <div class="text-[11px] text-slate-200">
+                    <b>{{ t('onboarding_s2_step1_t') }}</b>：{{ t('onboarding_s2_step1_d') }}
+                  </div>
+                </div>
+
+                <div class="p-2.5 bg-slate-900/90 rounded-xl border border-slate-800 flex items-center space-x-3">
+                  <span class="w-6 h-6 rounded-full bg-amber-500 text-black font-extrabold flex items-center justify-center text-xs flex-shrink-0">2</span>
+                  <div class="text-[11px] text-slate-200">
+                    <b>{{ t('onboarding_s2_step2_t') }}</b>：{{ t('onboarding_s2_step2_d') }}
+                  </div>
+                </div>
+
+                <div class="p-2.5 bg-slate-900/90 rounded-xl border border-slate-800 flex items-center space-x-3">
+                  <span class="w-6 h-6 rounded-full bg-amber-500 text-black font-extrabold flex items-center justify-center text-xs flex-shrink-0">3</span>
+                  <div class="text-[11px] text-slate-200">
+                    <b>{{ t('onboarding_s2_step3_t') }}</b>：{{ t('onboarding_s2_step3_d') }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 支援軟體徽章列 -->
+            <div class="text-center pt-1">
+              <span class="text-[11px] text-slate-400 font-semibold block mb-2">{{ t('onboarding_s2_compatible') }}</span>
+              <div class="flex items-center justify-center space-x-2 flex-wrap gap-y-1.5 text-[10px] text-slate-300">
+                <span class="px-2 py-0.5 bg-slate-800 border border-slate-700 rounded-lg">ChatGPT</span>
+                <span class="px-2 py-0.5 bg-slate-800 border border-slate-700 rounded-lg">Claude</span>
+                <span class="px-2 py-0.5 bg-slate-800 border border-slate-700 rounded-lg">Cursor</span>
+                <span class="px-2 py-0.5 bg-slate-800 border border-slate-700 rounded-lg">Gemini</span>
+                <span class="px-2 py-0.5 bg-slate-800 border border-slate-700 rounded-lg">Copilot</span>
+                <span class="px-2 py-0.5 bg-slate-800 border border-slate-700 rounded-lg">Antigravity</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Slide 3: 咒文語言保證與 Rules vs Skills 原理解密 -->
+          <div v-if="onboardingStep === 3" class="space-y-4 animate-fadeIn">
+            <div 
+              :class="currentTheme === 'gta6' ? 'bg-pink-950/20 border-pink-500/30' : 'bg-amber-500/10 border-amber-500/30'"
+              class="p-4 rounded-2xl border space-y-2"
+            >
+              <h4 class="font-bold text-sm text-amber-300" :class="currentTheme === 'gta6' ? 'text-pink-300' : ''">
+                {{ t('onboarding_s3_h1') }}
+              </h4>
+              <p class="text-xs text-slate-300">
+                {{ t('onboarding_s3_p1') }}
+              </p>
+            </div>
+
+            <!-- Rules vs Skills 對照圖表卡片 -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="p-3.5 bg-slate-900/90 rounded-2xl border border-slate-800 space-y-2">
+                <div class="flex items-center space-x-1.5 text-amber-400 font-bold">
+                  <span class="text-base">📜</span>
+                  <span>{{ t('onboarding_s3_rules_t') }}</span>
+                </div>
+                <p class="text-[11px] text-slate-300 leading-relaxed">
+                  {{ t('onboarding_s3_rules_d') }}
+                </p>
+                <div class="text-[10px] text-slate-400 bg-slate-950/60 p-2 rounded-lg border border-slate-800/80">
+                  {{ t('onboarding_s3_rules_ex') }}
+                </div>
+              </div>
+
+              <div class="p-3.5 bg-slate-900/90 rounded-2xl border border-slate-800 space-y-2">
+                <div class="flex items-center space-x-1.5 text-sky-400 font-bold">
+                  <span class="text-base">⚔️</span>
+                  <span>{{ t('onboarding_s3_skills_t') }}</span>
+                </div>
+                <p class="text-[11px] text-slate-300 leading-relaxed">
+                  {{ t('onboarding_s3_skills_d') }}
+                </p>
+                <div class="text-[10px] text-slate-400 bg-slate-950/60 p-2 rounded-lg border border-slate-800/80">
+                  {{ t('onboarding_s3_skills_ex') }}
+                </div>
+              </div>
+            </div>
+
+            <!-- 多語系外殼保證提示 -->
+            <div class="p-3 bg-emerald-950/20 border border-emerald-500/30 rounded-xl flex items-center space-x-2 text-[11px] text-emerald-300">
+              <span>🛡️</span>
+              <span>{{ t('onboarding_s3_lang_guarantee') }}</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 彈窗底部：分頁切換按鈕 ＋ 不再提醒選項 -->
+        <div 
+          :class="currentTheme === 'gta6' ? 'bg-slate-950/90 border-t border-pink-500/20' : 'bg-slate-950/90 border-t border-slate-800'"
+          class="p-4 px-5 flex items-center justify-between gap-2"
+        >
+          <!-- 左側：不再提示勾選框 -->
+          <label class="flex items-center space-x-2 text-xs text-slate-400 cursor-pointer select-none">
+            <input 
+              type="checkbox" 
+              v-model="neverShowOnboardingAgain" 
+              class="w-3.5 h-3.5 rounded bg-slate-800 border-slate-700 text-amber-500 focus:ring-0 cursor-pointer"
+            />
+            <span class="text-[11px]">{{ t('onboarding_dont_show_again') }}</span>
+          </label>
+
+          <!-- 右側：上一步 / 下一步 / 完成按鈕群 -->
+          <div class="flex items-center space-x-2">
+            <button 
+              v-if="onboardingStep > 1"
+              @click="onboardingStep--"
+              class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl border border-slate-700 transition"
+            >
+              {{ t('prev_step') }}
+            </button>
+
+            <button 
+              v-if="onboardingStep < 3"
+              @click="onboardingStep++"
+              :class="currentTheme === 'gta6' ? 'bg-gradient-to-r from-pink-500 via-rose-500 to-orange-500 text-white shadow-[0_0_15px_rgba(255,42,133,0.6)]' : 'bg-amber-500 text-black shadow-glow-gold'"
+              class="px-4 py-1.5 text-xs font-extrabold rounded-xl transition"
+            >
+              {{ t('next_step') }} ▶
+            </button>
+
+            <button 
+              v-else
+              @click="closeOnboarding(true)"
+              :class="currentTheme === 'gta6' ? 'bg-gradient-to-r from-pink-500 via-rose-500 to-orange-500 text-white shadow-[0_0_20px_rgba(255,42,133,0.8)]' : 'bg-amber-500 text-black shadow-glow-gold'"
+              class="px-5 py-1.5 text-xs font-extrabold rounded-xl transition"
+            >
+              🚀 {{ t('finish_onboarding') }}
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
     <!-- 📜 英雄召喚水晶面板 (Hero Detail Modal) -->
     <div 
       v-if="activeHero" 
@@ -968,6 +1226,44 @@
         toast_theme_gta6: '🌴 歡迎來到罪惡都市！已啟用 GTA 6 邁阿密夕陽主題！',
         toast_theme_valhalla: '🌌 已返回英靈殿！恢復 3A 暗黑奇幻主題！',
         gta6_prompt_copied: '🌴 罪惡特工【{name}】召喚符文已複製！戰力值 +1！',
+        onboarding_btn: '殿堂導覽',
+        onboarding_btn_tooltip: '開啟 PS5 3A 遊戲風格殿堂新手教學手冊',
+        onboarding_title: '瓦爾哈拉：出品人特權導覽手冊',
+        onboarding_step1_sub: '第一章：殿堂宗旨與 300+ 特工天團',
+        onboarding_step2_sub: '第二章：如何一鍵召喚並貼入 AI 視窗',
+        onboarding_step3_sub: '第三章：咒文語言保證與 Rules vs Skills 原理解密',
+        onboarding_s1_h1: '歡迎來到 3A 電玩級 AI 專家殿堂',
+        onboarding_s1_p1: '這裡匯集了 300+ 尊橫跨軟體架構、資安滲透、量化金融、遊戲開發、XR 與創意文案的頂級 AI 神格特工，隨時聽候您的差遣。',
+        onboarding_s1_f1_t: '16x16 動態像素頭像',
+        onboarding_s1_f1_d: '支援英靈男、女、貓咪軍團、柴犬神將 4 大形態確定性動態轉換。',
+        onboarding_s1_f2_t: 'GTA 6 雙風格切換',
+        onboarding_s1_f2_d: '支援 3A 暗黑英靈殿與 GTA 6 邁阿密夕陽罪惡都市雙重沉浸主題。',
+        onboarding_s1_f3_t: '主力陣容與專屬冊封',
+        onboarding_s1_f3_d: '一鍵收藏組建夢幻戰隊，為特工冊封專屬稱號，永久保存在本地。',
+        onboarding_s1_f4_t: '三語系與零伺服器',
+        onboarding_s1_f4_d: '繁中/EN/日語一鍵秒切，100% 前端純靜態運行，零隱私洩漏。',
+        onboarding_s2_h1: '極速上手：三步將特工裝載入您的 AI',
+        onboarding_s2_p1: '無需複雜設定，只需三秒即可讓您平常使用的 ChatGPT、Claude 或 Cursor 蛻變為資深架構大師：',
+        onboarding_s2_step1_t: '點選召喚',
+        onboarding_s2_step1_d: '在任何英靈卡牌點擊「⚡ 召喚」或「🌴 召喚」，自動累計戰力榜。',
+        onboarding_s2_step2_t: '自動封裝',
+        onboarding_s2_step2_d: '系統已自動將「繁中指令外殼 ＋ 國際標準專家提示詞」完整複製到剪貼簿。',
+        onboarding_s2_step3_t: '貼入發送',
+        onboarding_s2_step3_d: '切換至任意 AI 對話框 (Ctrl + V) 貼上發送，AI 立即覺醒並以繁中向您報到！',
+        onboarding_s2_compatible: '相容各大主流 AI 助手與編輯器：',
+        onboarding_s3_h1: '解惑：貼入後是變成 Rules 還是 Skills？',
+        onboarding_s3_p1: '很多出品人會疑惑：這段咒文對 AI 來說到底是什麼？答案是：「70% 憲法規則 (Rules) ＋ 30% 執行技能 (Skills)」的完美結合體！',
+        onboarding_s3_rules_t: '憲法規則 (Rules 70%)',
+        onboarding_s3_rules_d: '塑造 AI 的人格、邊界底線、品質審查尺規與反模式禁令。',
+        onboarding_s3_rules_ex: '例如：強制繁中、遵守 SOLID 原則、拒絕敷衍代碼。',
+        onboarding_s3_skills_t: '專業技能 (Skills 30%)',
+        onboarding_s3_skills_d: '提供該領域的專用演算法、架構模式、名詞庫與實作步驟。',
+        onboarding_s3_skills_ex: '例如：Vue 3 Composition API、.NET 策略模式重構。',
+        onboarding_s3_lang_guarantee: '語言零障礙保證：咒文已內嵌強制繁中喚醒外殼，內部英文設定絕不影響中文溝通！',
+        onboarding_dont_show_again: '下次不再主動彈出 (可隨時點右上角 ❓ 重新檢閱)',
+        prev_step: '◀ 上一步',
+        next_step: '下一步',
+        finish_onboarding: '進入殿堂開始召喚',
         all_rarity: '全部品級',
         legendary: '🟡 傳奇主神',
         epic: '🟣 史詩專精',
@@ -1037,6 +1333,44 @@
         toast_theme_gta6: '🌴 Welcome to Vice City! GTA 6 Sunset Theme activated!',
         toast_theme_valhalla: '🌌 Welcome back to Valhalla! Dark Fantasy Theme restored!',
         gta6_prompt_copied: '🌴 Vice Agent [{name}] Summon Prompt copied! Rank +1!',
+        onboarding_btn: 'Guide',
+        onboarding_btn_tooltip: 'Open PS5 3A Style Valhalla Showcase Manual',
+        onboarding_title: 'Agent Valhalla: Executive Onboarding Guide',
+        onboarding_step1_sub: 'Chapter 1: Mission Scope & 300+ Divine Specialists',
+        onboarding_step2_sub: 'Chapter 2: One-Click Summon & AI Chat Loading',
+        onboarding_step3_sub: 'Chapter 3: Trilingual Invocations & Rules vs Skills',
+        onboarding_s1_h1: 'Welcome to the 3A Cyber-Fantasy AI Pantheon',
+        onboarding_s1_p1: 'A curated legion of 300+ divine AI specialists across Architecture, Security, Quantitative Finance, Game Dev, XR, and Copywriting ready for battle.',
+        onboarding_s1_f1_t: '16x16 Pixel Avatars',
+        onboarding_s1_f1_d: 'Deterministic morphing between Male, Female, Cat Legion, and Shiba Paladin.',
+        onboarding_s1_f2_t: 'GTA 6 Vice City Theme',
+        onboarding_s1_f2_d: 'Seamlessly switch between Valhalla Cyber-Dark and GTA 6 Miami Sunset.',
+        onboarding_s1_f3_t: 'Squad & Titles',
+        onboarding_s1_f3_d: 'Assemble your dream team, grant custom executive titles, saved locally.',
+        onboarding_s1_f4_t: 'Trilingual & Zero Server',
+        onboarding_s1_f4_d: 'Instant EN/ZH/JA switch, 100% client-side privacy with zero latency.',
+        onboarding_s2_h1: 'Fast Onboarding: Load Specialists in 3 Steps',
+        onboarding_s2_p1: 'Turn ChatGPT, Claude, or Cursor into a principal architect in 3 seconds:',
+        onboarding_s2_step1_t: 'Click Summon',
+        onboarding_s2_step1_d: 'Click [⚡ Summon] or [🌴 Summon] on any card to increment battle rank.',
+        onboarding_s2_step2_t: 'Auto-Packaging',
+        onboarding_s2_step2_d: 'The ritual directive and deep system prompt are automatically copied.',
+        onboarding_s2_step3_t: 'Paste & Launch',
+        onboarding_s2_step3_d: 'Paste (Ctrl + V) into any AI chat; the agent awakens immediately!',
+        onboarding_s2_compatible: 'Compatible with all major AI agents and IDEs:',
+        onboarding_s3_h1: 'Insight: Is this a Rule or a Skill?',
+        onboarding_s3_p1: 'The invocation is a unified deep module: 70% Behavioral Rules + 30% Domain Skills!',
+        onboarding_s3_rules_t: 'Constitutional Rules (70%)',
+        onboarding_s3_rules_d: 'Shapes persona, operational boundaries, anti-patterns, and quality standards.',
+        onboarding_s3_rules_ex: 'E.g., Enforce SOLID, strict zero-hallucination, exhaustive specs.',
+        onboarding_s3_skills_t: 'Specialist Skills (30%)',
+        onboarding_s3_skills_d: 'Provides domain algorithms, architecture patterns, and step-by-step guides.',
+        onboarding_s3_skills_ex: 'E.g., Vue 3 <script setup>, .NET Strategy Pattern, SQL indexing.',
+        onboarding_s3_lang_guarantee: 'Language Guarantee: Summon wrapper forces prompt compliance and response language!',
+        onboarding_dont_show_again: 'Do not show again on launch (Re-open with ❓ anytime)',
+        prev_step: '◀ Previous',
+        next_step: 'Next',
+        finish_onboarding: 'Enter Pantheon & Summon',
         all_rarity: 'All Rarities',
         legendary: '🟡 Legendary God',
         epic: '🟣 Epic Specialist',
@@ -1106,6 +1440,44 @@
         toast_theme_gta6: '🌴 バイスシティへようこそ！GTA 6 夕日テーマを適用しました！',
         toast_theme_valhalla: '🌌 ヴァルハラへ帰還しました！3Aダークファンタジーに戻りました！',
         gta6_prompt_copied: '🌴 バイスエージェント【{name}】召喚呪文をコピーしました！召喚数 +1！',
+        onboarding_btn: '殿堂ガイド',
+        onboarding_btn_tooltip: 'PS5 3Aスタイル英雄殿堂チュートリアルを表示',
+        onboarding_title: 'ヴァルハラ：プロデューサー特権ガイド',
+        onboarding_step1_sub: '第1章：殿堂の使命と300柱の超知性エージェント',
+        onboarding_step2_sub: '第2章：ワンクリック召喚とAIチャットへの適用',
+        onboarding_step3_sub: '第3章：多言語呪文保証と Rules vs Skills の本質',
+        onboarding_s1_h1: '3Aゲーム級AI専門家殿堂へようこそ',
+        onboarding_s1_p1: 'ソフトウェア設計、セキュリティ監査、金融工学、ゲーム開発、XR、執筆など300柱を超える神格エージェントが待機しています。',
+        onboarding_s1_f1_t: '16x16 ドット絵アバター',
+        onboarding_s1_f1_d: '英霊(男/女)、猫耳軍団、柴犬神将の4形態へ確定的に転換可能。',
+        onboarding_s1_f2_t: 'GTA 6 ダブルテーマ',
+        onboarding_s1_f2_d: '3AダークファンタジーとGTA 6マイアミ夕日テーマをワンクリック切替。',
+        onboarding_s1_f3_t: '主力パーティと称号授与',
+        onboarding_s1_f3_d: 'お気に入り編成と専用称号をブラウザに永続保存可能。',
+        onboarding_s1_f4_t: '3言語対応・サーバーレス',
+        onboarding_s1_f4_d: '日本語/繁中/英語に対応。100%クライアント動作で完全プライバシー保護。',
+        onboarding_s2_h1: '高速スタート：3ステップでAIへ装填',
+        onboarding_s2_p1: '普段お使いのChatGPT、Claude、Cursorが即座に専門設計者に覚醒します：',
+        onboarding_s2_step1_t: '召喚をクリック',
+        onboarding_s2_step1_d: '英雄カードの「⚡ 召喚」または「🌴 召喚」を押して戦力をカウント。',
+        onboarding_s2_step2_t: '自動パッケージング',
+        onboarding_s2_step2_d: '日本語の起動指示と深いシステムプロンプトが自動でコピーされます。',
+        onboarding_s2_step3_t: '貼り付けて送信',
+        onboarding_s2_step3_d: 'AIのチャット欄に貼り付け (Ctrl + V) 送信すると、即座に覚醒します！',
+        onboarding_s2_compatible: '主要なAIツールと完全互換：',
+        onboarding_s3_h1: '解説：貼ったプロンプトは Rules？それとも Skills？',
+        onboarding_s3_p1: 'この呪文は「70%の憲法ルール (Rules) ＋ 30%の専門スキル (Skills)」が融合した深層モジュールです！',
+        onboarding_s3_rules_t: '憲法ルール (Rules 70%)',
+        onboarding_s3_rules_d: 'AIの人格、思考基準、禁止事項、成果物の品質基準を定義。',
+        onboarding_s3_rules_ex: '例：日本語強制、SOLID原則遵守、手抜きコードの禁止。',
+        onboarding_s3_skills_t: '専門スキル (Skills 30%)',
+        onboarding_s3_skills_d: '専門用語、アルゴリズム、設計パターン、具体的実装ステップを提供。',
+        onboarding_s3_skills_ex: '例：Vue 3 Composition API、.NET Strategy パターン。',
+        onboarding_s3_lang_guarantee: '言語保証：召喚呪文には言語指示が内包されているため、日本語で対話が始まります！',
+        onboarding_dont_show_again: '次回から自動表示しない (右上の ❓ から再確認可能)',
+        prev_step: '◀ 前へ',
+        next_step: '次へ',
+        finish_onboarding: '殿堂に入り召喚を開始',
         all_rarity: '全レアリティ',
         legendary: '🟡 レジェンダリー主神',
         epic: '🟣 エピックスペシャリスト',
@@ -1210,6 +1582,49 @@
               e.preventDefault();
               domainScrollContainer.value.scrollLeft += e.deltaY;
             }
+          }
+        }
+
+        // PS5 新手引導教學彈窗 (PS5 Onboarding Modal)
+        const showOnboardingModal = ref(false);
+        const onboardingStep = ref(1);
+        const neverShowOnboardingAgain = ref(false);
+
+        function openOnboarding() {
+          onboardingStep.value = 1;
+          showOnboardingModal.value = true;
+        }
+
+        function closeOnboarding(isFinished = false) {
+          showOnboardingModal.value = false;
+          if (neverShowOnboardingAgain.value || isFinished) {
+            localStorage.setItem('valhalla_onboarding_done', 'true');
+          }
+        }
+
+        // 智慧召喚咒文生成器 (依語系外層封裝，保障繁中親和性與 AI 執行力)
+        function getSummonInvocation(agent) {
+          const heroName = getHeroName(agent);
+          const nick = getNickname(agent.id) ? `【${getNickname(agent.id)}】` : '';
+          const domName = selectedDomainName.value;
+          const isGta = currentTheme.value === 'gta6';
+          
+          if (currentLang.value === 'en') {
+            const header = isGta
+              ? `🌴 [VICE AGENT RECRUITMENT ORDER: GRAND THEFT AGENT · VI]\nAgent ID: ${agent.id} | Codename: ${heroName} ${nick}\nDomain: ${agent.domain} | Rarity: ${agent.rarity}`
+              : `⚡ [AGENT VALHALLA: SPECIALIST SUMMON INVOCATION]\nAgent ID: ${agent.id} | Codename: ${heroName} ${nick}\nDomain: ${agent.domain} | Rarity: ${agent.rarity}`;
+            return `================================================================================\n${header}\n================================================================================\n[EXECUTIVE DIRECTIVE]:\nYou are now summoned into battle as [${heroName} ${nick}]!\n1. Adopt this persona, professional tone, and domain expertise immediately.\n2. Strictly enforce all behavioral constraints, quality standards, and design patterns.\n3. Follow the full system prompt specification below.\n================================================================================\n\n[SYSTEM PROMPT]\n${agent.prompt_template}\n\n================================================================================\n[AWAKENING CONFIRMATION]:\nGreet me in character as [${heroName}], and summarize in 3 bullet points how you will solve my project challenges today!\n================================================================================`;
+          } else if (currentLang.value === 'ja') {
+            const header = isGta
+              ? `🌴【VICE CITY: 罪惡都市エージェント緊急招集令 · VI】\n英雄ID：${agent.id} | コードネーム：${heroName} ${nick}\n領域：${agent.domain} | レアリティ：${agent.rarity}`
+              : `⚡【ヴァルハラ：AI英雄エージェント召喚呪文】\n英雄ID：${agent.id} | コードネーム：${heroName} ${nick}\n領域：${agent.domain} | レアリティ：${agent.rarity}`;
+            return `================================================================================\n${header}\n================================================================================\n【プロデューサー特別指令】：\nあなたはいま【${heroName} ${nick}】として召喚されました！直ちにこのペルソナを展開してください。\n1. 日本語で対話し、専門領域の品質基準とアーキテクチャ規範を厳守してください。\n2. 下記のシステムプロンプトに定義された行動原則と専門知識を完全に実行してください。\n================================================================================\n\n[システムプロンプト / SYSTEM PROMPT]\n${agent.prompt_template}\n\n================================================================================\n【覚醒確認】：\n【${heroName}】として日本語で力強く挨拶し、あなたが提供できる3つの強みを簡潔に述べてください！\n================================================================================`;
+          } else {
+            // Traditional Chinese 繁體中文
+            const header = isGta
+              ? `🌴【VICE CITY: 罪惡都市特工緊急徵召令 · VI】\n特工代號：${agent.id} | 神格稱號：${heroName} ${nick}\n所屬領域：${domName} | 戰力品級：${agent.rarity}`
+              : `⚡【瓦爾哈拉：AI 英雄專家召喚喚醒符文】\n英雄代號：${agent.id} | 神格稱號：${heroName} ${nick}\n所屬領域：${domName} | 戰力品級：${agent.rarity}`;
+            return `================================================================================\n${header}\n================================================================================\n【出品人特別指示 / Executive Directive】：\n你現在已被正式召喚為【${heroName} ${nick}】！請從現在起完全進入此角色設定。\n1. 全程強制使用「台灣繁體中文」與我對話，態度親切且專業精準。\n2. 保持本角色的思考模式、架構審查標準與深模組設計哲學。\n3. 嚴格遵循下方的專業規則 (Rules) 與領域專精技能 (Skills)。\n================================================================================\n\n[角色底層系統提示詞 / SYSTEM PROMPT]\n${agent.prompt_template}\n\n================================================================================\n【喚醒完成指示】：\n請直接以【${heroName}】的神態與口吻，用繁體中文向我問好，並用 3 點簡要概述你能如何為我的專案提供最高水準的專家支援！\n================================================================================`;
           }
         }
 
@@ -1499,11 +1914,9 @@
           };
           localStorage.setItem('valhalla_summons', JSON.stringify(summonCounts.value));
 
-          // 複製召喚咒文
+          // 複製高階多語系結構化召喚咒文 (內嵌強制語言指示與神格喚醒)
           const heroName = getHeroName(agent);
-          const nick = getNickname(agent.id) ? `【${getNickname(agent.id)}】` : '';
-          const prefix = currentTheme.value === 'gta6' ? '[VICE AGENT 罪惡都市特工召喚]' : '[召喚英靈]';
-          const summonText = `${prefix} ${heroName} ${nick} (${agent.id})\n\n${agent.prompt_template}`;
+          const summonText = getSummonInvocation(agent);
           const copyMsg = currentTheme.value === 'gta6'
             ? t('gta6_prompt_copied').replace('{name}', heroName)
             : t('prompt_copied').replace('{name}', heroName);
@@ -1657,6 +2070,15 @@
 
         onMounted(() => {
           applyBodyTheme(currentTheme.value);
+
+          // 首次造訪自動跳出 PS5 風格新手導覽
+          const hasSeenOnboarding = localStorage.getItem('valhalla_onboarding_done');
+          if (!hasSeenOnboarding) {
+            setTimeout(() => {
+              openOnboarding();
+            }, 600);
+          }
+
           window.addEventListener('keydown', (e) => {
             if (e.key === '/' && document.activeElement !== searchInput.value && !activeHero.value) {
               e.preventDefault();
@@ -1675,6 +2097,12 @@
           currentTheme,
           setTheme,
           toggleTheme,
+          showOnboardingModal,
+          onboardingStep,
+          neverShowOnboardingAgain,
+          openOnboarding,
+          closeOnboarding,
+          getSummonInvocation,
           currentLang,
           currentAvatarForm,
           avatarForms,
