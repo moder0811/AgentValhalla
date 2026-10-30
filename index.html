@@ -41,11 +41,11 @@
   <!-- Vue 3 CDN -->
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <!-- Local data script -->
-  <script src="agents_catalog.js?v=20261030_v14"></script>
+  <script src="agents_catalog.js?v=20261030_v15"></script>
   <!-- Pixel Avatar Engine -->
   <script src="pixel_avatar.js"></script>
   <!-- 0 KB Procedural Web Audio & RPG Engine -->
-  <script src="rpg_engine.js?v=20261030_v14"></script>
+  <script src="rpg_engine.js?v=20261030_v15"></script>
   <style>
     /* Custom scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -370,11 +370,11 @@
           
           <div class="flex items-center space-x-1.5 sm:space-x-2">
             
-            <!-- ◀ 左滑導航按鈕 (收合模式時顯示) -->
+            <!-- ◀ 左滑導航按鈕 (僅桌機端顯示，手機端全幅拇指原生滑動) -->
             <button
               v-if="!isDomainExpanded"
               @click="scrollDomainLeft"
-              class="w-7 h-7 rounded-lg bg-slate-900 border border-slate-700 hover:border-amber-400 text-slate-300 hover:text-amber-300 flex items-center justify-center text-xs flex-shrink-0 transition shadow-sm"
+              class="hidden sm:flex w-7 h-7 rounded-lg bg-slate-900 border border-slate-700 hover:border-amber-400 text-slate-300 hover:text-amber-300 items-center justify-center text-xs flex-shrink-0 transition shadow-sm"
               title="向左滑動"
             >
               ◀
@@ -411,20 +411,20 @@
               </button>
             </div>
 
-            <!-- ▶ 右滑導航按鈕 (收合模式時顯示) -->
+            <!-- ▶ 右滑導航按鈕 (僅桌機端顯示) -->
             <button
               v-if="!isDomainExpanded"
               @click="scrollDomainRight"
-              class="w-7 h-7 rounded-lg bg-slate-900 border border-slate-700 hover:border-amber-400 text-slate-300 hover:text-amber-300 flex items-center justify-center text-xs flex-shrink-0 transition shadow-sm"
+              class="hidden sm:flex w-7 h-7 rounded-lg bg-slate-900 border border-slate-700 hover:border-amber-400 text-slate-300 hover:text-amber-300 items-center justify-center text-xs flex-shrink-0 transition shadow-sm"
               title="向右滑動"
             >
               ▶
             </button>
 
-            <!-- ⊞ 展開 / ⊟ 收合 切換按鈕 (業界成熟解法：徹底解決多頁籤遮蔽問題) -->
+            <!-- ⊞ 展開 / ⊟ 收合 切換按鈕 (僅桌機端顯示，手機端鎖定單行防遮蔽) -->
             <button
               @click="isDomainExpanded = !isDomainExpanded"
-              class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 hover:border-amber-400 text-slate-300 hover:text-amber-300 text-xs flex items-center space-x-1 flex-shrink-0 transition shadow-sm"
+              class="hidden sm:flex px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 hover:border-amber-400 text-slate-300 hover:text-amber-300 text-xs items-center space-x-1 flex-shrink-0 transition shadow-sm"
               :title="isDomainExpanded ? '收合為單行滑動' : '展開全部領域清單'"
             >
               <span>{{ isDomainExpanded ? '⊟' : '⊞' }}</span>

@@ -1,7 +1,7 @@
 # 🎮 瓦爾哈拉 (AgentValhalla) RPG 升等系統、Web Audio 音效與手機端極致微調總結報告
 
 > **專案代號**：AgentValhalla (AI 英雄英靈殿 · 3A 電玩風格開源展台)  
-> **發布版本**：v2.8 Ultimate RPG & Mobile Edition (Cache Buster: `v=20261030_v14`)  
+> **發布版本**：v2.9 Pure Mobile & RPG Edition (Cache Buster: `v=20261030_v15`)  
 > **線上即時展台**：[https://moder0811.github.io/AgentValhalla/](https://moder0811.github.io/AgentValhalla/)  
 > **專案指揮官 / 出品人**：Baby (Moder Chen)  
 > **系統架構師**：瀨戶環奈 (Seto Kanna)  
@@ -29,6 +29,9 @@
 4. **手機端 (Mobile RWD) 黃金閱讀比例微調**：
    - 手機端頭像微縮至 44px (`w-11`)，釋放 30% 橫寬；桌機端保持 56px 霸氣 3A 大頭像；
    - 技能與適用場景標籤由 10px 螞蟻字升級至 11.5px，簡介提升至 13px 高對比亮灰，徹底解決手機端閱讀吃力問題。
+5. **領域分類欄手機端響應式純淨化 (`hidden sm:flex`)**：
+   - 手機端隱藏「◀」、「▶」箭頭與「⊞ 展開 (19)」按鈕，消除多層展開遮蔽特工卡牌的怪異體驗；
+   - 手機端 100% 釋放橫向寬度，鎖定為極致流暢的原生觸控拇指左右滑動，高度鎖死在 32px，視覺清爽通透。
 
 ---
 
@@ -145,8 +148,9 @@ function calculateLevelInfo(totalExp) {
 ## 🏆 交付簽核與儲存庫狀態 (Delivery Sign-Off)
 
 * 👑 **獨立展台庫**：[AgentValhalla](https://github.com/moder0811/AgentValhalla) (Commit: `375bc81`)
-  * Cache Buster 推進至：**`v=20261030_v14`**
+  * Cache Buster 推進至：**`v=20261030_v15`**
 * 🧰 **全域工具庫**：[AI_Agent_Tools](https://github.com/moder0811/AI_Agent_Tools) (Commit: `41e37a9`)
   * `MasterHeroList/` 目錄已 100% 同步推送完畢。
 
 所有程式碼、樣式、音效引擎、多語系字典與架構百科已全數完成部署，保證在全世界的桌機與手機瀏覽器上皆能享有最高規格的 3A 遊戲級沉浸體驗！
+
