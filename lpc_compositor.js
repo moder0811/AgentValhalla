@@ -3,6 +3,7 @@
  * ============================================================================
  * 工業級真實 hand-drawn PNG 像素賽璐珞圖層合成器
  * 核心原理：直接讀取 LPC 開源精靈圖，依 Z-index 階層在離屏 Canvas 進行像素對齊渲染
+ * 階層順序：Body素體 ➔ Head五官臉蛋 ➔ Blush腮紅 ➔ Eyes眼神 ➔ Bodice服飾 ➔ Hair長髮
  * 支援鏡頭特寫 (Bust Portrait 128x128) 與全身立繪 (Full Body)
  * 日期：2026-10-31
  * ============================================================================
@@ -69,10 +70,11 @@
    * 載入單一圖片並自動快取
    */
   function loadLpcImage(url) {
+    if (!url) return Promise.resolve(null);
     if (imageCache.has(url)) {
       return Promise.resolve(imageCache.get(url));
     }
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
       img.onload = () => {
@@ -80,8 +82,8 @@
         resolve(img);
       };
       img.onerror = (err) => {
-        console.warn(`[LpcCompositor] 無法載入圖層: ${url}`, err);
-        resolve(null); // 容錯：圖層載入失敗不阻斷整體合成
+        console.warn(`[LpcCompositor] 圖層載入略過: ${url}`);
+        resolve(null);
       };
       img.src = url;
     });
@@ -118,15 +120,7 @@
 
   /**
    * 核心多圖層合成函式 (Composite Core)
-   * @param {Object} options 合成參數
-   *   - gender: 'female' | 'male'
-   *   - bodiceColor: 'black' | 'red' | 'purple' | 'white' | ...
-   *   - hairStyle: 'bangslong' | 'curly_long' | 'bob' | ...
-   *   - hairColor: 'blonde' | 'silver' | 'pink' | 'purple' | 'crimson' | ...
-   *   - eyeColor: 'purple' | 'blue' | 'red' | 'green' | 'brown'
-   *   - frame: 0 (靜態幀) 或 1 (呼吸起伏幀)
-   *   - framing: 'portrait' (胸部特寫 128x128) 或 'fullbody' (全身 128x128)
-   *   - targetCanvas: 可選，若傳入則直接繪製於目標 Canvas 上
+   * 階層依序：Body ➔ Head ➔ Blush ➔ Eyes ➔ Bodice ➔ Hair
    */
   async function compositeCharacter(options = {}, targetCanvas = null) {
     const opts = {
@@ -135,18 +129,22 @@
       hairStyle: options.hairStyle || 'bangslong',
       hairColor: options.hairColor || 'blonde',
       eyeColor: options.eyeColor || 'purple',
+      enableBlush: options.enableBlush !== false, // 預設開啟可愛臉紅
       frame: (options.frame || 0) % 2,
       framing: options.framing || 'portrait',
       ...options
     };
 
     // 1. 解析資源路徑
-    const bodyUrl = `${LPC_ASSET_BASE}/body/${opts.gender === 'male' ? 'male' : 'female'}_idle.png`;
+    const isFemale = opts.gender === 'female';
+    const bodyUrl = `${LPC_ASSET_BASE}/body/${isFemale ? 'female' : 'male'}_idle.png`;
+    const headUrl = `${LPC_ASSET_BASE}/head/${isFemale ? 'female' : 'male'}_head_idle.png`;
+    const blushUrl = isFemale && opts.enableBlush ? `${LPC_ASSET_BASE}/head/female_blush_idle.png` : null;
     const eyeUrl = `${LPC_ASSET_BASE}/eyes/${opts.eyeColor}.png`;
     
     let bodiceUrl = null;
     if (opts.bodiceColor === 'armor_plate') {
-      bodiceUrl = `${LPC_ASSET_BASE}/armor/plate_${opts.gender === 'male' ? 'male' : 'female'}_idle.png`;
+      bodiceUrl = `${LPC_ASSET_BASE}/armor/plate_${isFemale ? 'female' : 'male'}_idle.png`;
     } else if (opts.bodiceColor !== 'none') {
       bodiceUrl = `${LPC_ASSET_BASE}/bodice/${opts.bodiceColor}.png`;
     }
@@ -154,8 +152,10 @@
     const hairUrl = `${LPC_ASSET_BASE}/hair/${opts.hairStyle}_idle.png`;
 
     // 2. 並行載入所有圖層
-    const [bodyImg, eyeImg, bodiceImg, hairImg] = await Promise.all([
+    const [bodyImg, headImg, blushImg, eyeImg, bodiceImg, hairImg] = await Promise.all([
       loadLpcImage(bodyUrl),
+      loadLpcImage(headUrl),
+      loadLpcImage(blushUrl),
       loadLpcImage(eyeUrl),
       bodiceUrl ? loadLpcImage(bodiceUrl) : Promise.resolve(null),
       loadLpcImage(hairUrl)
@@ -172,7 +172,7 @@
     // 4. 計算裁切區域 (LPC 格式：Row 2 為正面視角 Y: 128..191)
     const frameIndex = opts.frame; // 0 或 1
     const srcX = frameIndex * 64;
-    const srcY = 2 * 64; // Row 2 正面朝向
+    const srcY = 2 * 64; // Row 2 正面朝向 (Y: 128)
 
     // 依據鏡頭模式決定取景
     let sx, sy, sw, sh, dx, dy, dw, dh;
@@ -198,23 +198,33 @@
       dh = 128;
     }
 
-    // 5. 依 Z-Index 階層精確疊合繪製
-    // [Layer 1]: 女性/男性素體 (Body)
+    // 5. 依精密 Z-Index 階層疊合繪製
+    // [Layer 1]: 身軀素體 (Body) - 脖子以下人體線條
     if (bodyImg) {
       ctx.drawImage(bodyImg, sx, sy, sw, sh, dx, dy, dw, dh);
     }
 
-    // [Layer 2]: 靈魂五官瞳孔 (Eyes)
+    // [Layer 2]: 🌸 繪師手繪頭顱與臉蛋肌膚 (Head / Face) - 告別黑色空洞！
+    if (headImg) {
+      ctx.drawImage(headImg, sx, sy, sw, sh, dx, dy, dw, dh);
+    }
+
+    // [Layer 3]: 💕 少女微醺臉紅 (Sweet Blush)
+    if (blushImg) {
+      ctx.drawImage(blushImg, sx, sy, sw, sh, dx, dy, dw, dh);
+    }
+
+    // [Layer 4]: 靈魂五官瞳孔 (Eyes)
     if (eyeImg) {
       ctx.drawImage(eyeImg, sx, sy, sw, sh, dx, dy, dw, dh);
     }
 
-    // [Layer 3]: 性感馬甲 / 鎧甲 (Bodice / Armor)
+    // [Layer 5]: 性感馬甲 / 鎧甲 (Bodice / Armor)
     if (bodiceImg) {
       ctx.drawImage(bodiceImg, sx, sy, sw, sh, dx, dy, dw, dh);
     }
 
-    // [Layer 4]: 飄逸長髮 (Hair with dynamic tinting)
+    // [Layer 6]: 飄逸長髮 (Hair with dynamic tinting)
     if (hairImg) {
       const tintCfg = HAIR_PALETTES[opts.hairColor] || HAIR_PALETTES.blonde;
       const tintedHairCanvas = createTintedHairCanvas(hairImg, tintCfg, srcX, srcY);

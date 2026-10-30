@@ -32,7 +32,7 @@
           LPC 真實手繪像素圖層合成器
         </h1>
         <p class="text-[11px] text-slate-400">
-          以開源專業像素繪師實體 PNG 賽璐珞多軌疊合 · 100% 手繪質感 · 告別樂高方塊
+          全手繪實體 PNG 賽璐珞多軌疊合 (素體 ➔ 臉蛋 ➔ 腮紅 ➔ 眼神 ➔ 胸衣 ➔ 髮型) · 告別黑面與樂高感
         </p>
       </div>
     </div>
@@ -70,14 +70,18 @@
       </div>
 
       <!-- 視角切換與動態控制 -->
-      <div class="w-full grid grid-cols-2 gap-2 mt-4">
+      <div class="w-full grid grid-cols-3 gap-2 mt-4">
         <button id="toggleFramingBtn" class="py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 rounded-xl border border-slate-700 transition flex items-center justify-center space-x-1">
           <span>🔍</span>
-          <span id="toggleFramingText">切換為全身立繪</span>
+          <span id="toggleFramingText">切換全身</span>
+        </button>
+        <button id="toggleBlushBtn" class="py-2 bg-pink-500/20 hover:bg-pink-500/30 text-xs font-bold text-pink-300 rounded-xl border border-pink-500/40 transition flex items-center justify-center space-x-1">
+          <span>🌸</span>
+          <span id="toggleBlushText">臉紅: 開</span>
         </button>
         <button id="toggleAnimBtn" class="py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 rounded-xl border border-slate-700 transition flex items-center justify-center space-x-1">
           <span>🫁</span>
-          <span id="toggleAnimText">暫停動態呼吸</span>
+          <span id="toggleAnimText">暫停呼吸</span>
         </button>
       </div>
 
@@ -95,7 +99,7 @@
 
       <!-- 說明備註 -->
       <p class="text-[10px] text-slate-500 mt-3 text-center leading-relaxed">
-        ※ 100% 採用 LPC 開源繪師手繪素材 · 透過 Canvas 多層疊合與無損放大輸出
+        ※ 100% 採用 LPC 開源繪師手繪素材 · 包含完整的白皙臉部肌膚與靈魂眼神
       </p>
     </div>
 
@@ -106,16 +110,16 @@
       <div>
         <label class="text-xs font-black text-amber-400 flex items-center space-x-1.5 mb-2">
           <span>👤</span>
-          <span>第 1 層：身軀素體 (Body Layer)</span>
+          <span>第 1 層：身軀素體 (Body & Head Layer)</span>
         </label>
         <div class="grid grid-cols-2 gap-2" id="genderGroup">
           <button data-gender="female" class="gender-btn active py-2 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center space-x-1.5 bg-pink-500/20 border-pink-500 text-pink-200">
             <span>🛡️</span>
-            <span>女武神素體 (女性人體曲線)</span>
+            <span>女武神素體 (女性白皙臉蛋與身軀)</span>
           </button>
           <button data-gender="male" class="gender-btn py-2 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center space-x-1.5 bg-slate-800 border-slate-700 text-slate-400">
             <span>⚔️</span>
-            <span>男勇者素體 (健壯戰士身形)</span>
+            <span>男勇者素體 (健壯戰士五官與身形)</span>
           </button>
         </div>
       </div>
@@ -169,7 +173,7 @@
   </main>
 
   <!-- 引入 LPC 合成器核心 -->
-  <script src="./lpc_compositor.js?v=20261031_lpc1"></script>
+  <script src="./lpc_compositor.js?v=20261031_lpc2"></script>
 
   <script>
     // 即時設定狀態
@@ -179,6 +183,7 @@
       hairStyle: 'bangslong',
       hairColor: 'blonde',
       eyeColor: 'purple',
+      enableBlush: true,
       framing: 'portrait', // 'portrait' | 'fullbody'
       frame: 0,
       isAnimating: true
@@ -281,6 +286,7 @@
         hairStyle: state.hairStyle,
         hairColor: state.hairColor,
         eyeColor: state.eyeColor,
+        enableBlush: state.enableBlush,
         framing: state.framing,
         frame: state.frame
       }, canvas);
@@ -301,13 +307,22 @@
     document.getElementById('toggleFramingBtn').onclick = () => {
       state.framing = state.framing === 'portrait' ? 'fullbody' : 'portrait';
       document.getElementById('framingLabel').textContent = state.framing === 'portrait' ? '胸部黃金特寫 (128x128)' : '全身立繪視野 (128x128)';
-      document.getElementById('toggleFramingText').textContent = state.framing === 'portrait' ? '切換為全身立繪' : '切換為胸部特寫';
+      document.getElementById('toggleFramingText').textContent = state.framing === 'portrait' ? '切換全身' : '切換特寫';
+      render();
+    };
+
+    document.getElementById('toggleBlushBtn').onclick = () => {
+      state.enableBlush = !state.enableBlush;
+      document.getElementById('toggleBlushText').textContent = state.enableBlush ? '臉紅: 開' : '臉紅: 關';
+      document.getElementById('toggleBlushBtn').className = state.enableBlush 
+        ? 'py-2 bg-pink-500/20 hover:bg-pink-500/30 text-xs font-bold text-pink-300 rounded-xl border border-pink-500/40 transition flex items-center justify-center space-x-1'
+        : 'py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-400 rounded-xl border border-slate-700 transition flex items-center justify-center space-x-1';
       render();
     };
 
     document.getElementById('toggleAnimBtn').onclick = () => {
       state.isAnimating = !state.isAnimating;
-      document.getElementById('toggleAnimText').textContent = state.isAnimating ? '暫停動態呼吸' : '啟動動態呼吸';
+      document.getElementById('toggleAnimText').textContent = state.isAnimating ? '暫停呼吸' : '啟動呼吸';
       const badge = document.getElementById('animBadge');
       if (state.isAnimating) {
         badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span><span>動態呼吸運行中</span>';
