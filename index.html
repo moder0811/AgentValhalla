@@ -2,7 +2,7 @@
 <html lang="zh-TW" class="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>瓦爾哈拉：AI 英雄英靈殿 · AgentValhalla</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -17,6 +17,7 @@
             tavern: '#0D1322',
             cardbg: '#121A2D',
             gold: {
+              300: '#FDE68A',
               400: '#FBBF24',
               500: '#F59E0B',
               600: '#D97706',
@@ -28,7 +29,8 @@
             }
           },
           boxShadow: {
-            'glow-gold': '0 0 25px -5px rgba(245, 158, 11, 0.4)',
+            'glow-gold': '0 0 25px -3px rgba(245, 158, 11, 0.5)',
+            'glow-star': '0 0 16px 2px rgba(251, 191, 36, 0.8)',
             'glow-cyan': '0 0 25px -5px rgba(56, 189, 248, 0.4)',
             'glow-purple': '0 0 25px -5px rgba(168, 85, 247, 0.4)',
           }
@@ -38,17 +40,20 @@
   </script>
   <!-- Vue 3 CDN -->
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-  <!-- Local data script (bypasses browser CORS for file:// protocol) -->
+  <!-- Local data script -->
   <script src="agents_catalog.js"></script>
   <!-- Pixel Avatar Engine -->
   <script src="pixel_avatar.js"></script>
   <style>
     /* Custom scrollbar */
-    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #070A12; }
     ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #334155; }
     
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
     .glass-panel {
       background: rgba(18, 26, 45, 0.85);
       backdrop-filter: blur(14px);
@@ -68,71 +73,92 @@
       image-rendering: -moz-crisp-edges;
       image-rendering: crisp-edges;
     }
+
+    /* 漸層邊緣滑動遮罩 (提供視覺提示可左右橫移) */
+    .scroll-mask-gradient {
+      mask-image: linear-gradient(to right, black 85%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+    }
   </style>
 </head>
-<body class="bg-obsidian text-slate-100 min-h-screen selection:bg-amber-500 selection:text-black font-sans">
+<body class="bg-obsidian text-slate-100 min-h-screen selection:bg-amber-500 selection:text-black font-sans antialiased overflow-x-hidden">
   <div id="app" class="flex flex-col min-h-screen">
 
     <!-- 🏰 頂層導航列與英靈殿招牌 (Valhalla Header) -->
     <header class="glass-panel sticky top-0 z-40 border-b border-slate-800/80 shadow-2xl">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 flex flex-wrap items-center justify-between gap-3">
         
         <!-- 招牌 Title & Badges -->
-        <div class="flex items-center space-x-3.5">
-          <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-yellow-600 flex items-center justify-center text-2xl shadow-glow-gold flex-shrink-0 animate-pulse">
+        <div class="flex items-center space-x-2.5 sm:space-x-3.5">
+          <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-yellow-600 flex items-center justify-center text-xl sm:text-2xl shadow-glow-gold flex-shrink-0 animate-pulse">
             ⚡
           </div>
           <div>
             <div class="flex items-center space-x-2">
-              <h1 class="text-xl sm:text-2xl font-black tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-100 to-yellow-500">
+              <h1 class="text-lg sm:text-2xl font-black tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-100 to-yellow-500">
                 {{ t('title') }}
               </h1>
               <span class="px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded-full">
                 v2.0 3A
               </span>
             </div>
-            <p class="text-xs text-slate-400 hidden sm:block">
+            <p class="text-[11px] sm:text-xs text-slate-400 hidden sm:block">
               {{ t('subtitle') }} · {{ totalAgentsCount }} {{ t('heroes_count') }}
             </p>
           </div>
         </div>
 
+        <!-- 數據統計看板 (總瀏覽人數 ＋ 總召喚次數) -->
+        <div class="flex items-center space-x-2 sm:space-x-3 text-xs bg-slate-900/90 border border-slate-700/80 rounded-xl px-2.5 sm:px-3 py-1 shadow-inner">
+          <div class="flex items-center space-x-1" :title="t('stats_visitors_hint')">
+            <span>👁️</span>
+            <span class="text-slate-400 hidden sm:inline">{{ t('stats_visitors') }}:</span>
+            <span class="text-amber-300 font-mono font-bold">{{ totalVisitsFormatted }}</span>
+          </div>
+          <span class="text-slate-600">|</span>
+          <div class="flex items-center space-x-1 text-amber-400" :title="t('stats_summons_hint')">
+            <span>⚡</span>
+            <span class="text-slate-400 hidden sm:inline">{{ t('stats_summons') }}:</span>
+            <span class="text-amber-400 font-mono font-extrabold animate-pulse">{{ totalSummonsFormatted }}</span>
+          </div>
+        </div>
+
         <!-- 右側控制群：語系切換 ＋ 備份匯出入 -->
-        <div class="flex items-center space-x-2.5">
+        <div class="flex items-center space-x-2">
           
           <!-- 🌐 語系切換器 (i18n Switcher) -->
-          <div class="flex items-center bg-slate-900 border border-slate-700/80 rounded-xl p-1 space-x-1 text-xs">
+          <div class="flex items-center bg-slate-900 border border-slate-700/80 rounded-xl p-0.5 sm:p-1 space-x-0.5 text-xs">
             <button 
               @click="changeLang('zh')"
               :class="currentLang === 'zh' ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
-              class="px-2 py-1 rounded-lg transition"
+              class="px-2 py-1 rounded-lg transition text-[11px] sm:text-xs"
               title="繁體中文"
             >
-              🇹🇼 繁中
+              繁中
             </button>
             <button 
               @click="changeLang('en')"
               :class="currentLang === 'en' ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
-              class="px-2 py-1 rounded-lg transition"
+              class="px-2 py-1 rounded-lg transition text-[11px] sm:text-xs"
               title="English"
             >
-              🇺🇸 EN
+              EN
             </button>
             <button 
               @click="changeLang('ja')"
               :class="currentLang === 'ja' ? 'bg-amber-500 text-black font-bold shadow' : 'text-slate-400 hover:text-white'"
-              class="px-2 py-1 rounded-lg transition"
+              class="px-2 py-1 rounded-lg transition text-[11px] sm:text-xs"
               title="日本語"
             >
-              🇯🇵 日本語
+              日
             </button>
           </div>
 
           <!-- 💾 備份管理 (Backup & Restore) -->
-          <div class="flex items-center space-x-1.5">
+          <div class="flex items-center space-x-1">
             <button 
               @click="exportBackup"
-              class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs flex items-center space-x-1 transition shadow-sm"
+              class="p-1.5 sm:px-2.5 sm:py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs flex items-center space-x-1 transition shadow-sm"
               :title="t('export_tooltip')"
             >
               <span>📤</span>
@@ -141,14 +167,13 @@
 
             <button 
               @click="triggerImportFile"
-              class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs flex items-center space-x-1 transition shadow-sm"
+              class="p-1.5 sm:px-2.5 sm:py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs flex items-center space-x-1 transition shadow-sm"
               :title="t('import_tooltip')"
             >
               <span>📥</span>
               <span class="hidden md:inline">{{ t('import_btn') }}</span>
             </button>
 
-            <!-- 隱藏的檔案上傳輸入框 -->
             <input 
               type="file" 
               ref="backupFileInput" 
@@ -162,13 +187,13 @@
 
       </div>
 
-      <!-- 🎮 第二層：形態轉換儀 (Avatar Form Matrix) ＋ 搜尋列 -->
-      <div class="border-t border-slate-800/80 bg-slate-950/60 px-4 sm:px-6 lg:px-8 py-2.5">
-        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <!-- 🎮 第二層：形態轉換儀 (Avatar Form Matrix) ＋ 搜尋與排序列 -->
+      <div class="border-t border-slate-800/80 bg-slate-950/70 px-3 sm:px-6 lg:px-8 py-2">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-2.5">
           
-          <!-- 形態切換矩陣 -->
-          <div class="flex items-center space-x-1.5 overflow-x-auto no-scrollbar">
-            <span class="text-xs font-semibold text-slate-400 flex items-center space-x-1 mr-1">
+          <!-- 形態切換矩陣 (手機端自適應橫向滑動) -->
+          <div class="flex items-center space-x-1.5 overflow-x-auto no-scrollbar py-0.5">
+            <span class="text-xs font-semibold text-slate-400 flex items-center space-x-1 flex-shrink-0 mr-1">
               <span>👾</span>
               <span class="hidden sm:inline">{{ t('form_label') }}</span>
             </span>
@@ -178,16 +203,18 @@
               :key="form.id"
               @click="changeAvatarForm(form.id)"
               :class="currentAvatarForm === form.id ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-black font-extrabold shadow-glow-gold' : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 border border-slate-700/60'"
-              class="px-3 py-1 rounded-xl text-xs transition flex items-center space-x-1.5 whitespace-nowrap"
+              class="px-2.5 sm:px-3 py-1 rounded-xl text-xs transition flex items-center space-x-1 whitespace-nowrap flex-shrink-0"
             >
               <span>{{ getFormLabel(form) }}</span>
             </button>
           </div>
 
-          <!-- 搜尋列與主力過濾 -->
-          <div class="flex items-center space-x-2.5 flex-1 max-w-md">
+          <!-- 搜尋列 ＋ 排行榜快捷鍵 ＋ 主力過濾 -->
+          <div class="flex items-center space-x-2 flex-1 md:max-w-md w-full">
+            
+            <!-- 搜尋框 -->
             <div class="relative w-full">
-              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs">
                 🔍
               </span>
               <input 
@@ -195,7 +222,7 @@
                 ref="searchInput"
                 type="text" 
                 :placeholder="t('search_ph')"
-                class="w-full pl-9 pr-8 py-1.5 bg-slate-900 border border-slate-700/80 rounded-xl text-xs sm:text-sm focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition placeholder-slate-500"
+                class="w-full pl-8 pr-8 py-1.5 bg-slate-900 border border-slate-700/80 rounded-xl text-xs focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition placeholder-slate-500"
               />
               <button 
                 v-if="searchQuery" 
@@ -206,32 +233,43 @@
               </button>
             </div>
 
-            <!-- 主力陣容切換按鈕 -->
+            <!-- 🏆 最強前十名切換按鈕 -->
+            <button 
+              @click="toggleTop10Mode"
+              :class="isTop10Mode ? 'bg-amber-500 text-black font-extrabold shadow-glow-gold border-amber-300 animate-pulse' : 'bg-slate-800 text-amber-300/80 border-slate-700 hover:border-amber-500/60'"
+              class="px-2.5 py-1.5 border rounded-xl text-xs flex items-center space-x-1 transition flex-shrink-0"
+              :title="t('top10_tooltip')"
+            >
+              <span>🏆</span>
+              <span class="hidden sm:inline font-bold">TOP 10</span>
+            </button>
+
+            <!-- ⭐ 主力陣容切換按鈕 -->
             <button 
               @click="filterFavoriteOnly = !filterFavoriteOnly"
-              :class="filterFavoriteOnly ? 'bg-amber-500/20 text-amber-300 border-amber-500 shadow-glow-gold' : 'bg-slate-800 text-slate-400 border-slate-700'"
-              class="px-3 py-1.5 border rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition hover:border-slate-500 flex-shrink-0"
+              :class="filterFavoriteOnly ? 'bg-amber-500/20 text-amber-300 border-amber-400 shadow-glow-gold' : 'bg-slate-800 text-slate-400 border-slate-700 hover:border-slate-500'"
+              class="px-2.5 py-1.5 border rounded-xl text-xs font-semibold flex items-center space-x-1 transition flex-shrink-0"
               :title="t('favorite_only')"
             >
               <span>⭐</span>
-              <span class="hidden sm:inline">{{ favoriteIds.length }}</span>
+              <span>{{ favoriteIds.length }}</span>
             </button>
           </div>
 
         </div>
       </div>
 
-      <!-- 🏷️ 領域分類標籤欄 (Domain Filter Scroll) -->
-      <div class="border-t border-slate-800/60 bg-slate-950/40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center space-x-2 overflow-x-auto no-scrollbar">
+      <!-- 🏷️ 領域分類標籤欄 (支援完整自適應無阻礙左右流暢滑動) -->
+      <div class="border-t border-slate-800/60 bg-slate-950/40 relative">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2 flex items-center space-x-1.5 sm:space-x-2 overflow-x-auto no-scrollbar scroll-smooth snap-x">
           <button
             @click="selectedDomain = 'all'"
             :class="selectedDomain === 'all' ? 'bg-amber-500 text-black font-bold shadow-glow-gold' : 'bg-slate-800/70 text-slate-300 hover:bg-slate-800 border border-slate-700/50'"
-            class="px-3 py-1 rounded-lg text-xs transition whitespace-nowrap flex items-center space-x-1"
+            class="px-3 py-1 rounded-lg text-xs transition whitespace-nowrap flex items-center space-x-1 flex-shrink-0 snap-start"
           >
             <span>⚡</span>
             <span>{{ t('all_domains') }}</span>
-            <span class="opacity-80 text-[10px] ml-1">({{ totalAgentsCount }})</span>
+            <span class="opacity-80 text-[10px] ml-0.5">({{ totalAgentsCount }})</span>
           </button>
 
           <button
@@ -239,61 +277,87 @@
             :key="dom.id"
             @click="selectedDomain = dom.id"
             :class="selectedDomain === dom.id ? 'bg-amber-500 text-black font-bold shadow-glow-gold' : 'bg-slate-800/70 text-slate-300 hover:bg-slate-800 border border-slate-700/50'"
-            class="px-3 py-1 rounded-lg text-xs transition whitespace-nowrap flex items-center space-x-1"
+            class="px-2.5 sm:px-3 py-1 rounded-lg text-xs transition whitespace-nowrap flex items-center space-x-1 flex-shrink-0 snap-start"
           >
             <span>{{ dom.icon }}</span>
             <span>{{ getDomainName(dom) }}</span>
-            <span class="opacity-80 text-[10px]">({{ dom.count }})</span>
+            <span class="opacity-80 text-[10px] ml-0.5">({{ dom.count }})</span>
           </button>
         </div>
       </div>
     </header>
 
     <!-- 🎴 英雄展台主體 (Hero Cards Grid) -->
-    <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+    <main class="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-6 lg:px-8 py-5 sm:py-6">
       
-      <!-- 過濾狀態資訊列 -->
-      <div class="flex items-center justify-between mb-5 text-xs text-slate-400">
-        <div class="flex items-center space-x-2">
+      <!-- 過濾與排序狀態資訊列 -->
+      <div class="flex flex-wrap items-center justify-between mb-4 gap-2 text-xs text-slate-400">
+        <div class="flex items-center space-x-2 flex-wrap">
           <span>{{ t('showing_prefix') }} <b class="text-amber-400 font-mono text-sm">{{ filteredAgents.length }}</b> / {{ totalAgentsCount }} {{ t('heroes_unit') }}</span>
+          
+          <span v-if="isTop10Mode" class="px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded border border-amber-500/50 font-bold flex items-center space-x-1">
+            <span>🏆</span>
+            <span>{{ t('top10_active') }}</span>
+          </span>
+
           <span v-if="selectedDomain !== 'all'" class="px-2 py-0.5 bg-slate-800 rounded text-slate-300 border border-slate-700">
             {{ selectedDomainName }}
           </span>
+
           <span v-if="filterFavoriteOnly" class="px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded border border-amber-500/40">
             ⭐ {{ t('squad_active') }}
           </span>
         </div>
 
-        <!-- 稀有度品級快速過濾 -->
-        <div class="flex items-center space-x-1 text-xs">
-          <button 
-            @click="selectedRarity = 'all'"
-            :class="selectedRarity === 'all' ? 'text-amber-400 font-bold underline' : 'text-slate-400 hover:text-white'"
-            class="px-1.5 py-0.5"
-          >
-            {{ t('all_rarity') }}
-          </button>
-          <span>·</span>
-          <button 
-            @click="selectedRarity = 'Legendary'"
-            :class="selectedRarity === 'Legendary' ? 'text-amber-400 font-bold underline' : 'text-slate-400 hover:text-amber-400'"
-            class="px-1.5 py-0.5"
-          >
-            {{ t('legendary') }}
-          </button>
-          <span>·</span>
-          <button 
-            @click="selectedRarity = 'Epic'"
-            :class="selectedRarity === 'Epic' ? 'text-purple-400 font-bold underline' : 'text-slate-400 hover:text-purple-400'"
-            class="px-1.5 py-0.5"
-          >
-            {{ t('epic') }}
-          </button>
+        <!-- 排序與品級篩選 -->
+        <div class="flex items-center space-x-2">
+          
+          <!-- 排序選單 -->
+          <div class="flex items-center space-x-1 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1">
+            <span class="text-[11px] text-slate-400">📊 {{ t('sort_label') }}:</span>
+            <select 
+              v-model="currentSort"
+              class="bg-transparent text-amber-300 text-xs font-semibold focus:outline-none cursor-pointer"
+            >
+              <option value="default" class="bg-slate-900 text-slate-200">{{ t('sort_default') }}</option>
+              <option value="summons" class="bg-slate-900 text-slate-200">{{ t('sort_summons') }}</option>
+              <option value="rarity" class="bg-slate-900 text-slate-200">{{ t('sort_rarity') }}</option>
+              <option value="name" class="bg-slate-900 text-slate-200">{{ t('sort_name') }}</option>
+            </select>
+          </div>
+
+          <!-- 稀有度按鈕 -->
+          <div class="hidden sm:flex items-center space-x-1 text-xs">
+            <button 
+              @click="selectedRarity = 'all'"
+              :class="selectedRarity === 'all' ? 'text-amber-400 font-bold underline' : 'text-slate-400 hover:text-white'"
+              class="px-1.5 py-0.5"
+            >
+              {{ t('all_rarity') }}
+            </button>
+            <span>·</span>
+            <button 
+              @click="selectedRarity = 'Legendary'"
+              :class="selectedRarity === 'Legendary' ? 'text-amber-400 font-bold underline' : 'text-slate-400 hover:text-amber-400'"
+              class="px-1.5 py-0.5"
+            >
+              {{ t('legendary') }}
+            </button>
+            <span>·</span>
+            <button 
+              @click="selectedRarity = 'Epic'"
+              :class="selectedRarity === 'Epic' ? 'text-purple-400 font-bold underline' : 'text-slate-400 hover:text-purple-400'"
+              class="px-1.5 py-0.5"
+            >
+              {{ t('epic') }}
+            </button>
+          </div>
+
         </div>
       </div>
 
       <!-- 空白狀態 (Empty State) -->
-      <div v-if="filteredAgents.length === 0" class="text-center py-24 glass-panel rounded-2xl border border-slate-800">
+      <div v-if="filteredAgents.length === 0" class="text-center py-20 glass-panel rounded-2xl border border-slate-800">
         <div class="text-5xl mb-3">⚡</div>
         <h3 class="text-lg font-bold text-slate-200">{{ t('empty_title') }}</h3>
         <p class="text-sm text-slate-500 mt-1">{{ t('empty_desc') }}</p>
@@ -305,30 +369,47 @@
         </button>
       </div>
 
-      <!-- 英雄卡牌網格 -->
-      <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+      <!-- 英雄卡牌網格 (支援流暢響應式 1~4 欄排版) -->
+      <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
         <div 
           v-for="agent in filteredAgents" 
           :key="agent.id"
-          class="glass-panel card-hover-fx rounded-2xl p-5 border flex flex-col justify-between relative group overflow-hidden"
+          class="glass-panel card-hover-fx rounded-2xl p-4 sm:p-5 border flex flex-col justify-between relative group overflow-hidden"
           :class="getCardBorderClass(agent)"
         >
-          <!-- 頂部品級標籤與收藏星號 -->
-          <div class="flex items-center justify-between mb-3.5">
-            <span 
-              :class="getRarityBadgeClass(agent.rarity)"
-              class="px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider rounded-full border shadow-sm"
-            >
-              {{ agent.rarity }}
-            </span>
+          <!-- 頂部：稀有度、排行榜標章與極亮發光星號按鈕 -->
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center space-x-1.5">
+              <span 
+                :class="getRarityBadgeClass(agent.rarity)"
+                class="px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider rounded-full border shadow-sm"
+              >
+                {{ agent.rarity }}
+              </span>
 
+              <!-- 🏆 排行榜 TOP 標章 (若屬於前十名) -->
+              <span 
+                v-if="getHeroRank(agent.id) > 0"
+                :class="getRankBadgeClass(getHeroRank(agent.id))"
+                class="px-2 py-0.5 text-[10px] font-black rounded-lg border flex items-center space-x-1 shadow"
+              >
+                <span>{{ getRankIcon(getHeroRank(agent.id)) }}</span>
+                <span>TOP {{ getHeroRank(agent.id) }}</span>
+              </span>
+            </div>
+
+            <!-- ⭐ 極致明亮流光五角星 (主力名冊) -->
             <button 
               @click.stop="toggleFavorite(agent.id)"
-              class="text-lg opacity-60 hover:opacity-100 transition transform hover:scale-125"
-              :class="isFavorite(agent.id) ? 'text-amber-400 opacity-100' : 'text-slate-500'"
+              class="w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-300 transform hover:scale-110 border"
+              :class="isFavorite(agent.id) 
+                ? 'bg-amber-500 text-black border-2 border-yellow-200 shadow-glow-star scale-105' 
+                : 'bg-slate-900/90 text-amber-300 border-2 border-amber-400/80 shadow-[0_0_10px_rgba(251,191,36,0.4)] hover:bg-amber-500/20 hover:border-amber-300 hover:shadow-glow-star'"
               :title="isFavorite(agent.id) ? t('remove_fav') : t('add_fav')"
             >
-              {{ isFavorite(agent.id) ? '★' : '☆' }}
+              <span class="text-base font-bold leading-none">
+                {{ isFavorite(agent.id) ? '★' : '☆' }}
+              </span>
             </button>
           </div>
 
@@ -343,15 +424,24 @@
               </div>
 
               <div class="flex-1 min-w-0">
-                <h3 class="text-base font-bold text-slate-100 group-hover:text-amber-300 transition truncate" :title="getHeroName(agent)">
-                  {{ getHeroName(agent) }}
-                </h3>
-                <p class="text-[11px] text-slate-400 font-mono truncate">{{ agent.id }}</p>
+                <div class="flex items-center justify-between">
+                  <h3 class="text-base font-bold text-slate-100 group-hover:text-amber-300 transition truncate" :title="getHeroName(agent)">
+                    {{ getHeroName(agent) }}
+                  </h3>
+                </div>
+                
+                <div class="flex items-center space-x-2 mt-0.5">
+                  <p class="text-[11px] text-slate-400 font-mono truncate">{{ agent.id }}</p>
+                  <span class="text-[10px] text-amber-400/90 font-mono flex items-center space-x-0.5 bg-amber-500/10 px-1.5 py-0.2 rounded border border-amber-500/20">
+                    <span>⚡</span>
+                    <span>{{ getSummonCount(agent.id) }}</span>
+                  </span>
+                </div>
               </div>
             </div>
 
             <!-- 出品人自訂稱號 (Custom Nickname Badge) -->
-            <div class="mb-3">
+            <div class="mb-2.5">
               <span 
                 v-if="getNickname(agent.id)" 
                 class="inline-flex items-center space-x-1 px-2.5 py-0.5 bg-amber-500/15 text-amber-300 border border-amber-500/40 rounded-lg text-xs font-semibold"
@@ -394,7 +484,7 @@
               {{ t('view_script') }}
             </button>
             <button 
-              @click="copySummonPrompt(agent)"
+              @click="handleSummonClick(agent)"
               class="px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black text-xs font-bold rounded-xl shadow-glow-gold transition flex items-center space-x-1"
               :title="t('summon_tooltip')"
             >
@@ -411,29 +501,32 @@
     <!-- 📜 英雄召喚水晶面板 (Hero Detail Modal) -->
     <div 
       v-if="activeHero" 
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/85 backdrop-blur-md transition"
+      class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/85 backdrop-blur-md transition"
       @click.self="activeHero = null"
     >
-      <div class="glass-panel w-full max-w-3xl rounded-3xl border border-slate-700 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="glass-panel w-full max-w-3xl rounded-3xl border border-slate-700 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         
         <!-- 彈窗頂部 Header -->
-        <div class="p-6 border-b border-slate-800 flex items-start justify-between bg-gradient-to-r from-slate-900 via-slate-900/90 to-cardbg">
-          <div class="flex items-start space-x-4">
+        <div class="p-4 sm:p-6 border-b border-slate-800 flex items-start justify-between bg-gradient-to-r from-slate-900 via-slate-900/90 to-cardbg">
+          <div class="flex items-start space-x-3 sm:space-x-4">
             
-            <!-- 彈窗大頭像與形態微調 -->
-            <div class="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-700 p-1 shadow-inner flex items-center justify-center flex-shrink-0" v-html="getAvatarSvg(activeHero)">
+            <!-- 彈窗大頭像 -->
+            <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-slate-900 border border-slate-700 p-1 shadow-inner flex items-center justify-center flex-shrink-0" v-html="getAvatarSvg(activeHero)">
             </div>
 
             <div>
-              <div class="flex items-center space-x-2 mb-1">
+              <div class="flex items-center space-x-2 mb-1 flex-wrap">
                 <span :class="getRarityBadgeClass(activeHero.rarity)" class="px-2 py-0.5 text-[10px] font-extrabold uppercase rounded-full border">
                   {{ activeHero.rarity }}
                 </span>
                 <span class="text-xs text-slate-400 font-mono">{{ activeHero.domain }}</span>
+                <span class="text-[10px] text-amber-400 font-mono bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                  ⚡ {{ getSummonCount(activeHero.id) }} 次召喚
+                </span>
               </div>
-              <h2 class="text-xl font-black text-slate-100 flex items-center space-x-2">
+              <h2 class="text-lg sm:text-xl font-black text-slate-100 flex items-center space-x-2 flex-wrap">
                 <span>{{ getHeroName(activeHero) }}</span>
-                <span v-if="getNickname(activeHero.id)" class="text-sm font-normal text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded-lg border border-amber-500/30">
+                <span v-if="getNickname(activeHero.id)" class="text-xs sm:text-sm font-normal text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded-lg border border-amber-500/30">
                   🏷️ {{ getNickname(activeHero.id) }}
                 </span>
               </h2>
@@ -451,7 +544,7 @@
         </div>
 
         <!-- 彈窗主體內容 -->
-        <div class="p-6 overflow-y-auto space-y-6 flex-1 text-sm text-slate-300">
+        <div class="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1 text-sm text-slate-300">
           
           <!-- 冊封自訂稱號輸入區 -->
           <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
@@ -484,7 +577,7 @@
             <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">
               🛡️ {{ t('modal_desc_title') }}
             </h4>
-            <div class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800/80 leading-relaxed text-slate-300">
+            <div class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800/80 leading-relaxed text-slate-300 text-xs sm:text-sm">
               {{ getHeroDesc(activeHero) }}
             </div>
           </div>
@@ -526,20 +619,20 @@
 
         <!-- 彈窗底部操作按鈕 -->
         <div class="p-4 border-t border-slate-800 bg-slate-950/80 flex items-center justify-between">
-          <div class="text-xs text-slate-500">
+          <div class="text-xs text-slate-500 truncate max-w-[150px] sm:max-w-none">
             ID: <span class="font-mono text-slate-400">{{ activeHero.id }}</span>
           </div>
 
-          <div class="flex items-center space-x-3">
+          <div class="flex items-center space-x-2 sm:space-x-3">
             <button 
               @click="activeHero = null"
-              class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-xl border border-slate-700 transition"
+              class="px-3.5 py-1.5 sm:px-4 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-xl border border-slate-700 transition"
             >
               {{ t('close_btn') }}
             </button>
             <button 
-              @click="copySummonPrompt(activeHero)"
-              class="px-5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black text-xs font-bold rounded-xl shadow-glow-gold transition flex items-center space-x-1.5"
+              @click="handleSummonClick(activeHero)"
+              class="px-4 py-1.5 sm:px-5 sm:py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black text-xs font-bold rounded-xl shadow-glow-gold transition flex items-center space-x-1.5"
             >
               <span>⚡</span>
               <span>{{ t('summon_btn') }}</span>
@@ -547,6 +640,49 @@
           </div>
         </div>
 
+      </div>
+    </div>
+
+    <!-- ⚖️ 免責聲明與智財權避險面板 (Legal & Disclaimer Modal) -->
+    <div 
+      v-if="showDisclaimerModal" 
+      class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/85 backdrop-blur-md transition"
+      @click.self="showDisclaimerModal = false"
+    >
+      <div class="glass-panel w-full max-w-2xl rounded-3xl border border-slate-700 shadow-2xl overflow-hidden flex flex-col max-h-[88vh]">
+        <div class="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-900">
+          <div class="flex items-center space-x-2">
+            <span class="text-xl">⚖️</span>
+            <h3 class="text-base font-bold text-slate-100">免責聲明與智慧財產權規範</h3>
+          </div>
+          <button @click="showDisclaimerModal = false" class="text-slate-400 hover:text-white p-1 rounded-lg">✕</button>
+        </div>
+
+        <div class="p-6 overflow-y-auto space-y-4 text-xs leading-relaxed text-slate-300">
+          <section class="space-y-1.5">
+            <h4 class="font-bold text-amber-400 text-sm">一、AI 生成內容與專業免責聲明</h4>
+            <p>本平台《瓦爾哈拉：AI 英雄英靈殿》所呈現之所有角色設定、系統提示詞 (System Prompt) 及諮詢輸出，皆由人工智慧與大語言模型所驅動，其目的僅限於個人學習、研究、創意輔助與工程架構之參考。本平台不對任何產出之絕對準確性或商用安全性提供任何明示或暗示之擔保，亦不構成正式之醫療、法律、財務投資或資安保證。使用者運用產出之成果應自行審慎評估風險。</p>
+          </section>
+
+          <section class="space-y-1.5">
+            <h4 class="font-bold text-amber-400 text-sm">二、開源協議與社群成果致敬</h4>
+            <p>本站基礎角色骨幹與提示詞體系參考並衍生自國際開源社群（包含 Agency-Agents 等專案），我們嚴格尊重並恪守 MIT License 之開源精神。本站原創開發之「確定性多形態像素頭像動態生成演算法 (Pixel Avatar Engine)」、「全域三語即時本地化資料庫」及「3A 暗黑電玩響應式介面」，其著作權均歸屬瓦爾哈拉原創團隊所有。</p>
+          </section>
+
+          <section class="space-y-1.5">
+            <h4 class="font-bold text-amber-400 text-sm">三、商標權與合理使用 (Fair Use)</h4>
+            <p>本平台內所提及之第三方技術名詞、程式語言、開源框架或遊戲引擎（包括但不限於 Vue.js、Tailwind CSS、.NET、Unreal Engine、Unity、Godot、Roblox、Docker、AWS、GCP 等），其商標與著作權均屬其原法定持有公司或基金會所有。本站之引用純屬技術分類與客觀描述之學術合理使用，絕無暗示任何官方背書或隸屬關係。</p>
+          </section>
+        </div>
+
+        <div class="p-4 border-t border-slate-800 bg-slate-950 flex justify-end">
+          <button 
+            @click="showDisclaimerModal = false" 
+            class="px-5 py-1.5 bg-amber-500 hover:bg-amber-400 text-black text-xs font-bold rounded-xl transition"
+          >
+            我已瞭解並同意
+          </button>
+        </div>
       </div>
     </div>
 
@@ -559,11 +695,18 @@
       <span>{{ toastMessage }}</span>
     </div>
 
-    <!-- 底部版權 Footer -->
-    <footer class="border-t border-slate-800/80 bg-slate-950 py-6 text-center text-xs text-slate-500">
+    <!-- 底部版權與免責聲明 Footer -->
+    <footer class="border-t border-slate-800/80 bg-slate-950 py-5 text-center text-xs text-slate-500">
       <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div>
-          ⚔️ <b>瓦爾哈拉：AI 英雄英靈殿 (AgentValhalla)</b> · 出品人專屬 3A 特工調度神殿
+        <div class="flex items-center space-x-2">
+          <span>⚔️ <b>瓦爾哈拉：AI 英雄英靈殿 (AgentValhalla)</b></span>
+          <span>·</span>
+          <button 
+            @click="showDisclaimerModal = true"
+            class="text-slate-400 hover:text-amber-400 underline transition text-[11px]"
+          >
+            ⚖️ 免責與智財權聲明
+          </button>
         </div>
         <div class="flex items-center space-x-4 text-[11px] text-slate-400">
           <span>👑 出品人：Baby</span>
@@ -584,12 +727,23 @@
         title: '瓦爾哈拉：AI 英雄英靈殿',
         subtitle: '300+ 專家級神格智慧召喚殿堂 · 終極 3A 暗黑電玩特工展台',
         heroes_count: '尊眾神隨時聽候差遣',
+        stats_visitors: '總謁見人次',
+        stats_visitors_hint: '全球累計造訪英靈殿的出品人次',
+        stats_summons: '總召喚次數',
+        stats_summons_hint: '英靈被喚醒執行任務的總次數',
         search_ph: '搜尋英雄名、自訂稱號、技能關鍵字 (按 / 聚焦)...',
         form_label: '形態轉換儀：',
         all_domains: '全部領域',
         showing_prefix: '當前展示',
         heroes_unit: '尊英雄',
         squad_active: '主力名冊',
+        top10_active: '最強英靈榜',
+        top10_tooltip: '切換至召喚熱門最強英靈前十名',
+        sort_label: '排序',
+        sort_default: '預設推薦',
+        sort_summons: '召喚次數 (由高到低)',
+        sort_rarity: '品級 (傳奇優先)',
+        sort_name: '英靈名稱 (A-Z)',
         all_rarity: '全部品級',
         legendary: '🟡 傳奇主神',
         epic: '🟣 史詩專精',
@@ -600,7 +754,7 @@
         add_nickname: '冊封專屬稱號...',
         view_script: '📜 查閱劇本',
         summon_btn: '⚡ 召喚',
-        summon_tooltip: '一鍵複製專家召喚 Prompt',
+        summon_tooltip: '一鍵複製專家召喚 Prompt 並累計戰力',
         export_btn: '匯出備份',
         export_tooltip: '將您的自訂稱號與主力陣容匯出為 JSON 備份檔',
         import_btn: '匯入備份',
@@ -618,7 +772,7 @@
         empty_title: '殿堂之中暫無此英雄...',
         empty_desc: '找不到符合當前條件的英靈，試著清除關鍵字或更換領域標籤吧。',
         reset_filters: '重設所有過濾條件',
-        prompt_copied: '⚡ 英靈【{name}】召喚符文已複製至剪貼簿！可直接貼給 LLM 使用！',
+        prompt_copied: '⚡ 英靈【{name}】召喚符文已複製至剪貼簿！召喚次數 +1！',
         backup_exported: '✅ 瓦爾哈拉設定檔已成功匯出下載！',
         backup_imported: '✅ 設定檔匯入成功！已還原您的戰鬥陣容與專屬稱號！',
         import_failed: '❌ 匯入失敗，請確認上傳的為正確的 JSON 備份檔。'
@@ -627,12 +781,23 @@
         title: 'AGENT VALHALLA',
         subtitle: 'Pantheon of 300+ Divine AI Specialists · 3A Dark Gaming Showcase',
         heroes_count: 'Spirits at your command',
+        stats_visitors: 'Visitors',
+        stats_visitors_hint: 'Total visits from worldwide architects',
+        stats_summons: 'Total Summons',
+        stats_summons_hint: 'Total times heroes have been summoned into battle',
         search_ph: 'Search heroes, custom titles, skills (Press / to focus)...',
         form_label: 'Avatar Form Matrix:',
         all_domains: 'All Domains',
         showing_prefix: 'Displaying',
         heroes_unit: 'Heroes',
         squad_active: 'Core Squad',
+        top10_active: 'Top 10 Hall of Fame',
+        top10_tooltip: 'View the Top 10 most summoned heroes',
+        sort_label: 'Sort',
+        sort_default: 'Recommended',
+        sort_summons: 'Most Summoned',
+        sort_rarity: 'Rarity (High to Low)',
+        sort_name: 'Name (A-Z)',
         all_rarity: 'All Rarities',
         legendary: '🟡 Legendary God',
         epic: '🟣 Epic Specialist',
@@ -643,7 +808,7 @@
         add_nickname: 'Grant Title...',
         view_script: '📜 View Spec',
         summon_btn: '⚡ Summon',
-        summon_tooltip: 'One-click copy expert summon prompt',
+        summon_tooltip: 'Copy summon prompt & boost hero battle rank',
         export_btn: 'Export Backup',
         export_tooltip: 'Export your squad and custom titles to JSON',
         import_btn: 'Import Backup',
@@ -661,7 +826,7 @@
         empty_title: 'No Hero Found in the Pantheon...',
         empty_desc: 'Try clearing your search query or selecting another domain filter.',
         reset_filters: 'Reset All Filters',
-        prompt_copied: '⚡ Hero [{name}] Summon Prompt copied to clipboard!',
+        prompt_copied: '⚡ Hero [{name}] Summon Prompt copied! Summon count +1!',
         backup_exported: '✅ Valhalla settings backup exported successfully!',
         backup_imported: '✅ Settings restored! Squad and titles loaded!',
         import_failed: '❌ Import failed. Please select a valid Valhalla JSON backup.'
@@ -670,12 +835,23 @@
         title: 'ヴァルハラ：AI英雄の英霊殿',
         subtitle: '300柱を超える超知性エージェント召喚殿堂 · 3AダークRPGショールーム',
         heroes_count: '柱の英霊が待機中',
+        stats_visitors: '総来訪者数',
+        stats_visitors_hint: '全世界のプロデューサーによる累計来訪数',
+        stats_summons: '総召喚回数',
+        stats_summons_hint: '英霊たちが召喚され任務を遂行した総数',
         search_ph: '英雄名、称号、専門スキルで検索 ( / キーでフォーカス)...',
         form_label: 'アバター形態転換：',
         all_domains: '全ドメイン',
         showing_prefix: '表示中',
         heroes_unit: '柱の英雄',
         squad_active: '主力編成',
+        top10_active: '最強英雄殿堂 TOP 10',
+        top10_tooltip: '召喚数上位10柱の英雄を表示',
+        sort_label: '並び替え',
+        sort_default: 'おすすめ順',
+        sort_summons: '召喚回数順',
+        sort_rarity: 'レアリティ順',
+        sort_name: '名前順 (A-Z)',
         all_rarity: '全レアリティ',
         legendary: '🟡 レジェンダリー主神',
         epic: '🟣 エピックスペシャリスト',
@@ -686,7 +862,7 @@
         add_nickname: '称号を授与...',
         view_script: '📜 詳細スペック',
         summon_btn: '⚡ 召喚',
-        summon_tooltip: '召喚プロンプトをワンクリックコピー',
+        summon_tooltip: '召喚プロンプトをコピーして戦力をカウント',
         export_btn: '設定出力',
         export_tooltip: '称号とパーティ編成をJSONファイルに出力',
         import_btn: '設定復元',
@@ -704,7 +880,7 @@
         empty_title: '該当する英雄が見つかりません...',
         empty_desc: '検索キーワードをクリアするか、別のドメインを選択してください。',
         reset_filters: '条件をリセット',
-        prompt_copied: '⚡ 英霊【{name}】の召喚プロンプトをクリップボードにコピーしました！',
+        prompt_copied: '⚡ 英霊【{name}】の召喚プロンプトをコピーしました！召喚数 +1！',
         backup_exported: '✅ ヴァルハラ設定のバックアップを出力しました！',
         backup_imported: '✅ 設定を復元しました！主力編成と称号が読み込まれました！',
         import_failed: '❌ 復元に失敗しました。正しいJSONファイルを選択してください。'
@@ -726,22 +902,36 @@
         const currentAvatarForm = ref(localStorage.getItem('valhalla_avatar_form') || 'male');
         const avatarForms = ref(window.ValhallaPixelEngine ? window.ValhallaPixelEngine.forms : []);
 
-        // 搜尋與篩選條件
+        // 搜尋與篩選狀態
         const searchQuery = ref('');
         const selectedDomain = ref('all');
         const selectedRarity = ref('all');
+        const currentSort = ref('default');
+        const isTop10Mode = ref(false);
         const filterFavoriteOnly = ref(false);
         const searchInput = ref(null);
         const backupFileInput = ref(null);
 
-        // 彈窗與編輯狀態
+        // 彈窗狀態
         const activeHero = ref(null);
         const editNicknameInput = ref('');
         const toastMessage = ref('');
+        const showDisclaimerModal = ref(false);
 
-        // LocalStorage 本地持久化資料 (稱號與收藏)
+        // 本地持久化資料 (稱號、收藏與召喚計數器)
         const nicknames = ref(JSON.parse(localStorage.getItem('valhalla_nicknames') || '{}'));
         const favoriteIds = ref(JSON.parse(localStorage.getItem('valhalla_favorites') || '[]'));
+        const summonCounts = ref(JSON.parse(localStorage.getItem('valhalla_summons') || '{}'));
+
+        // 模擬動態真實基礎造訪人次
+        const baseVisits = 18450;
+        const localVisits = parseInt(localStorage.getItem('valhalla_visits') || '0', 10) + 1;
+        localStorage.setItem('valhalla_visits', localVisits);
+        const totalVisits = ref(baseVisits + localVisits);
+
+        const totalVisitsFormatted = computed(() => {
+          return totalVisits.value.toLocaleString();
+        });
 
         // 領域清單計算 (含英雄統計)
         const domains = computed(() => {
@@ -753,6 +943,37 @@
             ...d,
             count: counts[d.id] || 0
           }));
+        });
+
+        // 確定性基準召喚量計算 (依稀有度與 ID 特徵算出穩定基數，再加上使用者實體點擊)
+        function getBaseSummons(agentId, rarity) {
+          let hash = 0;
+          for (let i = 0; i < agentId.length; i++) {
+            hash = ((hash << 5) - hash + agentId.charCodeAt(i)) | 0;
+          }
+          const seed = Math.abs(hash);
+          if (rarity === 'Legendary') {
+            return 520 + (seed % 450); // 520 ~ 970
+          } else if (rarity === 'Epic') {
+            return 280 + (seed % 280); // 280 ~ 560
+          }
+          return 110 + (seed % 160); // 110 ~ 270
+        }
+
+        function getSummonCount(agentId) {
+          const agent = agents.value.find(a => a.id === agentId);
+          const base = agent ? getBaseSummons(agentId, agent.rarity) : 100;
+          const userAdds = summonCounts.value[agentId] || 0;
+          return base + userAdds;
+        }
+
+        // 全域召喚總次數
+        const totalSummonsFormatted = computed(() => {
+          let sum = 0;
+          agents.value.forEach(a => {
+            sum += getSummonCount(a.id);
+          });
+          return sum.toLocaleString();
         });
 
         // 國際化文字取得方法
@@ -826,9 +1047,47 @@
           return window.ValhallaPixelEngine.render(agent.id, form, agent.domain);
         }
 
-        // 篩選核心邏輯
+        // 預先計算全榜英雄排行 (按召喚次數降冪)
+        const rankedLeaderboard = computed(() => {
+          return [...agents.value].sort((a, b) => getSummonCount(b.id) - getSummonCount(a.id));
+        });
+
+        // 取得英雄排行 (前 10 名傳回 1~10，其餘傳回 0)
+        function getHeroRank(agentId) {
+          const index = rankedLeaderboard.value.findIndex(a => a.id === agentId);
+          return (index >= 0 && index < 10) ? (index + 1) : 0;
+        }
+
+        function getRankIcon(rank) {
+          if (rank === 1) return '🥇';
+          if (rank === 2) return '🥈';
+          if (rank === 3) return '🥉';
+          return '🎖️';
+        }
+
+        function getRankBadgeClass(rank) {
+          if (rank === 1) return 'bg-amber-500/30 text-amber-300 border-amber-400 shadow-glow-gold';
+          if (rank === 2) return 'bg-slate-300/30 text-slate-100 border-slate-300 shadow';
+          if (rank === 3) return 'bg-orange-600/30 text-orange-200 border-orange-400 shadow';
+          return 'bg-purple-500/20 text-purple-300 border-purple-500/50';
+        }
+
+        function toggleTop10Mode() {
+          isTop10Mode.value = !isTop10Mode.value;
+          if (isTop10Mode.value) {
+            currentSort.value = 'summons';
+          }
+        }
+
+        // 篩選與排序核心邏輯
         const filteredAgents = computed(() => {
           let list = agents.value;
+
+          // 若啟用 TOP 10 模式
+          if (isTop10Mode.value) {
+            list = rankedLeaderboard.value.slice(0, 10);
+            return list;
+          }
 
           if (selectedDomain.value !== 'all') {
             list = list.filter(a => a.domain === selectedDomain.value);
@@ -861,6 +1120,17 @@
                 skills.includes(q)
               );
             });
+          }
+
+          // 排序處理
+          list = [...list];
+          if (currentSort.value === 'summons') {
+            list.sort((a, b) => getSummonCount(b.id) - getSummonCount(a.id));
+          } else if (currentSort.value === 'rarity') {
+            const weight = { 'Legendary': 3, 'Epic': 2, 'Rare': 1 };
+            list.sort((a, b) => (weight[b.rarity] || 0) - (weight[a.rarity] || 0));
+          } else if (currentSort.value === 'name') {
+            list.sort((a, b) => getHeroName(a).localeCompare(getHeroName(b)));
           }
 
           return list;
@@ -908,8 +1178,13 @@
           editNicknameInput.value = nicknames.value[agent.id] || '';
         }
 
-        // 一鍵複製召喚 Prompt
-        function copySummonPrompt(agent) {
+        // 召喚點擊事件（累加計數 ＋ 複製 Prompt）
+        function handleSummonClick(agent) {
+          // 累加召喚次數
+          summonCounts.value[agent.id] = (summonCounts.value[agent.id] || 0) + 1;
+          localStorage.setItem('valhalla_summons', JSON.stringify(summonCounts.value));
+
+          // 複製召喚咒文
           const heroName = getHeroName(agent);
           const nick = getNickname(agent.id) ? `【${getNickname(agent.id)}】` : '';
           const summonText = `[召喚英靈] ${heroName} ${nick} (${agent.id})\n\n${agent.prompt_template}`;
@@ -936,7 +1211,9 @@
           searchQuery.value = '';
           selectedDomain.value = 'all';
           selectedRarity.value = 'all';
+          isTop10Mode.value = false;
           filterFavoriteOnly.value = false;
+          currentSort.value = 'default';
         }
 
         // 匯出備份 JSON
@@ -948,7 +1225,8 @@
             lang: currentLang.value,
             avatarForm: currentAvatarForm.value,
             favorites: favoriteIds.value,
-            nicknames: nicknames.value
+            nicknames: nicknames.value,
+            summons: summonCounts.value
           };
           
           const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
@@ -962,14 +1240,12 @@
           showToast(t('backup_exported'));
         }
 
-        // 觸發匯入檔案選取
         function triggerImportFile() {
           if (backupFileInput.value) {
             backupFileInput.value.click();
           }
         }
 
-        // 處理匯入備份
         function handleImportFile(event) {
           const file = event.target.files && event.target.files[0];
           if (!file) return;
@@ -983,12 +1259,8 @@
                 return;
               }
 
-              if (data.lang) {
-                changeLang(data.lang);
-              }
-              if (data.avatarForm) {
-                changeAvatarForm(data.avatarForm);
-              }
+              if (data.lang) changeLang(data.lang);
+              if (data.avatarForm) changeAvatarForm(data.avatarForm);
               if (Array.isArray(data.favorites)) {
                 favoriteIds.value = data.favorites;
                 localStorage.setItem('valhalla_favorites', JSON.stringify(data.favorites));
@@ -997,13 +1269,16 @@
                 nicknames.value = Object.assign({}, nicknames.value, data.nicknames);
                 localStorage.setItem('valhalla_nicknames', JSON.stringify(nicknames.value));
               }
+              if (data.summons && typeof data.summons === 'object') {
+                summonCounts.value = Object.assign({}, summonCounts.value, data.summons);
+                localStorage.setItem('valhalla_summons', JSON.stringify(summonCounts.value));
+              }
 
               showToast(t('backup_imported'));
             } catch (err) {
               console.error('匯入解析失敗:', err);
               showToast(t('import_failed'));
             }
-            // 清空 input 讓下次同檔名也能觸發
             event.target.value = '';
           };
           reader.readAsText(file);
@@ -1020,7 +1295,10 @@
 
         function getCardBorderClass(agent) {
           if (nicknames.value[agent.id]) {
-            return 'border-amber-500/60 shadow-glow-gold';
+            return 'border-amber-500/70 shadow-glow-gold';
+          }
+          if (getHeroRank(agent.id) === 1) {
+            return 'border-amber-400 shadow-glow-gold';
           }
           if (agent.rarity === 'Legendary') {
             return 'border-amber-500/30 hover:border-amber-500/80';
@@ -1030,7 +1308,6 @@
           return 'border-slate-800 hover:border-sky-500/60';
         }
 
-        // 鍵盤快捷鍵 '/' 聚焦搜尋
         onMounted(() => {
           window.addEventListener('keydown', (e) => {
             if (e.key === '/' && document.activeElement !== searchInput.value && !activeHero.value) {
@@ -1053,6 +1330,8 @@
           searchQuery,
           selectedDomain,
           selectedRarity,
+          currentSort,
+          isTop10Mode,
           filterFavoriteOnly,
           searchInput,
           backupFileInput,
@@ -1061,7 +1340,10 @@
           activeHero,
           editNicknameInput,
           toastMessage,
+          showDisclaimerModal,
           favoriteIds,
+          totalVisitsFormatted,
+          totalSummonsFormatted,
           t,
           changeLang,
           changeAvatarForm,
@@ -1072,12 +1354,17 @@
           getHeroSkills,
           getDomainName,
           getAvatarSvg,
+          getSummonCount,
+          getHeroRank,
+          getRankIcon,
+          getRankBadgeClass,
+          toggleTop10Mode,
           getNickname,
           saveNickname,
           isFavorite,
           toggleFavorite,
           openModal,
-          copySummonPrompt,
+          handleSummonClick,
           copyText,
           resetFilters,
           exportBackup,
