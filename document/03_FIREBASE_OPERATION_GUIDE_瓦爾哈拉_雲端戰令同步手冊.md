@@ -1,7 +1,7 @@
 # 🔥 Maestro-Hero: Firebase 雲端戰令與跨裝置英雄同步手冊
 
 > **專案代號**：`Maestro-Hero: Realtime Cloud Roster Sync`  
-> **發起出品人**：Baby（富二代出品人）  
+> **專案發起人 / 總製作人：Baby (Moder Chen)
 > **總製作人 / 技術總監**：瀨戶環奈 (Seto Kanna) & 安齋らら (Rara Anzai)  
 > **文件版本**：`v1.0.0-Production`  
 > **存放路徑**：`D:\Project\2026\AI_Agent_Tools\MasterHeroList\03_FIREBASE_OPERATION_GUIDE_MaestroHero_雲端戰令與跨裝置英雄同步手冊.md`
@@ -38,7 +38,7 @@
 
 ```mermaid
 flowchart TD
-    subgraph MobileDevice["📱 出品人手機端 (Client A)"]
+    subgraph MobileDevice["📱 行動手機端 (Client A)"]
         MA["點選收藏 ★<br/>冊封暱稱『數值狂魔・高橋』"]
         MLocal["💾 手機 LocalStorage"]
     end
@@ -47,7 +47,7 @@ flowchart TD
         FDB["/maestro_hero/v1/<br/>├── nicknames/ (專屬稱號對照表)<br/>├── favorites/ (精銳收藏清單)<br/>└── party_roster/ (目前戰鬥陣容)"]
     end
 
-    subgraph DesktopDevice["💻 出品人筆電/工作站 (Client B)"]
+    subgraph DesktopDevice["💻 桌機工作站 (Client B)"]
         DLocal["💾 電腦 LocalStorage"]
         DA["大廳卡牌即時躍動！<br/>金色暱稱徽章自動浮現"]
     end
@@ -74,7 +74,7 @@ flowchart TD
     "producers": {
       "baby_chief": {
         "profile": {
-          "title": "富二代出品人",
+          "title": "榮譽首席製作人",
           "last_login": "2026-10-30T11:40:00Z"
         },
         "nicknames": {
@@ -112,7 +112,7 @@ flowchart TD
 // 雲端即時連線設定 (沿用現有免費 Firebase 節點或自建新節點)
 const FIREBASE_CONFIG = {
   databaseURL: "https://easyorder-2ddbe-default-rtdb.asia-southeast1.firebasedatabase.app/",
-  producerId: "baby_chief" // 出品人專屬領主代號
+  producerId: "baby_chief" // 專案專屬代號
 };
 ```
 

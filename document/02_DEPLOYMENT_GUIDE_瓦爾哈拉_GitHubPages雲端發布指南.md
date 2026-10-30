@@ -1,7 +1,7 @@
 # 🚀 Maestro-Hero: 3A 級暗黑電玩 RPG 英雄召喚酒館 · GitHub Pages 免費雲端發布指南
 
 > **專案代號**：`Maestro-Hero: Tavern of 200+ Agents (Cloud Edition)`  
-> **發起出品人**：Baby（富二代出品人）  
+> **專案發起人 / 總製作人：Baby (Moder Chen)
 > **總製作人 / 技術總監**：瀨戶環奈 (Seto Kanna) & 安齋らら (Rara Anzai)  
 > **文件版本**：`v1.0.0-Production`  
 > **存放路徑**：`D:\Project\2026\AI_Agent_Tools\MasterHeroList\02_DEPLOYMENT_GUIDE_MaestroHero_GitHubPages免費雲端發布指南.md`
@@ -14,7 +14,7 @@
 - [3. 方案 A：極速 30 秒 GitHub 官方後台原生發布 (最推薦 · 零配置)](#3-方案-a極速-30-秒-github-官方後台原生發布-最推薦--零配置)
 - [4. 方案 B：工業級 GitHub Actions 自動化 CI/CD 流水線](#4-方案-b工業級-github-actions-自動化-cicd-流水線)
 - [5. 根目錄入口橋接：打造優雅的領主直達轉發頁](#5-根目錄入口橋接打造優雅的領主直達轉發頁)
-- [6. 出品人跨裝置實戰驗收與手機端體驗指引](#6-出品人跨裝置實戰驗收與手機端體驗指引)
+- [6. 跨裝置實戰驗收與手機端體驗指引](#6-跨裝置實戰驗收與手機端體驗指引)
 - [7. 常見發布異常排查矩陣 (Troubleshooting Matrix)](#7-常見發布異常排查矩陣-troubleshooting-matrix)
 
 ---
@@ -46,7 +46,7 @@ flowchart TB
         GlobalCDN["🌐 Fastly / GitHub 全球邊緣 CDN"]
     end
 
-    subgraph EndDevices["📱 出品人多終端體驗現場"]
+    subgraph EndDevices["📱 多終端跨平台體驗現場"]
         Phone["📱 老公的手機 (隨身抽卡選將)"]
         Tablet["📟 iPad / 觸控平板 (大廳戰情看板)"]
         PC["💻 任何未裝 IDE 的電腦 (開瀏覽器即召喚)"]
@@ -150,7 +150,7 @@ jobs:
 
 目前我們的酒館大廳位於子目錄 `MasterHeroList/index.html`。如果有人直接輸入根網址 `https://moder0811.github.io/AI_Agent_Tools/`，可能會看到 404 或 README。
 
-為了給出品人最絲滑的體驗，我們在專案根目錄打造一個 **「0 秒自動躍遷入口 (`index.html`)」**：
+為了給使用者與開發者最絲滑的體驗，我們在專案根目錄打造一個 **「0 秒自動躍遷入口 (`index.html`)」**：
 
 ```html
 <!DOCTYPE html>
@@ -177,9 +177,9 @@ jobs:
 
 ---
 
-## 6. 出品人跨裝置實戰驗收與手機端體驗指引
+## 6. 跨裝置實戰驗收與手機端體驗指引
 
-網頁發布上線後，出品人可以在各種情境下享受如下神級體驗：
+網頁發布上線後，使用者可以在各種情境下享受如下流暢體驗：
 
 1. **📱 手機端「PWA 級」體驗**：
    - 用手機 Safari 或 Chrome 開啟網址。

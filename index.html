@@ -41,11 +41,11 @@
   <!-- Vue 3 CDN -->
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <!-- Local data script -->
-  <script src="agents_catalog.js?v=20261030_v15"></script>
+  <script src="agents_catalog.js?v=20261031_v16"></script>
   <!-- Pixel Avatar Engine -->
   <script src="pixel_avatar.js"></script>
   <!-- 0 KB Procedural Web Audio & RPG Engine -->
-  <script src="rpg_engine.js?v=20261030_v15"></script>
+  <script src="rpg_engine.js?v=20261031_v16"></script>
   <style>
     /* Custom scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -83,7 +83,7 @@
     }
 
     /* =========================================================================
-     *  🌴 GTA 6 (Vice City Sunset) 主題風格 CSS 引擎
+     *  🌴 罪惡城市 (Vice City Sunset) 主題風格 CSS 引擎
      * ========================================================================= */
     body.theme-gta6,
     .theme-gta6 {
@@ -150,7 +150,7 @@
       box-shadow: 0 0 18px 3px rgba(255, 42, 133, 0.8) !important;
     }
 
-    /* GTA 6 復古邁阿密霓虹掃描線 (精緻低透明度，不干擾文字可讀性) */
+    /* 罪惡城市 復古邁阿密霓虹掃描線 (精緻低透明度，不干擾文字可讀性) */
     .theme-gta6::after {
       content: "";
       position: fixed;
@@ -165,7 +165,7 @@
 <body class="bg-obsidian text-slate-100 min-h-screen selection:bg-amber-500 selection:text-black font-sans antialiased overflow-x-hidden">
   <div id="app" class="flex flex-col min-h-screen relative transition-colors duration-500" :class="currentTheme === 'gta6' ? 'theme-gta6' : 'theme-valhalla'">
 
-    <!-- 🌴 GTA 6 邁阿密夕陽與棕櫚樹專屬視覺氛圍層 (僅在 GTA 6 主題啟用) -->
+    <!-- 🌴 罪惡城市 邁阿密夕陽與棕櫚樹專屬視覺氛圍層 (僅在罪惡城市主題啟用) -->
     <div v-if="currentTheme === 'gta6'" class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
       <!-- 頂部巨大夕陽漸層熱暈 -->
       <div class="absolute -top-32 left-1/2 -translate-x-1/2 w-[1000px] h-[550px] bg-gradient-to-b from-pink-600/25 via-rose-500/15 to-transparent blur-3xl rounded-full"></div>
@@ -812,7 +812,7 @@
               </button>
             </div>
             <p class="text-[11px] text-slate-500">
-              可隨時切換 3A 暗黑英靈殿純金風格與 GTA 6 邁阿密夕陽霓虹粉紫風格。
+              可隨時切換 3A 暗黑英靈殿純金風格與 罪惡城市 邁阿密夕陽霓虹粉紫風格。
             </p>
           </div>
 
@@ -1599,12 +1599,12 @@
         sort_name_btn: '名稱榜',
         theme_valhalla: '瓦爾哈拉',
         theme_valhalla_hint: '切換為 3A 暗黑電玩英靈殿主題',
-        theme_gta6: 'GTA 6 罪惡都市',
-        theme_gta6_hint: '切換為 GTA 6 罪惡都市邁阿密夕陽主題',
-        gta6_title: '瓦爾哈拉：罪惡都市 · VI',
-        gta6_subtitle: '邁阿密夕陽 · 270+ 專家級特工天團 · 終極罪惡都市展台',
-        gta6_badge: 'VI VICE CITY',
-        toast_theme_gta6: '🌴 歡迎來到罪惡都市！已啟用 GTA 6 邁阿密夕陽主題！',
+        theme_gta6: '罪惡城市 (Vice City)',
+        theme_gta6_hint: '切換為罪惡城市邁阿密夕陽主題',
+        gta6_title: '瓦爾哈拉：罪惡城市',
+        gta6_subtitle: '邁阿密夕陽 · 270+ 專家級特工天團 · 終極罪惡城市展台',
+        gta6_badge: 'VICE CITY',
+        toast_theme_gta6: '🌴 歡迎來到罪惡城市！已啟用邁阿密夕陽主題！',
         toast_theme_valhalla: '🌌 已返回英靈殿！恢復 3A 暗黑奇幻主題！',
         gta6_prompt_copied: '🌴 罪惡特工【{name}】召喚提示詞已複製！隨時準備出戰！',
         onboarding_btn: '快速上手指南',
@@ -1617,8 +1617,8 @@
         onboarding_s1_p1: '這裡收錄了 270+ 位橫跨軟體架構、資安滲透、行銷成效、遊戲開發、XR 空間運算與專案管理的專業 AI 角色，能一鍵載入你的 AI 助手。',
         onboarding_s1_f1_t: '16x16 動態像素頭像',
         onboarding_s1_f1_d: '支援英靈男、女、貓咪軍團、柴犬神將 4 大形態確定性動態轉換。',
-        onboarding_s1_f2_t: 'GTA 6 雙風格切換',
-        onboarding_s1_f2_d: '支援 3A 暗黑英靈殿與 GTA 6 邁阿密夕陽罪惡都市雙重沉浸主題。',
+        onboarding_s1_f2_t: '罪惡城市雙風格切換',
+        onboarding_s1_f2_d: '支援 3A 暗黑英靈殿與罪惡城市邁阿密夕陽雙重沉浸主題。',
         onboarding_s1_f3_t: '常用陣容與自訂稱號',
         onboarding_s1_f3_d: '一鍵收藏你最常用的專家戰隊，還能自由給予專屬稱號備註，資料保存在本機。',
         onboarding_s1_f4_t: '三語系與純靜態安全架構',
@@ -1626,7 +1626,7 @@
         onboarding_s2_h1: '只需三步：把專家設定載入你的 AI 對話',
         onboarding_s2_p1: '不用安裝任何擴充套件，三步就能讓你平常使用的 ChatGPT、Claude 或 Cursor 進入專職狀態：',
         onboarding_s2_step1_t: '點選召喚',
-        onboarding_s2_step1_d: '在任何特工卡片點擊「⚡ 召喚」（或 GTA 主題下的「🌴 召喚」），系統自動複製整段專家設定。',
+        onboarding_s2_step1_d: '在任何特工卡片點擊「⚡ 召喚」（或罪惡城市主題下的「🌴 召喚」），系統自動複製整段專家設定。',
         onboarding_s2_step2_t: '自動帶入繁中規範',
         onboarding_s2_step2_d: '系統已自動為你加入強制繁體中文回覆指引，並保留業界專業提示詞標準。',
         onboarding_s2_step3_t: '貼上發送開工',
@@ -1747,12 +1747,12 @@
         sort_name_btn: 'Name',
         theme_valhalla: 'Valhalla',
         theme_valhalla_hint: 'Switch to 3A Dark Fantasy Valhalla Theme',
-        theme_gta6: 'GTA 6 Vice City',
-        theme_gta6_hint: 'Switch to GTA 6 Vice City Sunset Theme',
-        gta6_title: 'AGENT VALHALLA · VI',
+        theme_gta6: 'Vice City (罪惡城市)',
+        theme_gta6_hint: 'Switch to Vice City Sunset Theme',
+        gta6_title: 'AGENT VALHALLA · VICE CITY',
         gta6_subtitle: 'Vice City Sunset · 300+ Cyber Specialists · Miami Syndicate Pantheon',
-        gta6_badge: 'VI VICE CITY',
-        toast_theme_gta6: '🌴 Welcome to Vice City! GTA 6 Sunset Theme activated!',
+        gta6_badge: 'VICE CITY',
+        toast_theme_gta6: '🌴 Welcome to Vice City! Sunset Theme activated!',
         toast_theme_valhalla: '🌌 Welcome back to Valhalla! Dark Fantasy Theme restored!',
         gta6_prompt_copied: '🌴 Vice Agent [{name}] Summon Prompt copied! Rank +1!',
         onboarding_btn: 'Guide',
@@ -1765,8 +1765,8 @@
         onboarding_s1_p1: 'A curated legion of 300+ divine AI specialists across Architecture, Security, Quantitative Finance, Game Dev, XR, and Copywriting ready for battle.',
         onboarding_s1_f1_t: '16x16 Pixel Avatars',
         onboarding_s1_f1_d: 'Deterministic morphing between Male, Female, Cat Legion, and Shiba Paladin.',
-        onboarding_s1_f2_t: 'GTA 6 Vice City Theme',
-        onboarding_s1_f2_d: 'Seamlessly switch between Valhalla Cyber-Dark and GTA 6 Miami Sunset.',
+        onboarding_s1_f2_t: 'Vice City Theme',
+        onboarding_s1_f2_d: 'Seamlessly switch between Valhalla Cyber-Dark and Vice City Miami Sunset.',
         onboarding_s1_f3_t: 'Squad & Titles',
         onboarding_s1_f3_d: 'Assemble your dream team, grant custom executive titles, saved locally.',
         onboarding_s1_f4_t: 'Trilingual & Zero Server',
@@ -1895,12 +1895,12 @@
         sort_name_btn: '名前順',
         theme_valhalla: 'ヴァルハラ',
         theme_valhalla_hint: '3Aダークファンタジー英霊殿テーマに切替',
-        theme_gta6: 'GTA 6 バイスシティ',
-        theme_gta6_hint: 'GTA 6 バイスシティ夕日テーマに切替',
-        gta6_title: 'ヴァルハラ：バイスシティ · VI',
+        theme_gta6: '罪悪都市 (バイスシティ)',
+        theme_gta6_hint: '罪悪都市バイス・サンセット夕日テーマに切替',
+        gta6_title: 'ヴァルハラ：罪悪都市',
         gta6_subtitle: 'バイス・サンセット · 300柱の超知性特工天団 · マイアミ裏社会殿堂',
-        gta6_badge: 'VI バイスシティ',
-        toast_theme_gta6: '🌴 バイスシティへようこそ！GTA 6 夕日テーマを適用しました！',
+        gta6_badge: 'VICE CITY',
+        toast_theme_gta6: '🌴 バイスシティへようこそ！罪悪都市夕日テーマを適用しました！',
         toast_theme_valhalla: '🌌 ヴァルハラへ帰還しました！3Aダークファンタジーに戻りました！',
         gta6_prompt_copied: '🌴 バイスエージェント【{name}】召喚呪文をコピーしました！召喚数 +1！',
         onboarding_btn: '殿堂ガイド',
@@ -1913,8 +1913,8 @@
         onboarding_s1_p1: 'ソフトウェア設計、セキュリティ監査、金融工学、ゲーム開発、XR、執筆など300柱を超える神格エージェントが待機しています。',
         onboarding_s1_f1_t: '16x16 ドット絵アバター',
         onboarding_s1_f1_d: '英霊(男/女)、猫耳軍団、柴犬神将の4形態へ確定的に転換可能。',
-        onboarding_s1_f2_t: 'GTA 6 ダブルテーマ',
-        onboarding_s1_f2_d: '3AダークファンタジーとGTA 6マイアミ夕日テーマをワンクリック切替。',
+        onboarding_s1_f2_t: '罪悪都市 ダブルテーマ',
+        onboarding_s1_f2_d: '3Aダークファンタジーと罪悪都市マイアミ夕日テーマをワンクリック切替。',
         onboarding_s1_f3_t: '主力パーティと称号授与',
         onboarding_s1_f3_d: 'お気に入り編成と専用称号をブラウザに永続保存可能。',
         onboarding_s1_f4_t: '3言語対応・サーバーレス',
