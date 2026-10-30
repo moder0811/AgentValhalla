@@ -41,7 +41,7 @@
   <!-- Vue 3 CDN -->
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <!-- Local data script -->
-  <script src="agents_catalog.js?v=20261030_v8"></script>
+  <script src="agents_catalog.js?v=20261030_v9"></script>
   <!-- Pixel Avatar Engine -->
   <script src="pixel_avatar.js"></script>
   <style>
@@ -289,19 +289,10 @@
             </button>
           </div>
 
-          <!-- 控制操作按鈕群：推薦 ＋ 單一篩選按鈕 (點擊開彈窗) ＋ TOP 10 ＋ 主力陣容 -->
+          <!-- 控制操作按鈕群：單一篩選按鈕 (點擊開彈窗) ＋ TOP 10 ＋ 主力陣容 -->
           <div class="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0">
             
-            <!-- ⚡ 推薦按鈕 -->
-            <button 
-              @click="setSort('default')"
-              :class="currentSort === 'default' && selectedRarity === 'all' && !isTop10Mode ? 'bg-amber-500 text-black font-extrabold shadow-glow-gold' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700/80'"
-              class="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs flex items-center space-x-1 transition"
-              title="預設推薦排序"
-            >
-              <span>⚡</span>
-              <span class="font-bold">{{ t('sort_default') }}</span>
-            </button>
+
 
             <!-- 🌪️ 篩選按鈕 (點擊彈出排序與品級篩選視窗) -->
             <button 
