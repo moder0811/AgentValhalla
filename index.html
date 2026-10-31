@@ -48,7 +48,7 @@
   <script src="rpg_engine.js?v=20261031_v22"></script>
   <!-- 👑 現代 64x64 高解析次像素藝術與動態呼吸紙娃娃引擎 (2016-2026 經典殿堂角色) -->
   <script src="modern_avatar.js?v=20261031_v22"></script>
-  <script src="lpc_compositor.js?v=20261031_lpc5"></script>
+  <script src="lpc_compositor.js?v=20261031_lpc6"></script>
   <style>
     /* 🌟 2026-10-31 現代極致流暢平滑自訂滾動條 (Smooth & Sleek Scrollbar) */
     html {
@@ -1673,14 +1673,7 @@
               </button>
             </div>
 
-            <!-- 次像素微動呼吸切換 -->
-            <button 
-              @click="toggleBreathingAnimation"
-              :class="isBreathingActive ? 'bg-pink-950/40 text-pink-300 border-pink-500/60 shadow-[0_0_10px_rgba(236,72,153,0.2)]' : 'bg-slate-900 text-slate-500 border-slate-800'"
-              class="w-full py-1.5 px-2 rounded-xl border text-[11px] font-bold transition flex items-center justify-center space-x-1.5"
-            >
-              <span>{{ isBreathingActive ? '✨ 呼吸動態：律動中' : '⏸️ 呼吸動態：已暫停' }}</span>
-            </button>
+            <!-- [舊代碼備查] 2026-10-31: 依指令移除呼吸動態按鈕，釋放上下垂直空間 -->
 
             <!-- 快捷操作按鈕 -->
             <div class="w-full flex space-x-2 pt-2 border-t border-slate-800">
@@ -3459,7 +3452,7 @@
           return window.ModernPixelEngine.presetsByCategory[selectedCategory.value] || [];
         });
         const breathingFrame = ref(0);
-        const isBreathingActive = ref(true);
+        const isBreathingActive = ref(false);
         const avatarVersion = ref(0);
         const studioActiveTab = ref('modern');
 
@@ -3564,7 +3557,7 @@
               await window.LpcCompositor.renderToCanvas(
                 {
                   ...studioLpcOptions.value,
-                  frame: isBreathingActive.value ? (breathingFrame.value % 2) : 0
+                  frame: 0
                 },
                 canvas
               );
@@ -3608,20 +3601,11 @@
           armorTier: 30
         });
 
-        // 4 幀次像素呼吸循環計時器 (每 350ms 微動，賦予角色真實生命力)
+        // [舊代碼備查] 2026-10-31: 依指令停用呼吸動態計時器，節省效能並保持靜態精準立繪
         let breathingTimer = null;
         function startBreathing() {
           if (breathingTimer) clearInterval(breathingTimer);
-          breathingTimer = setInterval(() => {
-            if (isBreathingActive.value) {
-              breathingFrame.value = (breathingFrame.value + 1) % 4;
-              if (showStudioModal.value) {
-                updateStudioPreview();
-              }
-            }
-          }, 350);
         }
-        startBreathing();
 
         function toggleBreathingAnimation() {
           isBreathingActive.value = !isBreathingActive.value;

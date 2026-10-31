@@ -377,16 +377,15 @@ const ARCHETYPES = [
       dw = 128;
       dh = 128;
     } else {
-      // 🌟 2026-10-31 全身立繪視角黃金比例置中校正：
-      // 消除頂部 8px 空白，完整呈現頭頂角盔/長髮至腳底戰靴 (Y:8..64)，留設 4px 邊界安全距防圓角裁切
+      // 🌟 2026-10-31 全身立繪縮小一號 (96x96 置中於 128x128 畫布)，上下各騰出 27~29px 大空間，徹底解決膝蓋與戰靴遮蔽截斷問題
       sx = srcX;
-      sy = srcY + 7;
+      sy = srcY;
       sw = 64;
-      sh = 57; // 包含戰盔至靴底
-      dx = 0;
-      dy = 4;
-      dw = 128;
-      dh = 120;
+      sh = 64;
+      dx = 16;
+      dy = 8;
+      dw = 96;
+      dh = 96;
     }
 
     // 5. 依精密 Z-Index 階層疊合繪製 (全 15 層立體裝甲堆疊)
@@ -427,9 +426,9 @@ const ARCHETYPES = [
     if (hairImg) {
       const tintCfg = HAIR_PALETTES[opts.hairColor] || HAIR_PALETTES.blonde;
       const tintedHairCanvas = createTintedHairCanvas(hairImg, tintCfg, srcX, srcY);
-      // 🌟 2026-10-31 配合全身立繪裁切區域調整髮型裁剪
-      const hairCropY = opts.framing === 'portrait' ? 2 : 7;
-      const hairCropH = opts.framing === 'portrait' ? 48 : 57;
+      // 🌟 2026-10-31 配合全身立繪縮小一號調整髮型裁剪
+      const hairCropY = opts.framing === 'portrait' ? 2 : 0;
+      const hairCropH = opts.framing === 'portrait' ? 48 : 64;
 
       ctx.drawImage(tintedHairCanvas, 0, hairCropY, 64, hairCropH, dx, dy, dw, dh);
     }
