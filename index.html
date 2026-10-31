@@ -1623,9 +1623,8 @@
               <span>{{ isMasterBypass ? '🔓' : '🔒' }}</span>
               <span>全裝備試穿 (Bypass): {{ isMasterBypass ? 'ON' : 'OFF' }}</span>
             </button>
-            <button @click="resetMasterProgress" class="px-2 py-0.5 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-rose-300 rounded-lg border border-slate-700 text-[11px] transition">
-              🔄 歸零
-            </button>
+            <!-- [舊代碼備查] 2026-10-31: 依指令移除換裝娃娃系統右上角多餘的「歸零」按鈕，避免同畫面重複存在兩個重設按鈕 -->
+            <!-- <button @click="resetMasterProgress" class="px-2 py-0.5 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-rose-300 rounded-lg border border-slate-700 text-[11px] transition">🔄 歸零</button> -->
           </div>
         </div>
 
