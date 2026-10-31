@@ -627,10 +627,9 @@
               :class="currentTheme === 'gta6' 
                 ? 'bg-gradient-to-r from-pink-500 via-rose-500 to-orange-500 hover:from-pink-400 hover:to-orange-400 text-white shadow-[0_0_15px_rgba(255,42,133,0.5)]' 
                 : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black shadow-glow-gold'"
-              class="px-3.5 py-1.5 text-xs font-bold rounded-xl transition flex items-center space-x-1"
+              class="px-3.5 py-1.5 text-xs font-bold rounded-xl transition flex items-center space-x-1 active:scale-95 shadow"
               :title="t('summon_tooltip')"
             >
-              <span>{{ currentTheme === 'gta6' ? '🌴' : '⚡' }}</span>
               <span>{{ t('summon_btn') }}</span>
             </button>
           </div>
@@ -1398,7 +1397,7 @@
               {{ t('close_btn') }}
             </button>
             <!-- [舊代碼備查] 2026-10-31: 原本換裝工坊按鈕放在底部造成版面擁擠，已依指令移至頂部頭像區塊並更名為「換裝娃娃系統」 -->
-            <!-- 🌟 2026-10-31 依指令將本層召喚按鈕明確命名為「複製咒文」 -->
+            <!-- 🌟 2026-10-31 依指令命名為「拷貝咒文」 -->
             <button 
               @click="handleSummonClick(activeHero)"
               :class="currentTheme === 'gta6' 
@@ -1406,8 +1405,7 @@
                 : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black shadow-glow-gold'"
               class="px-5 py-2 text-xs font-extrabold rounded-xl transition flex items-center space-x-1.5 shadow-lg active:scale-95"
             >
-              <span>📜</span>
-              <span>複製咒文</span>
+              <span>{{ t('summon_btn') }}</span>
             </button>
           </div>
         </div>
@@ -2754,7 +2752,7 @@
         gta6_badge: 'VICE CITY',
         toast_theme_gta6: '🌴 歡迎來到罪惡城市！已啟用邁阿密夕陽主題！',
         toast_theme_valhalla: '🌌 已返回英靈殿！恢復 3A 暗黑奇幻主題！',
-        gta6_prompt_copied: '🌴 罪惡特工【{name}】召喚提示詞已複製！隨時準備出戰！',
+        gta6_prompt_copied: '🌴 罪惡特工【{name}】召喚咒文已拷貝！隨時準備出戰！',
         onboarding_btn: '快速上手指南',
         onboarding_btn_tooltip: '開啟 PS5 風格殿堂新手上手指南',
         onboarding_title: '瓦爾哈拉：新手快速上手手冊',
@@ -2801,9 +2799,9 @@
         add_fav: '收入主力名冊',
         remove_fav: '自陣容移除',
         add_nickname: '設定專屬稱號...',
-        view_script: '📜 查閱劇本',
-        summon_btn: '⚡ 召喚',
-        summon_tooltip: '一鍵複製專家召喚 Prompt 並累計戰力',
+        view_script: '🛡️ 裝備&技能',
+        summon_btn: '📜 拷貝咒文',
+        summon_tooltip: '一鍵拷貝專家召喚咒文 Prompt 並累計戰力',
         export_btn: '匯出備份',
         export_tooltip: '將您的自訂稱號與主力陣容匯出為 JSON 備份檔',
         import_btn: '匯入備份',
@@ -2845,7 +2843,7 @@
         empty_title: '未找到符合條件的特工角色',
         empty_desc: '找不到符合當前條件的專家，試著清除關鍵字或切換領域分類。',
         reset_filters: '重設所有過濾條件',
-        prompt_copied: '⚡ 特工【{name}】召喚提示詞已複製至剪貼簿！隨時出戰！',
+        prompt_copied: '📜 特工【{name}】召喚咒文已拷貝至剪貼簿！隨時出戰！',
         backup_exported: '✅ 瓦爾哈拉設定檔已成功匯出下載！',
         backup_imported: '✅ 設定檔匯入成功！已還原您的戰鬥陣容與專屬稱號！',
         filter_btn: '篩選',
@@ -2949,8 +2947,8 @@
         add_fav: 'Add to Core Squad',
         remove_fav: 'Remove from Squad',
         add_nickname: 'Grant Title...',
-        view_script: '📜 View Spec',
-        summon_btn: '⚡ Summon',
+        view_script: '🛡️ Gear & Skills',
+        summon_btn: '📜 Copy Prompt',
         summon_tooltip: 'Copy summon prompt & boost hero battle rank',
         export_btn: 'Export Backup',
         export_tooltip: 'Export your squad and custom titles to JSON',
@@ -3097,8 +3095,8 @@
         add_fav: '主力パーティに追加',
         remove_fav: '編成から外す',
         add_nickname: '称号を授与...',
-        view_script: '📜 詳細スペック',
-        summon_btn: '⚡ 召喚',
+        view_script: '🛡️ 装備＆スキル',
+        summon_btn: '📜 呪文コピー',
         summon_tooltip: '召喚プロンプトをコピーして戦力をカウント',
         export_btn: '設定出力',
         export_tooltip: '称号とパーティ編成をJSONファイルに出力',
