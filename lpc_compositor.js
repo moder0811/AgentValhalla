@@ -133,7 +133,45 @@
   ];
 
   // 12 款經典原型設計 (包含女武神、魅影刺客、男戰士)
-  const ARCHETYPES = [
+    // 🛡️ 腿部裝甲與戰裙 (Legs: Pants, Skirts, Plate Greaves)
+  const LEGS_OPTIONS = [
+    { id: 'pants', label: '👖 冒險戰鬥長褲 (Pants)', reqLevel: 2, tier: 1 },
+    { id: 'skirt', label: '👗 戰鬥短裙 (Battle Skirt)', reqLevel: 2, tier: 1, femaleOnly: true },
+    { id: 'plate', label: '🛡️ 皇家重裝鋼鐵腿甲 (Plate Greaves)', reqLevel: 10, tier: 3 },
+    { id: 'none', label: '🚫 輕裝不著褲裙 (None)', reqLevel: 2, tier: 1 }
+  ];
+
+  // 👢 腳部戰靴與鐵靴 (Feet: Shoes, High Boots, Plate Sabatons)
+  const FEET_OPTIONS = [
+    { id: 'shoes', label: '👞 輕便皮革鞋 (Leather Shoes)', reqLevel: 2, tier: 1 },
+    { id: 'boots', label: '👢 冒險者高筒皮靴 (High Boots)', reqLevel: 5, tier: 2 },
+    { id: 'plate', label: '🛡️ 聖騎士鋼鐵戰靴 (Plate Sabatons)', reqLevel: 20, tier: 4 },
+    { id: 'none', label: '🚫 赤足輕裝 (None)', reqLevel: 2, tier: 1 }
+  ];
+
+  // 🧤 手臂護腕與重裝護手 (Arms: Bracers, Plate Gauntlets)
+  const ARMS_OPTIONS = [
+    { id: 'none', label: '🚫 輕裝無臂甲 (None)', reqLevel: 2, tier: 1 },
+    { id: 'bracers', label: '🧤 獵人真皮護腕 (Leather Bracers)', reqLevel: 5, tier: 2 },
+    { id: 'plate', label: '🛡️ 鋼鐵重裝護手 (Plate Gauntlets)', reqLevel: 20, tier: 4 }
+  ];
+
+  // 🛡️ 重裝軍團肩甲 (Shoulders: Legion, Heavy Pauldrons)
+  const SHOULDERS_OPTIONS = [
+    { id: 'none', label: '🚫 無肩甲 (None)', reqLevel: 2, tier: 1 },
+    { id: 'legion', label: '🎖️ 軍團精銳肩甲 (Legion Shoulders)', reqLevel: 10, tier: 3 },
+    { id: 'pauldrons', label: '🛡️ 萬神殿鋼鐵重型肩鎧 (Heavy Pauldrons)', reqLevel: 20, tier: 4 }
+  ];
+
+  // 👑 戰鬥頭盔與魔法尖頂帽 (Headwear: Helmets & Wizard Hats)
+  const HEADWEAR_OPTIONS = [
+    { id: 'none', label: '🚫 露出秀髮 (None)', reqLevel: 2, tier: 1 },
+    { id: 'hat_wizard', label: '🧙 大法師星空尖頂帽 (Wizard Hat)', reqLevel: 15, tier: 3 },
+    { id: 'helmet_horned', label: '🐂 狂戰士維京角盔 (Horned Helmet)', reqLevel: 20, tier: 4 },
+    { id: 'helmet_close', label: '🛡️ 聖殿全覆式閉面鋼盔 (Close Helm)', reqLevel: 30, tier: 5 }
+  ];
+
+const ARCHETYPES = [
     // 🗡️ 魅影刺客原型 (致命性感)
     { id: 0, gender: 'female', roleClass: 'rogue', bodyType: 'teen', outfit: 'bodice_leather', hairStyle: 'pigtails', hairColor: 'raven', eyeColor: 'red', mask: 'assassin_mask', hood: 'none', weapon: 'dagger', enableBlush: false },
     { id: 1, gender: 'female', roleClass: 'rogue', bodyType: 'female', outfit: 'bodice_black', hairStyle: 'bangslong', hairColor: 'silver', eyeColor: 'purple', mask: 'none', hood: 'assassin_hood', weapon: 'dagger', enableBlush: false },
@@ -220,11 +258,17 @@
    */
   async function compositeCharacter(options = {}, targetCanvas = null) {
     const isFemale = (options.gender || 'female') === 'female';
+    const genderStr = isFemale ? 'female' : 'male';
     const opts = {
-      gender: isFemale ? 'female' : 'male',
+      gender: genderStr,
       roleClass: options.roleClass || (isFemale ? 'valkyrie' : 'warrior'),
-      bodyType: options.bodyType || (isFemale ? 'female' : 'male'),
+      bodyType: options.bodyType || genderStr,
       outfit: options.outfit || options.bodiceColor || (isFemale ? 'bodice_black' : 'armor_plate'),
+      legs: options.legs || (isFemale ? 'skirt' : 'pants'),
+      feet: options.feet || 'boots',
+      arms: options.arms || (options.roleClass === 'warrior' ? 'plate' : 'bracers'),
+      shoulders: options.shoulders || (options.roleClass === 'warrior' ? 'pauldrons' : 'none'),
+      hat: options.hat || 'none',
       hairStyle: options.hairStyle || (isFemale ? 'bangslong' : 'spiked'),
       hairColor: options.hairColor || 'blonde',
       eyeColor: options.eyeColor || (options.roleClass === 'rogue' ? 'red' : 'purple'),
@@ -266,8 +310,32 @@
     const hairPath = `${LPC_ASSET_BASE}/hair/${opts.hairStyle}_idle.png`;
     const weaponPath = (opts.weapon && opts.weapon !== 'none') ? `${LPC_ASSET_BASE}/weapon/${opts.weapon}.png` : null;
 
-    // 2. 並行載入所有圖層
-    const [bodyImg, headImg, blushImg, maskImg, beardImg, eyeImg, outfitImg, hairImg, hoodImg, weaponImg] = await Promise.all([
+    // 🌟 2026-10-31 新增：腿部、腳部、護臂、肩甲與戰盔頭飾路徑解析
+    let legsPath = null;
+    if (opts.legs === 'plate') legsPath = `${LPC_ASSET_BASE}/legs/plate_${genderStr}_idle.png`;
+    else if (opts.legs === 'pants') legsPath = `${LPC_ASSET_BASE}/legs/pants_${genderStr}_idle.png`;
+    else if (opts.legs === 'skirt') legsPath = `${LPC_ASSET_BASE}/legs/skirt_female_idle.png`;
+
+    let feetPath = null;
+    if (opts.feet === 'plate') feetPath = `${LPC_ASSET_BASE}/feet/plate_${genderStr}_idle.png`;
+    else if (opts.feet === 'boots') feetPath = `${LPC_ASSET_BASE}/feet/boots_${genderStr}_idle.png`;
+    else if (opts.feet === 'shoes') feetPath = `${LPC_ASSET_BASE}/feet/shoes_${genderStr}_idle.png`;
+
+    let armsPath = null;
+    if (opts.arms === 'plate') armsPath = `${LPC_ASSET_BASE}/arms/plate_${genderStr}_idle.png`;
+    else if (opts.arms === 'bracers') armsPath = `${LPC_ASSET_BASE}/arms/bracers_${genderStr}_idle.png`;
+
+    let shouldersPath = null;
+    if (opts.shoulders === 'pauldrons') shouldersPath = `${LPC_ASSET_BASE}/shoulders/pauldrons_${genderStr}_idle.png`;
+    else if (opts.shoulders === 'legion') shouldersPath = `${LPC_ASSET_BASE}/shoulders/legion_${genderStr}_idle.png`;
+
+    let hatPath = null;
+    if (opts.hat === 'helmet_close') hatPath = `${LPC_ASSET_BASE}/hat/helmet_close_${genderStr}_idle.png`;
+    else if (opts.hat === 'helmet_horned') hatPath = `${LPC_ASSET_BASE}/hat/helmet_horned_idle.png`;
+    else if (opts.hat === 'hat_wizard') hatPath = `${LPC_ASSET_BASE}/hat/hat_wizard_idle.png`;
+
+    // 2. 並行載入所有圖層 (全 15 大手繪專業圖層)
+    const [bodyImg, headImg, blushImg, maskImg, beardImg, eyeImg, outfitImg, hairImg, hoodImg, weaponImg, legsImg, feetImg, armsImg, shouldersImg, hatImg] = await Promise.all([
       loadLpcImage(bodyPath),
       loadLpcImage(headPath),
       loadLpcImage(blushPath),
@@ -277,7 +345,12 @@
       loadLpcImage(outfitPath),
       loadLpcImage(hairPath),
       loadLpcImage(hoodPath),
-      loadLpcImage(weaponPath)
+      loadLpcImage(weaponPath),
+      loadLpcImage(legsPath),
+      loadLpcImage(feetPath),
+      loadLpcImage(armsPath),
+      loadLpcImage(shouldersPath),
+      loadLpcImage(hatPath)
     ]);
 
     // 3. 準備畫布 (128x128 高解析無損輸出)
@@ -314,29 +387,41 @@
       dh = 128;
     }
 
-    // 5. 依精密 Z-Index 階層疊合繪製
+    // 5. 依精密 Z-Index 階層疊合繪製 (全 15 層立體裝甲堆疊)
     // [Layer 1]: 身軀素體 (Body)
     if (bodyImg) ctx.drawImage(bodyImg, sx, sy, sw, sh, dx, dy, dw, dh);
 
-    // [Layer 2]: 繪師手繪頭顱臉部 (Head)
-    if (headImg) ctx.drawImage(headImg, sx, sy, sw, sh, dx, dy, dw, dh);
-
-    // [Layer 3]: 女性微醺腮紅 (Blush)
-    if (blushImg) ctx.drawImage(blushImg, sx, sy, sw, sh, dx, dy, dw, dh);
-
-    // [Layer 4]: 🗡️ 刺客冷酷半臉面罩 (Mask)
-    if (maskImg) ctx.drawImage(maskImg, sx, sy, sw, sh, dx, dy, dw, dh);
-
-    // [Layer 5]: 男性戰鬥落腮鬍 (Beard)
-    if (beardImg) ctx.drawImage(beardImg, sx, sy, sw, sh, dx, dy, dw, dh);
-
-    // [Layer 6]: 靈魂五官瞳孔 (Eyes)
+    // [Layer 2]: 靈魂五官瞳孔 (Eyes)
     if (eyeImg) ctx.drawImage(eyeImg, sx, sy, sw, sh, dx, dy, dw, dh);
 
-    // [Layer 7]: 服裝鎧甲 (Outfit)
+    // [Layer 3]: 繪師手繪頭顱臉部 (Head)
+    if (headImg) ctx.drawImage(headImg, sx, sy, sw, sh, dx, dy, dw, dh);
+
+    // [Layer 4]: 👖 腿部裝甲與戰裙 (Legs)
+    if (legsImg) ctx.drawImage(legsImg, sx, sy, sw, sh, dx, dy, dw, dh);
+
+    // [Layer 5]: 👢 腳部戰靴與鐵靴 (Feet)
+    if (feetImg) ctx.drawImage(feetImg, sx, sy, sw, sh, dx, dy, dw, dh);
+
+    // [Layer 6]: 服裝鎧甲 (Outfit/Bodice)
     if (outfitImg) ctx.drawImage(outfitImg, sx, sy, sw, sh, dx, dy, dw, dh);
 
-    // [Layer 8]: 飄逸髮型 (Hair with dynamic tinting)
+    // [Layer 7]: 🧤 手臂護腕與重裝護手 (Arms)
+    if (armsImg) ctx.drawImage(armsImg, sx, sy, sw, sh, dx, dy, dw, dh);
+
+    // [Layer 8]: 🛡️ 重裝軍團肩甲 (Shoulders)
+    if (shouldersImg) ctx.drawImage(shouldersImg, sx, sy, sw, sh, dx, dy, dw, dh);
+
+    // [Layer 9]: 女性微醺腮紅 (Blush)
+    if (blushImg) ctx.drawImage(blushImg, sx, sy, sw, sh, dx, dy, dw, dh);
+
+    // [Layer 10]: 男性戰鬥落腮鬍 (Beard)
+    if (beardImg) ctx.drawImage(beardImg, sx, sy, sw, sh, dx, dy, dw, dh);
+
+    // [Layer 11]: 🗡️ 刺客冷酷半臉面罩 (Mask)
+    if (maskImg) ctx.drawImage(maskImg, sx, sy, sw, sh, dx, dy, dw, dh);
+
+    // [Layer 12]: 飄逸髮型 (Hair with dynamic tinting)
     if (hairImg) {
       const tintCfg = HAIR_PALETTES[opts.hairColor] || HAIR_PALETTES.blonde;
       const tintedHairCanvas = createTintedHairCanvas(hairImg, tintCfg, srcX, srcY);
@@ -346,12 +431,17 @@
       ctx.drawImage(tintedHairCanvas, 0, hairCropY, 64, hairCropH, dx, dy, dw, dh);
     }
 
-    // [Layer 9]: 🥷 刺客幽冥暗影兜帽 (Hood - 覆蓋在頭部與髮絲上方)
+    // [Layer 13]: 🥷 刺客幽冥暗影兜帽 (Hood - 覆蓋在頭部與髮絲上方)
     if (hoodImg) {
       ctx.drawImage(hoodImg, sx, sy, sw, sh, dx, dy, dw, dh);
     }
 
-    // [Layer 10]: 🗡️ 神兵短匕與武器 (Weapon)
+    // [Layer 14]: 👑 戰鬥重盔與魔法尖頂帽 (Hat/Helmet)
+    if (hatImg) {
+      ctx.drawImage(hatImg, sx, sy, sw, sh, dx, dy, dw, dh);
+    }
+
+    // [Layer 15]: 🗡️ 神兵短匕與武器 (Weapon)
     if (weaponImg) {
       ctx.drawImage(weaponImg, sx, sy, sw, sh, dx, dy, dw, dh);
     }
@@ -433,6 +523,12 @@
     weapons: WEAPONS,
     eyeColors: EYE_COLORS,
     archetypes: ARCHETYPES,
+    legsOptions: LEGS_OPTIONS,
+    feetOptions: FEET_OPTIONS,
+    armsOptions: ARMS_OPTIONS,
+    shouldersOptions: SHOULDERS_OPTIONS,
+    headwearOptions: HEADWEAR_OPTIONS,
+    renderToCanvas: compositeCharacter,
     bodiceColors: FEMALE_OUTFITS,
     hairStyles: FEMALE_HAIRS
   };
