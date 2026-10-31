@@ -45,49 +45,50 @@
     { id: 'muscular', label: '💪 爆筋肌肉猛男 (Muscular Titan)' }
   ];
 
-  // 女武神服裝選項
+  // 女武神服裝選項 (支援等級階段性解鎖 Tier 1 ~ Tier 4)
+  // [舊代碼備查] 2026-10-31: 原本無 reqLevel 屬性，所有人自由選取
   const FEMALE_OUTFITS = [
-    { id: 'bodice_black', label: '🖤 蕾絲黑馬甲 (Black)' },
-    { id: 'bodice_red', label: '🩸 猩紅狂熱馬甲 (Red)' },
-    { id: 'bodice_purple', label: '🔮 魅魔深紫馬甲 (Purple)' },
-    { id: 'bodice_white', label: '🤍 聖潔純白胸衣 (White)' },
-    { id: 'bodice_pink', label: '🌸 櫻花蜜粉胸衣 (Pink)' },
-    { id: 'bodice_lavender', label: '🪻 薰衣草胸衣 (Lavender)' },
-    { id: 'bodice_blue', label: '💙 深邃海藍胸衣 (Blue)' },
-    { id: 'bodice_leather', label: '🤎 原色性感皮甲 (Leather)' },
-    { id: 'armor_plate', label: '🛡️ 女武神銀鎧 (Plate Armor)' },
-    { id: 'none', label: '🚫 原始素體 (Bare)' }
+    { id: 'bodice_white', label: '🤍 聖潔純白胸衣 (White)', reqLevel: 2, tier: 1 },
+    { id: 'bodice_pink', label: '🌸 櫻花蜜粉胸衣 (Pink)', reqLevel: 2, tier: 1 },
+    { id: 'bodice_leather', label: '🤎 原色性感皮甲 (Leather)', reqLevel: 2, tier: 1 },
+    { id: 'bodice_black', label: '🖤 蕾絲黑馬甲 (Black)', reqLevel: 5, tier: 2 },
+    { id: 'bodice_lavender', label: '🪻 薰衣草胸衣 (Lavender)', reqLevel: 5, tier: 2 },
+    { id: 'bodice_red', label: '🩸 猩紅狂熱馬甲 (Red)', reqLevel: 10, tier: 3 },
+    { id: 'bodice_purple', label: '🔮 魅魔深紫馬甲 (Purple)', reqLevel: 10, tier: 3 },
+    { id: 'bodice_blue', label: '💙 深邃海藍胸衣 (Blue)', reqLevel: 10, tier: 3 },
+    { id: 'armor_plate', label: '🛡️ 女武神銀鎧 (Plate Armor)', reqLevel: 20, tier: 4 },
+    { id: 'none', label: '🚫 原始素體 (Bare)', reqLevel: 2, tier: 1 }
   ];
 
-  // 🗡️ 魅影刺客專屬暗殺夜行服
+  // 🗡️ 魅影刺客專屬暗殺夜行服 (等級階段性解鎖 Tier 1 ~ Tier 4)
   const ROGUE_OUTFITS = [
-    { id: 'bodice_leather', label: '🖤 魅影貼身皮衣 (Shadow Leather)' },
-    { id: 'bodice_black', label: '🖤 黑夜無聲刺殺裝 (Night Assassin)' },
-    { id: 'bodice_red', label: '🩸 猩紅血滴暗殺裝 (Crimson Garb)' },
-    { id: 'bodice_purple', label: '💜 幽冥魅魔束身裝 (Shadow Violet)' },
-    { id: 'bodice_white', label: '🤍 幻影銀絲緊身裝 (Phantom Silver)' },
-    { id: 'none', label: '🚫 原始敏捷素體 (Bare Agility)' }
+    { id: 'bodice_leather', label: '🖤 魅影貼身皮衣 (Shadow Leather)', reqLevel: 2, tier: 1 },
+    { id: 'bodice_white', label: '🤍 幻影銀絲緊身裝 (Phantom Silver)', reqLevel: 2, tier: 1 },
+    { id: 'bodice_black', label: '🖤 黑夜無聲刺殺裝 (Night Assassin)', reqLevel: 5, tier: 2 },
+    { id: 'bodice_red', label: '🩸 猩紅血滴暗殺裝 (Crimson Garb)', reqLevel: 10, tier: 3 },
+    { id: 'bodice_purple', label: '💜 幽冥魅魔束身裝 (Shadow Violet)', reqLevel: 20, tier: 4 },
+    { id: 'none', label: '🚫 原始敏捷素體 (Bare Agility)', reqLevel: 2, tier: 1 }
   ];
 
-  // 🗡️ 刺客面罩配件
+  // 🗡️ 刺客面罩配件 (Lv.10 Tier 3 解鎖)
   const ROGUE_MASKS = [
-    { id: 'assassin_mask', label: '😷 冷酷暗殺面罩 (Assassin Mask)' },
-    { id: 'none', label: '🚫 露出絕美面容 (Unmasked)' }
+    { id: 'none', label: '🚫 露出絕美面容 (Unmasked)', reqLevel: 2, tier: 1 },
+    { id: 'assassin_mask', label: '😷 冷酷暗殺面罩 (Assassin Mask)', reqLevel: 10, tier: 3 }
   ];
 
-  // 🗡️ 刺客暗影兜帽
+  // 🗡️ 刺客暗影兜帽 (Lv.20 Tier 4 解鎖)
   const ROGUE_HOODS = [
-    { id: 'assassin_hood', label: '🥷 幽冥暗殺兜帽 (Shadow Hood)' },
-    { id: 'none', label: '🚫 輕裝不戴兜帽 (No Hood)' }
+    { id: 'none', label: '🚫 輕裝不戴兜帽 (No Hood)', reqLevel: 2, tier: 1 },
+    { id: 'assassin_hood', label: '🥷 幽冥暗殺兜帽 (Shadow Hood)', reqLevel: 20, tier: 4 }
   ];
 
-  // 男性硬派服裝選項
+  // 男性硬派服裝選項 (等級階段性解鎖 Tier 1 ~ Tier 4)
   const MALE_OUTFITS = [
-    { id: 'armor_plate', label: '🛡️ 聖騎士鋼鐵重鎧 (Full Plate)' },
-    { id: 'armor_leather', label: '⚔️ 獵人皮革護甲 (Leather Armor)' },
-    { id: 'vest_black', label: '🥷 暗影開襟背心 (Shadow Vest)' },
-    { id: 'vest_brown', label: '🥋 浪人武僧背心 (Martial Vest)' },
-    { id: 'none', label: '🚫 狂戰士霸氣赤膊 (Muscular Bare)' }
+    { id: 'armor_leather', label: '⚔️ 獵人皮革護甲 (Leather Armor)', reqLevel: 2, tier: 1 },
+    { id: 'vest_brown', label: '🥋 浪人武僧背心 (Martial Vest)', reqLevel: 2, tier: 1 },
+    { id: 'vest_black', label: '🥷 暗影開襟背心 (Shadow Vest)', reqLevel: 5, tier: 2 },
+    { id: 'armor_plate', label: '🛡️ 聖騎士鋼鐵重鎧 (Full Plate)', reqLevel: 20, tier: 4 },
+    { id: 'none', label: '🚫 狂戰士霸氣赤膊 (Muscular Bare)', reqLevel: 2, tier: 1 }
   ];
 
   // 女性專屬髮型
@@ -113,12 +114,13 @@
     { id: 'beard_medium', label: '🧔 威嚴戰鬥落腮鬍 (Full Beard)' }
   ];
 
-  // 神兵武器裝備槽 (支援短匕、巨劍、光劍)
+  // 神兵武器裝備槽 (等級階段性解鎖 Tier 1 ~ Tier 5)
+  // [舊代碼備查] 2026-10-31: 原本無 reqLevel 限制
   const WEAPONS = [
-    { id: 'dagger', label: '🗡️ 淬毒精鋼短匕 (Dual Daggers)' },
-    { id: 'sword_glow_blue', label: '⚡ 幽冥蒼藍光刃 (Blue Saber)' },
-    { id: 'sword_glow_red', label: '🩸 猩紅嗜血光刃 (Red Saber)' },
-    { id: 'none', label: '🚫 空手專注 (Unarmed)' }
+    { id: 'none', label: '🚫 空手專注 (Unarmed)', reqLevel: 2, tier: 1 },
+    { id: 'dagger', label: '🗡️ 淬毒精鋼短匕 (Dual Daggers)', reqLevel: 10, tier: 3 },
+    { id: 'sword_glow_blue', label: '⚡ 幽冥蒼藍光刃 (Blue Saber)', reqLevel: 20, tier: 4 },
+    { id: 'sword_glow_red', label: '🩸 猩紅嗜血光刃 (Red Saber)', reqLevel: 30, tier: 5 }
   ];
 
   // 眼睛瞳色

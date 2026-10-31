@@ -1345,13 +1345,19 @@
             >
               {{ t('close_btn') }}
             </button>
+            <!-- [舊代碼備查] 2026-10-31: 原本無等級檢查直接進入工坊 -->
+            <!-- <button @click="openPaperDollStudio(activeHero)" class="... text-white text-xs font-bold ..."><span>🎨</span><span>換裝工坊</span></button> -->
+            <!-- 🌟 2026-10-31 階段性防禦守衛：需召喚師 Lv.2 (50 EXP) 解鎖；創世主模式享有無條件特權 -->
             <button 
               @click="openPaperDollStudio(activeHero)"
-              class="px-3.5 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold rounded-xl border border-purple-400/40 shadow-[0_0_15px_rgba(168,85,247,0.4)] transition flex items-center space-x-1.5"
-              title="32x32 復古紙娃娃換裝工坊"
+              :class="(!isMasterMode && levelInfo.level < 2) 
+                ? 'bg-slate-800/80 text-slate-400 border-slate-700 hover:bg-slate-750 cursor-pointer' 
+                : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white border-purple-400/40 shadow-[0_0_15px_rgba(168,85,247,0.4)]'"
+              class="px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs font-bold rounded-xl border transition flex items-center space-x-1.5"
+              :title="(!isMasterMode && levelInfo.level < 2) ? '需召喚師達 Lv.2 解鎖自由工坊' : '32x32 復古紙娃娃換裝工坊'"
             >
-              <span>🎨</span>
-              <span>換裝工坊</span>
+              <span>{{ (!isMasterMode && levelInfo.level < 2) ? '🔒' : '👗' }}</span>
+              <span>{{ (!isMasterMode && levelInfo.level < 2) ? '需 Lv.2 解鎖工坊' : '手繪換裝工坊' }}</span>
             </button>
             <button 
               @click="handleSummonClick(activeHero)"
@@ -1532,12 +1538,57 @@
               <p class="text-xs text-slate-400">LPC 專業繪師手繪圖層賽璐珞疊合 · 白皙臉蛋與少女腮紅 · 100% 告別樂高感</p>
             </div>
           </div>
-          <button 
-            @click="showStudioModal = false" 
-            class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition"
-          >
-            ✕
-          </button>
+          <div class="flex items-center space-x-2">
+            <!-- 👑 創世主特權切換按鈕 -->
+            <button 
+              @click="toggleMasterMode"
+              :class="isMasterMode ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-[0_0_12px_rgba(245,158,11,0.4)]' : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200'"
+              class="px-2.5 py-1 text-[11px] font-bold rounded-xl border transition flex items-center space-x-1 cursor-pointer"
+              title="切換主人創世主全域調試特權"
+            >
+              <span>👑</span>
+              <span>{{ isMasterMode ? '創世主模式 ON' : '創世主調試' }}</span>
+            </button>
+            <button 
+              @click="showStudioModal = false" 
+              class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+
+        <!-- 👑 創世主全域調試面板 (Master God Bar - 專屬主人秒切等級與全解鎖測試) -->
+        <div v-if="isMasterMode" class="bg-gradient-to-r from-amber-950/70 via-slate-950 to-purple-950/70 border-b border-amber-500/40 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 shadow-inner">
+          <div class="flex items-center space-x-2">
+            <span class="text-amber-400 text-xs font-black flex items-center space-x-1">
+              <span>👑</span>
+              <span>創世主瞬移階梯：</span>
+            </span>
+            <div class="flex items-center space-x-1 font-mono text-[11px]">
+              <button @click="warpToTier(1)" :class="levelInfo.level === 1 ? 'bg-amber-500 text-black font-black shadow-sm' : 'bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500'" class="px-2 py-0.5 rounded-lg transition">Lv.1 初出</button>
+              <button @click="warpToTier(2)" :class="levelInfo.level === 2 ? 'bg-amber-500 text-black font-black shadow-sm' : 'bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500'" class="px-2 py-0.5 rounded-lg transition">Lv.2 換裝</button>
+              <button @click="warpToTier(5)" :class="levelInfo.level === 5 ? 'bg-amber-500 text-black font-black shadow-sm' : 'bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500'" class="px-2 py-0.5 rounded-lg transition">Lv.5 冒險</button>
+              <button @click="warpToTier(10)" :class="levelInfo.level === 10 ? 'bg-amber-500 text-black font-black shadow-sm' : 'bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500'" class="px-2 py-0.5 rounded-lg transition">Lv.10 騎士</button>
+              <button @click="warpToTier(20)" :class="levelInfo.level === 20 ? 'bg-amber-500 text-black font-black shadow-sm' : 'bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500'" class="px-2 py-0.5 rounded-lg transition">Lv.20 先驅</button>
+              <button @click="warpToTier(30)" :class="levelInfo.level >= 30 ? 'bg-amber-500 text-black font-black shadow-sm' : 'bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500'" class="px-2 py-0.5 rounded-lg transition text-amber-300 font-bold">Lv.30 封頂</button>
+            </div>
+          </div>
+
+          <div class="flex items-center space-x-2">
+            <button 
+              @click="toggleMasterBypass" 
+              :class="isMasterBypass ? 'bg-emerald-500/25 text-emerald-300 border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 'bg-slate-900 text-slate-400 border-slate-700 hover:border-slate-500'"
+              class="px-2.5 py-0.5 rounded-lg border text-[11px] font-bold transition flex items-center space-x-1 cursor-pointer"
+              title="開啟時無視等級限制自由試穿所有裝備"
+            >
+              <span>{{ isMasterBypass ? '🔓' : '🔒' }}</span>
+              <span>全裝備試穿 (Bypass): {{ isMasterBypass ? 'ON' : 'OFF' }}</span>
+            </button>
+            <button @click="resetMasterProgress" class="px-2 py-0.5 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-rose-300 rounded-lg border border-slate-700 text-[11px] transition">
+              🔄 歸零
+            </button>
+          </div>
         </div>
 
         <!-- 彈窗主體雙欄佈局 (左側大畫布預覽，右側圖層控制) -->
@@ -1676,11 +1727,18 @@
                 <button 
                   v-for="outfit in (studioLpcOptions.roleClass === 'rogue' ? (LpcCompositor ? LpcCompositor.rogueOutfits : []) : (studioLpcOptions.gender === 'female' ? (LpcCompositor ? LpcCompositor.femaleOutfits : []) : (LpcCompositor ? LpcCompositor.maleOutfits : [])))"
                   :key="outfit.id"
-                  @click="studioLpcOptions.outfit = outfit.id; onLpcOptionChange()"
-                  :class="studioLpcOptions.outfit === outfit.id ? (studioLpcOptions.roleClass === 'rogue' ? 'bg-red-500/25 border-red-500 text-red-200 shadow-sm' : (studioLpcOptions.gender === 'female' ? 'bg-pink-500/25 border-pink-500 text-pink-200 shadow-sm' : 'bg-blue-500/25 border-blue-500 text-blue-200 shadow-sm')) : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'"
-                  class="py-1.5 px-2.5 rounded-xl border text-xs font-bold transition text-left truncate"
+                  @click="selectLpcOption('outfit', outfit)"
+                  :class="[
+                    studioLpcOptions.outfit === outfit.id ? (studioLpcOptions.roleClass === 'rogue' ? 'bg-red-500/25 border-red-500 text-red-200 shadow-sm' : (studioLpcOptions.gender === 'female' ? 'bg-pink-500/25 border-pink-500 text-pink-200 shadow-sm' : 'bg-blue-500/25 border-blue-500 text-blue-200 shadow-sm')) : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700',
+                    !isGearItemUnlocked(outfit.reqLevel) ? 'opacity-55 border-dashed bg-slate-950/60' : ''
+                  ]"
+                  class="py-1.5 px-2.5 rounded-xl border text-xs font-bold transition text-left truncate flex items-center justify-between"
+                  :title="!isGearItemUnlocked(outfit.reqLevel) ? '需召喚師 Lv.' + outfit.reqLevel + ' 解鎖' : ''"
                 >
-                  {{ outfit.label }}
+                  <span class="truncate">{{ outfit.label }}</span>
+                  <span v-if="!isGearItemUnlocked(outfit.reqLevel)" class="text-[9px] font-mono px-1 py-0.2 rounded bg-slate-900 border border-slate-700 text-amber-400 flex-shrink-0 ml-1">
+                    🔒Lv.{{ outfit.reqLevel }}
+                  </span>
                 </button>
               </div>
             </div>
@@ -1696,11 +1754,18 @@
                   <button 
                     v-for="m in (LpcCompositor ? LpcCompositor.rogueMasks : [])"
                     :key="m.id"
-                    @click="studioLpcOptions.mask = m.id; onLpcOptionChange()"
-                    :class="(studioLpcOptions.mask || 'none') === m.id ? 'bg-red-600/30 border-red-500 text-red-200 shadow-sm' : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700'"
-                    class="py-1.5 px-2.5 rounded-xl border text-xs font-bold transition text-left truncate"
+                    @click="selectLpcOption('mask', m)"
+                    :class="[
+                      (studioLpcOptions.mask || 'none') === m.id ? 'bg-red-600/30 border-red-500 text-red-200 shadow-sm' : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700',
+                      !isGearItemUnlocked(m.reqLevel) ? 'opacity-55 border-dashed bg-slate-950/60' : ''
+                    ]"
+                    class="py-1.5 px-2.5 rounded-xl border text-xs font-bold transition text-left truncate flex items-center justify-between"
+                    :title="!isGearItemUnlocked(m.reqLevel) ? '需召喚師 Lv.' + m.reqLevel + ' 解鎖' : ''"
                   >
-                    {{ m.label }}
+                    <span class="truncate">{{ m.label }}</span>
+                    <span v-if="!isGearItemUnlocked(m.reqLevel)" class="text-[9px] font-mono px-1 py-0.2 rounded bg-slate-900 border border-slate-700 text-amber-400 flex-shrink-0 ml-1">
+                      🔒Lv.{{ m.reqLevel }}
+                    </span>
                   </button>
                 </div>
               </div>
@@ -1714,11 +1779,18 @@
                   <button 
                     v-for="h in (LpcCompositor ? LpcCompositor.rogueHoods : [])"
                     :key="h.id"
-                    @click="studioLpcOptions.hood = h.id; onLpcOptionChange()"
-                    :class="(studioLpcOptions.hood || 'none') === h.id ? 'bg-purple-600/30 border-purple-500 text-purple-200 shadow-sm' : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700'"
-                    class="py-1.5 px-2.5 rounded-xl border text-xs font-bold transition text-left truncate"
+                    @click="selectLpcOption('hood', h)"
+                    :class="[
+                      (studioLpcOptions.hood || 'none') === h.id ? 'bg-purple-600/30 border-purple-500 text-purple-200 shadow-sm' : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700',
+                      !isGearItemUnlocked(h.reqLevel) ? 'opacity-55 border-dashed bg-slate-950/60' : ''
+                    ]"
+                    class="py-1.5 px-2.5 rounded-xl border text-xs font-bold transition text-left truncate flex items-center justify-between"
+                    :title="!isGearItemUnlocked(h.reqLevel) ? '需召喚師 Lv.' + h.reqLevel + ' 解鎖' : ''"
                   >
-                    {{ h.label }}
+                    <span class="truncate">{{ h.label }}</span>
+                    <span v-if="!isGearItemUnlocked(h.reqLevel)" class="text-[9px] font-mono px-1 py-0.2 rounded bg-slate-900 border border-slate-700 text-amber-400 flex-shrink-0 ml-1">
+                      🔒Lv.{{ h.reqLevel }}
+                    </span>
                   </button>
                 </div>
               </div>
@@ -1815,11 +1887,18 @@
                 <button 
                   v-for="w in (LpcCompositor ? LpcCompositor.weapons : [])"
                   :key="w.id"
-                  @click="studioLpcOptions.weapon = w.id; onLpcOptionChange()"
-                  :class="(studioLpcOptions.weapon || 'none') === w.id ? 'bg-amber-500/30 border-amber-400 text-amber-200 shadow-[0_0_15px_rgba(245,158,11,0.3)]' : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700'"
-                  class="py-1.5 px-2 rounded-xl border text-xs font-bold transition text-left truncate"
+                  @click="selectLpcOption('weapon', w)"
+                  :class="[
+                    (studioLpcOptions.weapon || 'none') === w.id ? 'bg-amber-500/30 border-amber-400 text-amber-200 shadow-[0_0_15px_rgba(245,158,11,0.3)]' : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700',
+                    !isGearItemUnlocked(w.reqLevel) ? 'opacity-55 border-dashed bg-slate-950/60' : ''
+                  ]"
+                  class="py-1.5 px-2 rounded-xl border text-xs font-bold transition text-left truncate flex items-center justify-between"
+                  :title="!isGearItemUnlocked(w.reqLevel) ? '需召喚師 Lv.' + w.reqLevel + ' 解鎖' : ''"
                 >
-                  {{ w.label }}
+                  <span class="truncate">{{ w.label }}</span>
+                  <span v-if="!isGearItemUnlocked(w.reqLevel)" class="text-[9px] font-mono px-1 py-0.2 rounded bg-slate-900 border border-slate-700 text-amber-400 flex-shrink-0 ml-1">
+                    🔒Lv.{{ w.reqLevel }}
+                  </span>
                 </button>
               </div>
             </div>
@@ -2191,6 +2270,54 @@
                   </div>
                 </div>
                 <span class="text-sm">{{ trophy.unlocked ? '✨' : '🔒' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 👑 創世主全域調試控制台 (Master God Console - 主人專屬等級與裝備測試特權) -->
+          <div class="p-4 rounded-2xl bg-gradient-to-r from-amber-950/40 via-purple-950/30 to-slate-950 border border-amber-500/40 space-y-3 shadow-inner">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <span class="text-xl">👑</span>
+                <div>
+                  <h4 class="text-xs font-bold text-amber-300">創世主調試特權台 (Master God Mode)</h4>
+                  <p class="text-[10px] text-slate-400">主人專屬：自由瞬移階段等級並即時驗證換裝解鎖</p>
+                </div>
+              </div>
+              <button 
+                @click="toggleMasterMode"
+                :class="isMasterMode ? 'bg-amber-500 text-black font-black shadow-glow-gold' : 'bg-slate-800 text-slate-400 border border-slate-700 hover:text-slate-200'"
+                class="px-3 py-1 rounded-xl text-xs font-bold transition cursor-pointer"
+              >
+                {{ isMasterMode ? '特權啟用中 (ON)' : '啟用特權 (OFF)' }}
+              </button>
+            </div>
+
+            <div v-if="isMasterMode" class="space-y-2 pt-2 border-t border-slate-800/80">
+              <div class="text-[11px] text-slate-400 flex items-center justify-between">
+                <span>等級快速瞬移 (Instant Tier Warp)：</span>
+                <span class="font-mono text-amber-400 font-bold">當前 Lv.{{ levelInfo.level }}</span>
+              </div>
+              <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5 font-mono text-[11px]">
+                <button @click="warpToTier(1)" :class="levelInfo.level === 1 ? 'bg-amber-500 text-black font-bold' : 'bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500'" class="py-1 px-1 rounded-lg transition">Lv.1 初出</button>
+                <button @click="warpToTier(2)" :class="levelInfo.level === 2 ? 'bg-amber-500 text-black font-bold' : 'bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500'" class="py-1 px-1 rounded-lg transition">Lv.2 換裝</button>
+                <button @click="warpToTier(5)" :class="levelInfo.level === 5 ? 'bg-amber-500 text-black font-bold' : 'bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500'" class="py-1 px-1 rounded-lg transition">Lv.5 冒險</button>
+                <button @click="warpToTier(10)" :class="levelInfo.level === 10 ? 'bg-amber-500 text-black font-bold' : 'bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500'" class="py-1 px-1 rounded-lg transition">Lv.10 騎士</button>
+                <button @click="warpToTier(20)" :class="levelInfo.level === 20 ? 'bg-amber-500 text-black font-bold' : 'bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500'" class="py-1 px-1 rounded-lg transition">Lv.20 先驅</button>
+                <button @click="warpToTier(30)" :class="levelInfo.level >= 30 ? 'bg-amber-500 text-black font-bold' : 'bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500'" class="py-1 px-1 rounded-lg transition text-amber-300 font-bold">Lv.30 封頂</button>
+              </div>
+              <div class="flex items-center justify-between pt-1">
+                <button 
+                  @click="toggleMasterBypass" 
+                  :class="isMasterBypass ? 'text-emerald-400 font-bold' : 'text-slate-400'"
+                  class="text-[11px] flex items-center space-x-1 cursor-pointer hover:underline"
+                >
+                  <span>{{ isMasterBypass ? '🔓' : '🔒' }}</span>
+                  <span>全裝備自由試穿 Bypass: {{ isMasterBypass ? '已啟用 (無視等級)' : '已關閉' }}</span>
+                </button>
+                <button @click="resetMasterProgress" class="text-[10px] text-rose-400 hover:underline cursor-pointer">
+                  🔄 重設進度回 Lv.1
+                </button>
               </div>
             </div>
           </div>
@@ -3213,6 +3340,61 @@
           }
         }
 
+        // 👑 創世主模式 (Master God Mode) - 專屬主人全域調試與階段秒切特權
+        const isMasterMode = ref(
+          localStorage.getItem('valhalla_master_mode') === 'true' || 
+          (typeof window !== 'undefined' && window.location.search.includes('master=1'))
+        );
+        const isMasterBypass = ref(localStorage.getItem('valhalla_master_bypass') === 'true');
+
+        function toggleMasterMode() {
+          isMasterMode.value = !isMasterMode.value;
+          localStorage.setItem('valhalla_master_mode', isMasterMode.value);
+          if (window.ValhallaAudio) window.ValhallaAudio.playLevelUpSound();
+          showToast(isMasterMode.value ? '👑 創世主模式已開啟！享有全域階段調試與秒切特權' : '👑 創世主模式已關閉，恢復一般訪客規則');
+        }
+
+        function toggleMasterBypass() {
+          isMasterBypass.value = !isMasterBypass.value;
+          localStorage.setItem('valhalla_master_bypass', isMasterBypass.value);
+          if (window.ValhallaAudio) window.ValhallaAudio.playEquipSound();
+          showToast(isMasterBypass.value ? '🔓 創世主全裝備自由試穿 (Bypass) 已啟用！' : '🔒 創世主全裝備自由試穿已關閉，遵循等級限制');
+        }
+
+        function warpToTier(targetLvl) {
+          const tierExps = { 1: 0, 2: 50, 5: 350, 10: 1560, 20: 10100, 30: 28600 };
+          const targetExp = tierExps[targetLvl] ?? 0;
+          commanderExp.value = targetExp;
+          localStorage.setItem('valhalla_rpg_exp', commanderExp.value);
+          if (window.ValhallaAudio) window.ValhallaAudio.playLevelUpSound();
+          showToast(`⚡ 創世主等級瞬移：已切換至 Lv.${targetLvl} (EXP: ${targetExp})！`);
+        }
+
+        function resetMasterProgress() {
+          commanderExp.value = 0;
+          isMasterBypass.value = false;
+          localStorage.setItem('valhalla_rpg_exp', '0');
+          localStorage.removeItem('valhalla_master_bypass');
+          if (window.ValhallaAudio) window.ValhallaAudio.playEquipSound();
+          showToast('🔄 召喚師等級已重設為 Lv.1 初出茅廬狀態');
+        }
+
+        function isGearItemUnlocked(reqLevel) {
+          if (isMasterMode.value && isMasterBypass.value) return true;
+          const curLvl = levelInfo.value ? levelInfo.value.level : 1;
+          return curLvl >= (reqLevel || 1);
+        }
+
+        function selectLpcOption(category, item) {
+          if (!isGearItemUnlocked(item.reqLevel)) {
+            if (window.ValhallaAudio) window.ValhallaAudio.playEquipSound();
+            showToast(`🔒 此【${item.label}】需召喚師達到 Lv.${item.reqLevel} 才能穿戴！當前等級: Lv.${levelInfo.value.level}`);
+            return;
+          }
+          studioLpcOptions.value[category] = item.id;
+          onLpcOptionChange();
+        }
+
         try {
           const todayDate = new Date().toISOString().slice(0, 10);
           if (localStorage.getItem('valhalla_last_signin') !== todayDate) {
@@ -3863,6 +4045,13 @@
           }),
           openPaperDollStudio: function(hero) {
             if (!hero) return;
+            // [舊代碼備查] 2026-10-31: 原本無等級檢查無條件進入工坊
+            // 🌟 2026-10-31 階段性防禦守衛：需達到 Lv.2 (累積 50 EXP) 解鎖自由工坊；創世主模式享有無條件特權
+            if (!isMasterMode.value && levelInfo.value.level < 2) {
+              if (window.ValhallaAudio) window.ValhallaAudio.playEquipSound();
+              showToast('🔒 自由造型工坊需召喚師達到 Lv.2 (50 EXP) 解鎖！請先召喚特工或出征每日任務！');
+              return;
+            }
             studioHero.value = hero;
             const existing = customAvatars.value[hero.id];
             if (existing && existing.lpcOptions) {
@@ -4026,6 +4215,14 @@
             }
           },
 
+          isMasterMode,
+          isMasterBypass,
+          toggleMasterMode,
+          toggleMasterBypass,
+          warpToTier,
+          resetMasterProgress,
+          isGearItemUnlocked,
+          selectLpcOption,
           LpcCompositor: (typeof window !== 'undefined' ? window.LpcCompositor : null),
           studioLpcOptions,
           setStudioClass,
