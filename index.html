@@ -3412,39 +3412,6 @@
         }
 
         // 篩選與排序核心邏輯
-        // 🚀 首屏 36 卡牌分批秒開 (Infinite Chunking，徹底杜絕 DOM 暴增卡頓)
-        const displayedCount = ref(36);
-        const displayedAgents = computed(() => {
-          return filteredAgents.value.slice(0, displayedCount.value);
-        });
-
-        function loadMoreAgents() {
-          if (displayedCount.value < filteredAgents.value.length) {
-            displayedCount.value = Math.min(displayedCount.value + 24, filteredAgents.value.length);
-          }
-        }
-
-        let scrollThrottleTimer = null;
-        function handleWindowScroll() {
-          if (scrollThrottleTimer) return;
-          scrollThrottleTimer = setTimeout(() => {
-            scrollThrottleTimer = null;
-            const scrollBottom = window.innerHeight + window.scrollY;
-            const docHeight = document.documentElement.offsetHeight;
-            if (docHeight - scrollBottom < 800) {
-              loadMoreAgents();
-            }
-          }, 120);
-        }
-
-        // 當使用者搜尋、切換品級、標籤或排行榜時，自動重置回首屏 36 張
-        watch(
-          [searchQuery, activeCategory, currentRarityFilter, currentSort, isTop10Mode, activeScenario, activeScenarioCustom],
-          () => {
-            displayedCount.value = 36;
-          }
-        );
-
         const filteredAgents = computed(() => {
           let list = [...agents.value];
 
@@ -3513,6 +3480,41 @@
 
           return sortedList;
         });
+
+        // 🚀 首屏 36 卡牌分批秒開 (Infinite Chunking，徹底杜絕 DOM 暴增卡頓)
+        const displayedCount = ref(36);
+        const displayedAgents = computed(() => {
+          return filteredAgents.value.slice(0, displayedCount.value);
+        });
+
+        function loadMoreAgents() {
+          if (displayedCount.value < filteredAgents.value.length) {
+            displayedCount.value = Math.min(displayedCount.value + 24, filteredAgents.value.length);
+          }
+        }
+
+        let scrollThrottleTimer = null;
+        function handleWindowScroll() {
+          if (scrollThrottleTimer) return;
+          scrollThrottleTimer = setTimeout(() => {
+            scrollThrottleTimer = null;
+            const scrollBottom = window.innerHeight + window.scrollY;
+            const docHeight = document.documentElement.offsetHeight;
+            if (docHeight - scrollBottom < 800) {
+              loadMoreAgents();
+            }
+          }, 120);
+        }
+
+        // [舊代碼備查] 2026-10-31: 原本誤用 activeCategory 與 currentRarityFilter 導致 ReferenceError 白屏崩潰
+        // watch([searchQuery, activeCategory, currentRarityFilter, currentSort, isTop10Mode, activeScenario, activeScenarioCustom], () => { displayedCount.value = 36; });
+        // 🌟 2026-10-31 修復：對齊真實響應式狀態，篩選切換時無縫重置分頁
+        watch(
+          [searchQuery, selectedDomain, selectedRarity, currentSort, isTop10Mode, activeScenario, activeScenarioCustom, filterFavoriteOnly],
+          () => {
+            displayedCount.value = 36;
+          }
+        );
 
         const selectedDomainName = computed(() => {
           const dom = domains.value.find(d => d.id === selectedDomain.value);
