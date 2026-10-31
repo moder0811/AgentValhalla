@@ -1248,8 +1248,28 @@
         <div class="p-4 sm:p-6 border-b border-slate-800 flex items-start justify-between bg-gradient-to-r from-slate-900 via-slate-900/90 to-cardbg">
           <div class="flex items-start space-x-3 sm:space-x-4">
             
-            <!-- 彈窗大頭像 (手機端 48px 精巧，桌機 64px) -->
-            <div :key="'hero_modal_avatar_' + (activeHero ? activeHero.id : '') + '_' + avatarVersion" class="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-slate-900 border border-slate-700 p-1 shadow-inner flex items-center justify-center flex-shrink-0" v-html="getAvatarSvg(activeHero)">
+            <!-- 造型圖像與換裝娃娃系統整合區塊 (2026-10-31 依指令頂部同區塊整合) -->
+            <div class="flex flex-col items-center space-y-1.5 flex-shrink-0">
+              <div 
+                :key="'hero_modal_avatar_' + (activeHero ? activeHero.id : '') + '_' + avatarVersion" 
+                @click="openPaperDollStudio(activeHero)"
+                class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-slate-900 border-2 border-purple-500/40 hover:border-purple-400 p-1 shadow-[0_0_15px_rgba(168,85,247,0.25)] flex items-center justify-center flex-shrink-0 cursor-pointer transition hover:scale-105 group relative"
+                :title="(!isMasterMode && levelInfo.level < 2) ? '需召喚師達 Lv.2 解鎖換裝娃娃系統' : '點擊頭像進入換裝娃娃系統'"
+              >
+                <div v-html="getAvatarSvg(activeHero)" class="w-full h-full"></div>
+                <div class="absolute -bottom-1 -right-1 bg-purple-600 text-[10px] w-5 h-5 rounded-full flex items-center justify-center shadow border border-purple-400/60">👗</div>
+              </div>
+              <button 
+                @click="openPaperDollStudio(activeHero)"
+                :class="(!isMasterMode && levelInfo.level < 2) 
+                  ? 'bg-slate-800/80 text-slate-400 border-slate-700 hover:bg-slate-750 cursor-pointer' 
+                  : 'bg-gradient-to-r from-purple-600/30 to-indigo-600/30 hover:from-purple-600/50 hover:to-indigo-600/50 text-purple-200 border-purple-400/50 shadow-sm'"
+                class="px-2 py-0.5 text-[10px] sm:text-[11px] font-bold rounded-lg border transition flex items-center space-x-1 whitespace-nowrap shadow-sm hover:scale-105 active:scale-95"
+                :title="(!isMasterMode && levelInfo.level < 2) ? '需召喚師達 Lv.2 解鎖換裝娃娃系統' : '進入換裝娃娃系統'"
+              >
+                <span>{{ (!isMasterMode && levelInfo.level < 2) ? '🔒' : '👗' }}</span>
+                <span>{{ (!isMasterMode && levelInfo.level < 2) ? '鎖定 Lv.2' : '換裝娃娃系統' }}</span>
+              </button>
             </div>
 
             <div class="flex-1 min-w-0">
@@ -1373,33 +1393,21 @@
           <div class="flex items-center space-x-2 sm:space-x-3">
             <button 
               @click="activeHero = null"
-              class="px-3.5 py-1.5 sm:px-4 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-xl border border-slate-700 transition"
+              class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl border border-slate-700 transition"
             >
               {{ t('close_btn') }}
             </button>
-            <!-- [舊代碼備查] 2026-10-31: 原本無等級檢查直接進入工坊 -->
-            <!-- <button @click="openPaperDollStudio(activeHero)" class="... text-white text-xs font-bold ..."><span>🎨</span><span>換裝工坊</span></button> -->
-            <!-- 🌟 2026-10-31 階段性防禦守衛：需召喚師 Lv.2 (50 EXP) 解鎖；創世主模式享有無條件特權 -->
-            <button 
-              @click="openPaperDollStudio(activeHero)"
-              :class="(!isMasterMode && levelInfo.level < 2) 
-                ? 'bg-slate-800/80 text-slate-400 border-slate-700 hover:bg-slate-750 cursor-pointer' 
-                : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white border-purple-400/40 shadow-[0_0_15px_rgba(168,85,247,0.4)]'"
-              class="px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs font-bold rounded-xl border transition flex items-center space-x-1.5"
-              :title="(!isMasterMode && levelInfo.level < 2) ? '需召喚師達 Lv.2 解鎖自由工坊' : '32x32 復古紙娃娃換裝工坊'"
-            >
-              <span>{{ (!isMasterMode && levelInfo.level < 2) ? '🔒' : '👗' }}</span>
-              <span>{{ (!isMasterMode && levelInfo.level < 2) ? '需 Lv.2 解鎖工坊' : '手繪換裝工坊' }}</span>
-            </button>
+            <!-- [舊代碼備查] 2026-10-31: 原本換裝工坊按鈕放在底部造成版面擁擠，已依指令移至頂部頭像區塊並更名為「換裝娃娃系統」 -->
+            <!-- 🌟 2026-10-31 依指令將本層召喚按鈕明確命名為「複製咒文」 -->
             <button 
               @click="handleSummonClick(activeHero)"
               :class="currentTheme === 'gta6' 
                 ? 'bg-gradient-to-r from-pink-500 via-rose-500 to-orange-500 hover:from-pink-400 hover:to-orange-400 text-white shadow-[0_0_15px_rgba(255,42,133,0.6)]' 
                 : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black shadow-glow-gold'"
-              class="px-4 py-1.5 sm:px-5 sm:py-2 text-xs font-bold rounded-xl transition flex items-center space-x-1.5"
+              class="px-5 py-2 text-xs font-extrabold rounded-xl transition flex items-center space-x-1.5 shadow-lg active:scale-95"
             >
-              <span>{{ currentTheme === 'gta6' ? '🌴' : '⚡' }}</span>
-              <span>{{ t('summon_btn') }}</span>
+              <span>📜</span>
+              <span>複製咒文</span>
             </button>
           </div>
         </div>
