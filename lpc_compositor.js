@@ -18,6 +18,7 @@
   const imageCache = new Map();
   const archetypeCache = new Map();
   let isArchetypesReady = false;
+  const LPC_CACHE_KEY = 'valhalla_lpc_archetypes_v3';
 
   // 髮色濾鏡對照表
   const HAIR_PALETTES = {
@@ -147,6 +148,24 @@
     { id: 10, gender: 'female', roleClass: 'rogue', bodyType: 'muscular', outfit: 'bodice_red', hairStyle: 'long_straight', hairColor: 'raven', eyeColor: 'red', mask: 'assassin_mask', hood: 'assassin_hood', weapon: 'dagger', enableBlush: false },
     { id: 11, gender: 'female', roleClass: 'valkyrie', bodyType: 'teen', outfit: 'bodice_pink', hairStyle: 'pigtails', hairColor: 'pink', eyeColor: 'purple', mask: 'none', hood: 'none', weapon: 'none', enableBlush: true }
   ];
+
+  // 🌟 2026-10-31 新增：同步讀取 localStorage 快取，達成 0ms 首屏瞬發
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const cached = window.localStorage.getItem(LPC_CACHE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length >= ARCHETYPES.length) {
+          parsed.forEach((url, i) => {
+            if (url) archetypeCache.set(i, url);
+          });
+          isArchetypesReady = true;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[LpcCompositor] 讀取 localStorage 快取失敗:', err);
+  }
 
   function hashString(str) {
     if (!str) return 0;
@@ -346,14 +365,30 @@
   async function initArchetypes() {
     if (typeof document === 'undefined') return;
     try {
-      for (const arch of ARCHETYPES) {
+      // 🌟 2026-10-31 優化：Promise.all 平行化合成，徹底告別序列等待
+      await Promise.all(ARCHETYPES.map(async (arch) => {
+        if (archetypeCache.has(arch.id)) {
+          return;
+        }
         const dataUrl = await renderToDataUrl({
           ...arch,
           framing: 'portrait',
           frame: 0
         });
         archetypeCache.set(arch.id, dataUrl);
-      }
+      }));
+
+      // 儲存至 localStorage 快取
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          const exportList = [];
+          for (let i = 0; i < ARCHETYPES.length; i++) {
+            exportList.push(archetypeCache.get(i) || '');
+          }
+          window.localStorage.setItem(LPC_CACHE_KEY, JSON.stringify(exportList));
+        }
+      } catch (err) {}
+
       isArchetypesReady = true;
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('lpc-archetypes-ready'));

@@ -48,7 +48,7 @@
   <script src="rpg_engine.js?v=20261031_v22"></script>
   <!-- 👑 現代 64x64 高解析次像素藝術與動態呼吸紙娃娃引擎 (2016-2026 經典殿堂角色) -->
   <script src="modern_avatar.js?v=20261031_v22"></script>
-  <script src="lpc_compositor.js?v=20261031_lpc3"></script>
+  <script src="lpc_compositor.js?v=20261031_lpc4"></script>
   <style>
     /* Custom scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -460,8 +460,9 @@
 
       <!-- 英雄卡牌網格 (支援流暢響應式 1~4 欄排版) -->
       <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
+        <!-- [舊代碼備查] 2026-10-31: v-for="agent in filteredAgents" 一次性渲染 272 張卡牌導致首屏卡頓 -->
         <div 
-          v-for="agent in filteredAgents" 
+          v-for="agent in displayedAgents" 
           :key="agent.id"
           class="glass-panel card-hover-fx rounded-2xl p-4 sm:p-5 border flex flex-col justify-between relative group overflow-hidden"
           :class="getCardBorderClass(agent)"
@@ -609,6 +610,18 @@
           </div>
 
         </div>
+      </div>
+
+      <!-- 🚀 分批載入提示與觸發按鈕 (首屏 36 卡牌秒開，杜絕卡頓) -->
+      <div v-if="filteredAgents.length > displayedCount" class="mt-8 mb-6 flex flex-col items-center justify-center space-y-2">
+        <button 
+          @click="loadMoreAgents"
+          class="px-6 py-2.5 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-amber-500/50 text-slate-300 hover:text-amber-300 font-bold text-xs tracking-wider transition shadow-lg flex items-center space-x-2 group cursor-pointer"
+        >
+          <span class="group-hover:translate-y-0.5 transition-transform">⬇️</span>
+          <span>載入更多特工卡牌 (已載入 {{ displayedCount }} / {{ filteredAgents.length }})</span>
+        </button>
+        <span class="text-[11px] text-slate-500 font-mono">向下滑動或點擊按鈕自動增量載入</span>
       </div>
 
     </main>
@@ -2198,7 +2211,7 @@
   </div>
 
   <script>
-    const { createApp, ref, computed, onMounted } = Vue;
+    const { createApp, ref, computed, onMounted, watch } = Vue;
 
     // 多語系 UI 文字字典
     const UI_DICTIONARY = {
@@ -3344,9 +3357,14 @@
               return '<img src="' + defUrl + '" class="w-full h-full object-cover pixelated rounded-lg shadow-sm" alt="' + agent.name + '" />';
             }
           }
-          if (!window.ValhallaPixelEngine) return agent.emoji || '👾';
-          const form = overrideForm || currentAvatarForm.value;
-          return window.ValhallaPixelEngine.render(agent.id, form, agent.domain);
+          // [舊代碼備查] 2026-10-31 原本回退到樂高像素頭像，造成首屏閃爍：
+          // if (!window.ValhallaPixelEngine) return agent.emoji || '👾';
+          // const form = overrideForm || currentAvatarForm.value;
+          // return window.ValhallaPixelEngine.render(agent.id, form, agent.domain);
+
+          // 🌟 2026-10-31 樂高臉徹底消除：若 LPC 尚未就緒，呈現精緻暗黑高階微光佔位符，絕不再閃爍樂高臉
+          const emoji = agent.emoji || '⚔️';
+          return '<div class="w-full h-full bg-slate-900/90 rounded-lg flex items-center justify-center border border-slate-800 text-lg shadow-inner select-none animate-pulse"><span>' + emoji + '</span></div>';
         }
 
         // 預先計算全榜英雄排行 (按召喚次數降冪)
@@ -3394,6 +3412,39 @@
         }
 
         // 篩選與排序核心邏輯
+        // 🚀 首屏 36 卡牌分批秒開 (Infinite Chunking，徹底杜絕 DOM 暴增卡頓)
+        const displayedCount = ref(36);
+        const displayedAgents = computed(() => {
+          return filteredAgents.value.slice(0, displayedCount.value);
+        });
+
+        function loadMoreAgents() {
+          if (displayedCount.value < filteredAgents.value.length) {
+            displayedCount.value = Math.min(displayedCount.value + 24, filteredAgents.value.length);
+          }
+        }
+
+        let scrollThrottleTimer = null;
+        function handleWindowScroll() {
+          if (scrollThrottleTimer) return;
+          scrollThrottleTimer = setTimeout(() => {
+            scrollThrottleTimer = null;
+            const scrollBottom = window.innerHeight + window.scrollY;
+            const docHeight = document.documentElement.offsetHeight;
+            if (docHeight - scrollBottom < 800) {
+              loadMoreAgents();
+            }
+          }, 120);
+        }
+
+        // 當使用者搜尋、切換品級、標籤或排行榜時，自動重置回首屏 36 張
+        watch(
+          [searchQuery, activeCategory, currentRarityFilter, currentSort, isTop10Mode, activeScenario, activeScenarioCustom],
+          () => {
+            displayedCount.value = 36;
+          }
+        );
+
         const filteredAgents = computed(() => {
           let list = [...agents.value];
 
@@ -3687,6 +3738,7 @@
 
         onMounted(() => {
           applyBodyTheme(currentTheme.value);
+          window.addEventListener('scroll', handleWindowScroll, { passive: true });
 
           // 首次造訪自動跳出 PS5 風格新手導覽
           const hasSeenOnboarding = localStorage.getItem('valhalla_onboarding_done');
@@ -3711,6 +3763,9 @@
           agents,
           domains,
           totalAgentsCount,
+          displayedAgents,
+          displayedCount,
+          loadMoreAgents,
           showSettingsModal,
           showFilterModal,
           currentFilterLabel,
