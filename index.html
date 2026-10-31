@@ -45,7 +45,7 @@
   <!-- Pixel Avatar Engine -->
   <script src="pixel_avatar.js?v=20261031_v22"></script>
   <!-- 0 KB Procedural Web Audio & RPG Engine -->
-  <script src="rpg_engine.js?v=20261031_v22"></script>
+  <script src="rpg_engine.js?v=20261031_v23"></script>
   <!-- 👑 現代 64x64 高解析次像素藝術與動態呼吸紙娃娃引擎 (2016-2026 經典殿堂角色) -->
   <script src="modern_avatar.js?v=20261031_v22"></script>
   <script src="lpc_compositor.js?v=20261031_lpc6"></script>
@@ -1519,7 +1519,7 @@
       <button 
         @click="openCodexModal"
         class="bg-slate-900/90 hover:bg-slate-800 text-amber-300 border border-amber-500/40 hover:border-amber-400 rounded-full px-3 py-1.5 shadow-[0_8px_25px_rgba(0,0,0,0.6)] backdrop-blur-md flex items-center space-x-1.5 transition-all transform hover:scale-105 active:scale-95 group text-xs font-bold"
-        title="勇者鬥惡龍裝備聖典與性感福利圖鑑"
+        title="瓦爾哈拉傳奇裝備聖典與特工戰袍圖鑑"
       >
         <span>📖</span>
         <span class="hidden sm:inline">裝備聖典</span>
@@ -2460,12 +2460,12 @@
             <span class="text-2xl">📖</span>
             <div>
               <h3 class="text-base font-bold text-slate-100 flex items-center space-x-2">
-                <span>勇者鬥惡龍裝備聖典與性感福利圖鑑</span>
+                <span>瓦爾哈拉傳奇裝備聖典與特工戰袍圖鑑</span>
                 <span class="text-xs text-amber-400 font-mono bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
                   Lv.{{ levelInfo.level }} {{ commanderTitle }}
                 </span>
               </h3>
-              <p class="text-xs text-slate-400">四大系譜 6 階傳奇神裝 · Lv.30 頂級福利聖裝直接試穿</p>
+              <p class="text-xs text-slate-400">四大職階傳奇神裝 · 升等解鎖直覺動態試穿</p>
             </div>
           </div>
           <button 
@@ -2519,12 +2519,14 @@
                   🔒 需 Lv.{{ gear.reqLevel }}
                 </span>
 
+                <!-- 🌟 2026-10-31 裝備聖典升等解鎖直通手繪換裝娃娃系統：任何已解鎖裝備均可一鍵「立即試穿」，即時動態配置並換裝呈現！ -->
                 <button 
-                  v-if="gear.isReward && levelInfo.level >= gear.reqLevel"
-                  @click="previewCostumeInStudio(gear.rewardId)"
-                  class="px-3 py-1 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white font-bold text-xs rounded-xl shadow transition flex items-center space-x-1"
+                  v-if="levelInfo.level >= gear.reqLevel || isMasterBypass"
+                  @click="previewCostumeInStudio(gear)"
+                  class="px-3 py-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-extrabold text-xs rounded-xl shadow transition flex items-center space-x-1 hover:scale-105 active:scale-95"
+                  title="進入換裝娃娃系統並動態配置此神裝"
                 >
-                  <span>🎨</span>
+                  <span>👗</span>
                   <span>立即試穿</span>
                 </button>
               </div>
@@ -4767,12 +4769,23 @@
           openCodexModal: function() {
             showCodexModal.value = true;
           },
-          previewCostumeInStudio: function(rewardId) {
+          // 🌟 2026-10-31 聖典與手繪換裝娃娃系統深度打通：點擊試穿直接將 lpcConfig 注入 studioLpcOptions 動態繪製！
+          previewCostumeInStudio: function(gearOrRewardId) {
             showCodexModal.value = false;
-            const hero = agents.value[0];
+            const hero = studioHero.value || (agents.value && agents.value.length ? agents.value[0] : null);
             if (hero) {
-              this.openPaperDollStudio(hero);
-              studioOptions.value.sexyCostume = rewardId;
+              openPaperDollStudio(hero);
+              if (gearOrRewardId && typeof gearOrRewardId === 'object' && gearOrRewardId.lpcConfig) {
+                studioLpcOptions.value = {
+                  ...studioLpcOptions.value,
+                  ...gearOrRewardId.lpcConfig
+                };
+                updateStudioPreview();
+                if (window.ValhallaAudio) window.ValhallaAudio.playEquipSound();
+                showToast(`✨ 已為特工【${hero.name}】動態穿戴【${gearOrRewardId.name}】！`);
+              } else if (typeof gearOrRewardId === 'string') {
+                studioOptions.value.sexyCostume = gearOrRewardId;
+              }
             }
           },
 

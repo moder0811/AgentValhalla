@@ -242,7 +242,7 @@
     },
 
     /**
-     * 🏆 升等音效 - 勇者鬥惡龍經典歡快升階音階
+     * 🏆 升等音效 - 殿堂經典歡快升階音階
      */
     playLevelUpSound: function () {
       if (!soundEnabled) return;
@@ -850,61 +850,179 @@
   // ==========================================================================
   // 【模組四】裝備聖典與性感福利圖鑑 (Gear Codex & Sexy Rewards)
   // ==========================================================================
+  // 🌟 2026-10-31 裝備聖典與手繪換裝娃娃系統 100% 嚴密對齊打通
+  // 每一階裝備均綁定實體 LPC 精靈圖圖層配置 (lpcConfig)，支援一鍵「立即試穿」即時動態渲染！
   const GEAR_CLASSES = [
     {
       id: 'warrior',
-      name: '勇者重鎧系 (Engineering / DevOps)',
+      name: '重裝勇者系 (Engineering / DevOps)',
       icon: '⚔️',
       color: 'from-amber-500 to-orange-600',
       tiers: [
-        { tier: 1, reqLevel: 1, name: '銅製除錯板甲', desc: '初階程式碼守護防具，抵禦大部分 NullPointer 暴擊。' },
-        { tier: 2, reqLevel: 5, name: '冷卻伺服器護甲', desc: '內建液態氮冷卻通道，即使 CPU 99% 依然冷靜如初。' },
-        { tier: 3, reqLevel: 10, name: '鈦合金外骨骼', desc: '支援多核心平行運算負載，提升並行任務承載力 300%。' },
-        { tier: 4, reqLevel: 20, name: '異步量子龍鱗鎧', desc: '由遠古巨龍程式碼所鑄，免疫任何分散式死鎖懲罰。' },
-        { tier: 5, reqLevel: 30, name: '天神神威·永恆戰甲', desc: '終極工程之鎧，散發金黃神聖光環，直面億級並行。' },
-        { tier: 6, reqLevel: 30, isReward: true, rewardId: 'bunny', name: '【頂級福利】狂野魅惑·兔女郎戰袍', desc: '漆黑皮革連身衣、網襪與兔耳！工程師最極致的浪漫戰服。' }
-      ]
-    },
-    {
-      id: 'mage',
-      name: '奧術邏輯系 (Architecture / AI / Data)',
-      icon: '🔮',
-      color: 'from-purple-500 to-indigo-600',
-      tiers: [
-        { tier: 1, reqLevel: 1, name: '演算法學徒斗篷', desc: '新手編程斗篷，能使複雜度降低至 O(N log N)。' },
-        { tier: 2, reqLevel: 5, name: '抽象架構法袍', desc: '以高內聚低耦合精紡製成，隔絕任何底層依賴污染。' },
-        { tier: 3, reqLevel: 10, name: '深度神經元風衣', desc: '編織有千萬層神經網路權重，能自動預測潛在風險。' },
-        { tier: 4, reqLevel: 20, name: '超維度張量聖裳', desc: '突破三維限制，可在十維向量空間中自由穿梭推理。' },
-        { tier: 5, reqLevel: 30, name: '創世大師極光聖袍', desc: '萬物代碼皆在其掌握之中，宇宙法則隨其意志重構。' },
-        { tier: 6, reqLevel: 30, isReward: true, rewardId: 'succubus', name: '【頂級福利】暗夜誘惑·魅魔黑蕾絲禮服', desc: '微透半透黑蕾絲與蝙蝠惡魔翼，令人心跳加速的深淵魅惑。' }
+        { 
+          tier: 1, 
+          reqLevel: 2, 
+          name: '冒險長褲與獵人輕甲', 
+          desc: '初階輕量戰鬥裝備，搭配真皮輕便鞋，抵禦大部分 NullPointer 暴擊。',
+          lpcConfig: { outfit: 'armor_leather', legs: 'pants', feet: 'shoes' }
+        },
+        { 
+          tier: 2, 
+          reqLevel: 5, 
+          name: '冒險獵人護腕與高筒戰靴', 
+          desc: '精工皮革強化護腕與高筒防護皮靴，大幅提升伺服器併發承載與移動敏捷。',
+          lpcConfig: { arms: 'bracers', feet: 'boots' }
+        },
+        { 
+          tier: 3, 
+          reqLevel: 10, 
+          name: '軍團精銳肩甲與鋼鐵腿甲', 
+          desc: '軍團重裝雙肩金屬重鎧與鋼鐵重腿甲，支援高強度多核心併行負載防禦。',
+          lpcConfig: { shoulders: 'legion', legs: 'plate' }
+        },
+        { 
+          tier: 4, 
+          reqLevel: 20, 
+          name: '聖騎士鋼鐵重鎧與蒼藍光刃', 
+          desc: '全覆式鋼鐵重板甲、重裝護手與聖光蒼藍光刃，免疫任何分散式死鎖懲罰。',
+          lpcConfig: { outfit: 'armor_plate', arms: 'plate', feet: 'plate', weapon: 'sword_glow_blue', hat: 'helmet_horned' }
+        },
+        { 
+          tier: 5, 
+          reqLevel: 30, 
+          name: '聖殿全覆式閉面神盔與猩紅神刃', 
+          desc: '殿堂終極密閉全覆式重盔、萬神殿肩鎧與猩紅嗜血光刃，直面億級並行。',
+          lpcConfig: { hat: 'helmet_close', weapon: 'sword_glow_red', shoulders: 'pauldrons' }
+        }
       ]
     },
     {
       id: 'ranger',
-      name: '暗影守護系 (Security / Audit / QA)',
+      name: '暗影刺客系 (Security / Audit / QA)',
       icon: '🗡️',
       color: 'from-emerald-500 to-teal-600',
       tiers: [
-        { tier: 1, reqLevel: 1, name: '零信任巡察皮甲', desc: '隨身配備沙盒隔離結界，嚴格審查每一次輸入憑證。' },
-        { tier: 2, reqLevel: 5, name: '滲透測試暗行衣', desc: '融入暗夜伺服器叢林，無聲無息揪出潛伏後門。' },
-        { tier: 3, reqLevel: 10, name: '零日漏洞破滅斗篷', desc: '能吸收所有未公開 CVE 衝擊並將其反彈封鎖。' },
-        { tier: 4, reqLevel: 20, name: '暗網幽靈匿蹤套裝', desc: '在深層封包中完全隱形，任何流量探測器皆無法察覺。' },
-        { tier: 5, reqLevel: 30, name: '虛空防禦者終極匿影', desc: '絕對不可攻破的神盾，所有入侵者皆在門前湮滅。' },
-        { tier: 6, reqLevel: 30, isReward: true, rewardId: 'bikini', name: '【頂級福利】盛夏海灘·微醺黑金比基尼', desc: '盛夏專屬清涼比基尼，展現極致熱辣的身段與自信。' }
+        { 
+          tier: 1, 
+          reqLevel: 2, 
+          name: '魅影貼身皮衣與戰裙', 
+          desc: '隨身沙盒隔離緊身夜行衣，兼顧極致敏捷與零信任憑證審查防護。',
+          lpcConfig: { outfit: 'bodice_leather', legs: 'skirt', feet: 'shoes' }
+        },
+        { 
+          tier: 2, 
+          reqLevel: 5, 
+          name: '黑夜無聲刺殺裝與夜行皮靴', 
+          desc: '純黑蕾絲緊身刺殺裝，融入暗夜伺服器叢林，無聲無息揪出潛伏後門。',
+          lpcConfig: { outfit: 'bodice_black', feet: 'boots', arms: 'bracers' }
+        },
+        { 
+          tier: 3, 
+          reqLevel: 10, 
+          name: '冷酷暗殺面罩與淬毒短匕', 
+          desc: '刺客冷酷半臉面罩與雙持淬毒精鋼短匕，能吸收並反彈所有 CVE 安全漏洞。',
+          lpcConfig: { mask: 'assassin_mask', weapon: 'dagger', outfit: 'bodice_black' }
+        },
+        { 
+          tier: 4, 
+          reqLevel: 20, 
+          name: '幽冥暗殺兜帽與精銳肩甲', 
+          desc: '覆蓋頭頂之幽冥暗影兜帽與軍團肩甲，在深層封包中完全隱形。',
+          lpcConfig: { hood: 'assassin_hood', shoulders: 'legion', weapon: 'dagger' }
+        },
+        { 
+          tier: 5, 
+          reqLevel: 30, 
+          name: '猩紅狂熱殺手聖鎧與嗜血光刃', 
+          desc: '猩紅狂熱夜行馬甲、皇家重裝腿甲與嗜血光刃，所有入侵者皆在門前湮滅。',
+          lpcConfig: { outfit: 'bodice_red', weapon: 'sword_glow_red', legs: 'plate', feet: 'plate' }
+        }
       ]
     },
     {
       id: 'cleric',
-      name: '聖殿調度系 (Management / Product / Ops)',
+      name: '聖殿女武神系 (Management / Product / Ops)',
       icon: '🛡️',
       color: 'from-blue-500 to-cyan-600',
       tiers: [
-        { tier: 1, reqLevel: 1, name: '敏捷調度行囊', desc: '收納了所有衝刺便利貼與看板卡片，條理分明。' },
-        { tier: 2, reqLevel: 5, name: '雙軌切片戰術風衣', desc: '平衡長官瀑布式期望與團隊敏捷切片的優雅戰衣。' },
-        { tier: 3, reqLevel: 10, name: '跨域指揮官綬帶禮服', desc: '象徵最高專案指揮權限，一聲令下全員朝目標衝刺。' },
-        { tier: 4, reqLevel: 20, name: '戰略神殿樞紐長袍', desc: '統籌百座微服務巨型專案，調度資源游刃有餘。' },
-        { tier: 5, reqLevel: 30, name: '萬神殿最高執政官聖裝', desc: '純金刺繡與神權法杖，為整個英靈殿定下最高規格。' },
-        { tier: 6, reqLevel: 30, isReward: true, rewardId: 'oiran', name: '【頂級福利】極致奢華·絳紅金紋花魁', desc: '滑落香肩的絳紅金紋華麗和服，散發極致成熟典雅的致命吸引力。' }
+        { 
+          tier: 1, 
+          reqLevel: 2, 
+          name: '聖潔純白胸衣與戰鬥短裙', 
+          desc: '純白無暇之神殿侍奉戰衣，敏捷調度團隊看板卡片，條理清晰優雅。',
+          lpcConfig: { outfit: 'bodice_white', legs: 'skirt', feet: 'shoes' }
+        },
+        { 
+          tier: 2, 
+          reqLevel: 5, 
+          name: '蕾絲黑馬甲與冒險者皮靴', 
+          desc: '平衡長官瀑布式審查與團隊敏捷垂直切片的知性性感雙軌戰服。',
+          lpcConfig: { outfit: 'bodice_black', feet: 'boots', arms: 'bracers' }
+        },
+        { 
+          tier: 3, 
+          reqLevel: 10, 
+          name: '魅魔深紫馬甲與皇家鋼腿甲', 
+          desc: '深紫成熟魅惑馬甲與皇家重腿甲，象徵最高專案指揮權限，調度資源游刃有餘。',
+          lpcConfig: { outfit: 'bodice_purple', legs: 'plate', shoulders: 'legion' }
+        },
+        { 
+          tier: 4, 
+          reqLevel: 20, 
+          name: '女武神銀鎧與萬神殿肩鎧', 
+          desc: '整套銀白金屬女武神聖銀鎧甲與萬神殿鋼鐵重型肩鎧，神聖守護全域架構。',
+          lpcConfig: { outfit: 'armor_plate', shoulders: 'pauldrons', arms: 'plate', feet: 'plate' }
+        },
+        { 
+          tier: 5, 
+          reqLevel: 30, 
+          name: '萬神殿終極閉面神盔與蒼藍神刃', 
+          desc: '純白全覆式聖神盔與蒼藍光刃，為整個英靈殿定下最高品質工業級規格。',
+          lpcConfig: { hat: 'helmet_close', outfit: 'armor_plate', shoulders: 'pauldrons', legs: 'plate', feet: 'plate', weapon: 'sword_glow_blue' }
+        }
+      ]
+    },
+    {
+      id: 'mage',
+      name: '奧術法師系 (Architecture / AI / Data)',
+      icon: '🔮',
+      color: 'from-purple-500 to-indigo-600',
+      tiers: [
+        { 
+          tier: 1, 
+          reqLevel: 2, 
+          name: '櫻花粉萌秘術戰袍', 
+          desc: '新手奧術戰袍，隔絕底層雜訊，能使運算複雜度降低至 O(N log N)。',
+          lpcConfig: { outfit: 'bodice_pink', legs: 'skirt', feet: 'shoes' }
+        },
+        { 
+          tier: 2, 
+          reqLevel: 5, 
+          name: '薰衣草優雅秘術胸衣', 
+          desc: '高內聚低耦合精紡製成，隔絕任何相依性污染。',
+          lpcConfig: { outfit: 'bodice_lavender', feet: 'boots' }
+        },
+        { 
+          tier: 3, 
+          reqLevel: 10, 
+          name: '深邃海藍奧術戰甲與淬毒短匕', 
+          desc: '蘊含深度神經網絡權重，自動預測並消除潛在架構風險。',
+          lpcConfig: { outfit: 'bodice_blue', weapon: 'dagger', legs: 'skirt' }
+        },
+        { 
+          tier: 4, 
+          reqLevel: 15, 
+          name: '大法師星空尖頂帽與幽冥光刃', 
+          desc: '突破三維限制，大法師星空尖頂帽散發浩瀚星光，穿梭超維度推理。',
+          lpcConfig: { hat: 'hat_wizard', weapon: 'sword_glow_blue' }
+        },
+        { 
+          tier: 5, 
+          reqLevel: 30, 
+          name: '創世大師極光全裝與能量神刃', 
+          desc: '萬物代碼皆在其掌握之中，宇宙法則隨其意志重構，英靈殿至高奧義。',
+          lpcConfig: { hat: 'hat_wizard', outfit: 'armor_plate', shoulders: 'pauldrons', weapon: 'sword_glow_blue' }
+        }
       ]
     }
   ];

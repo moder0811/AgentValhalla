@@ -585,7 +585,7 @@
     skins: SKIN_PALETTE,
     hairColors: HAIR_COLORS,
     sexyCostumes: [
-      { id: 'bunny', name: '🐰 經典兔女郎戰袍', desc: '勇者鬥惡龍神級致敬款！漆皮馬甲+兔耳' },
+      { id: 'bunny', name: '🐰 經典兔女郎戰袍', desc: '殿堂經典傳奇致敬款！漆皮馬甲+兔耳' },
       { id: 'succubus', name: '🖤 深淵魅魔薄紗', desc: '暗黑半透蕾絲長裙+小惡魔角' },
       { id: 'bikini', name: '👙 盛夏黃金微光比基尼', desc: 'JRPG最受歡迎的微光盛夏戰甲' },
       { id: 'oiran', name: '👘 花魁落肩和服', desc: '單邊香肩半露，深V誘惑金箔和服' }

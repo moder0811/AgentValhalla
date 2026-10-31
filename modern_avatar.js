@@ -171,14 +171,14 @@
       {
         id: 'roto',
         category: 'male',
-        name: '🐉 傳奇洛特神聖勇者 (勇者鬥惡龍)',
+        name: '🐉 傳奇神聖大勇者 (Valhalla Hero)',
         subName: '王者太陽神鎧 · 倒三角胸腹肌',
         bustSize: 'Hero',
         skin: 'bronze',
         hair: 'raven',
         outfit: 'roto_armor',
         accessory: 'holy_sword',
-        desc: '源自《勇者鬥惡龍》！藍底金雕太陽神鳥胸甲、王者之冠、英挺剛毅下巴與結實倒三角身形。'
+        desc: '藍底金雕太陽神鳥胸甲、王者之冠、英挺剛毅下巴與結實倒三角身形。'
       },
       {
         id: 'shadow_assassin',
